@@ -1,0 +1,13 @@
+labels:
+  io.cattle.role: project # options are cluster/project
+categories:
+- PKI
+- IoT
+questions:
+- variable: domain
+  label: Domain
+  description: Domain
+  group: "General Config"
+  type: string
+  default: dev.lamassu.io
+  required: true
