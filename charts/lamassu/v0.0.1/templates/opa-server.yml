@@ -1,0 +1,158 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: opa-server-policy-cm
+  namespace: {{.Release.Namespace}}
+data:
+  policy.rego: |
+    package lamassu.gateway.security
+
+    import input.attributes.request.http as http_request
+
+    default allow = true
+
+    allow {
+      action_allowed
+    }
+
+    action_allowed {
+      startswith(http_request.path, "/api/devmanager/.well-known/")
+    }
+
+    action_allowed {
+      allowed_methods := ["OPTIONS"]
+      allowed_methods[_] == http_request.method 
+    }
+
+    action_allowed {
+      token.payload.realm_access.roles[_] == "admin"
+    }
+
+    action_allowed {
+      allowed_methods := ["GET", "POST"]
+      allowed_methods[_] == http_request.method 
+      startswith(http_request.path, "/api/dmsenroller/")
+      token.payload.realm_access.roles[_] == "operator"
+    }
+
+    token := {"payload": payload} {
+        [_, encoded] := split(http_request.headers.authorization, " ")
+        [header, payload, sig] := io.jwt.decode(encoded) 
+    }
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: opa-server-config-cm
+  namespace: {{.Release.Namespace}}
+data:
+  config.yaml: |
+    plugins:
+      envoy_ext_authz_grpc:
+        addr: :9191
+        path: lamassu/gateway/security/allow
+    decision_logs:
+      console: true
+    status:
+      console: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: opa-server-deployment
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: opa-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opa-server
+  template:
+    metadata:
+      labels:
+        app: opa-server
+    spec:
+      containers:
+        - name: opa-server
+          image: {{.Values.image.opa}}
+          volumeMounts:
+            - name: opa-server-policy-config
+              mountPath: /opa/policy.rego
+              subPath: policy.rego
+            - name: opa-server-config-config
+              mountPath: /opa/config.yaml
+              subPath: config.yaml
+          ports:
+            - containerPort: 9191
+            - containerPort: 8181
+          args:
+            - run
+            - --server
+            - --addr=0.0.0.0:8181
+            - --config-file=/opa/config.yaml
+            - --log-level=info
+            - --log-format=text
+            - --ignore=.*
+            - /opa/policy.rego
+      restartPolicy: Always
+      volumes:
+        - name: opa-server-policy-config
+          configMap:  
+            name: opa-server-policy-cm
+        - name: opa-server-config-config
+          configMap:  
+            name: opa-server-config-cm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opa-server
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: opa-server
+  type: ClusterIP
+  ports:
+  - name: opa
+    port: 9191
+    targetPort: 9191
+  - name: https
+    port: 8181
+    targetPort: 8181
+    protocol: TCP
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata: 
+#   name: opa-server-ingress
+#   namespace: {{.Release.Namespace}}
+#   annotations: 
+#     cert-manager.io/issuer: "lamassu-ca-issuer"
+#     kubernetes.io/ingress.class: "nginx"
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+# spec:
+#   tls:
+#   - hosts:
+#     - opa-server.{{.Values.domain}}
+#     secretName: downstream-crt-secret
+#   rules:
+#   - host: opa-server.{{.Values.domain}}
+#     http: 
+#       paths:
+#       - pathType: Prefix
+#         path: /
+#         backend: 
+#           service: 
+#             name: "opa-server"
+#             port: 
+#               number: 9191
+#     http: 
+#       paths:
+#       - pathType: Prefix
+#         path: /
+#         backend: 
+#           service: 
+#             name: "opa-server"
+#             port: 
+#               number: 8181

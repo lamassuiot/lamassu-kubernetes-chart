@@ -1,0 +1,141 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lamassu-cloud-proxy-cert
+  namespace: {{.Release.Namespace}}
+spec:
+  isCA: false
+  commonName: lamassu-cloud-proxy*
+  dnsNames:
+    - "lamassu-cloud-proxy"
+    - "lamassu-cloud-proxy*"
+  secretName: lamassu-cloud-proxy-cert-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: lamassu-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: lamassu-cloud-proxy-deployment
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: lamassu-cloud-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lamassu-cloud-proxy
+  template:
+    metadata:
+      labels:
+        app: lamassu-cloud-proxy
+    spec:     
+      containers:
+        - name: lamassu-cloud-proxy
+          image: {{.Values.image.cloud_proxy}}
+          env:
+            - name: PORT
+              value: "8081"
+            - name: PROTOCOL
+              value: https
+            - name: CERT_FILE
+              value: /certs/tls.crt
+            - name: KEY_FILE
+              value: /certs/tls.key
+            - name: MUTUAL_TLS_ENABLED
+              value: "true"
+            - name: MUTUAL_TLS_CLIENT_CA
+              value: /certs/internal-ca.crt
+
+            - name: POSTGRES_DB
+              value: cloudproxy
+            - name: POSTGRES_USER
+              value: {{.Values.db.db_user}}
+            - name: POSTGRES_PASSWORD
+              value: {{.Values.db.db_password}}
+            - name: POSTGRES_HOSTNAME
+              value: lamassu-db
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_MIGRATIONS_FILE_PATH
+              value: "/app/db/migrations"
+              
+            - name: CONSUL_PROTOCOL
+              value: https
+            - name: CONSUL_HOST
+              value: consul
+            - name: CONSUL_PORT
+              value: "8501"
+            - name: CONSUL_CA
+              value: /certs/internal-ca.crt
+              
+            - name: LAMASSU_CA_ADDRESS
+              value: https://lamassu-ca:8087
+            - name: LAMASSU_CA_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: LAMASSU_CA_CLIENT_CERT_FILE
+              value: /certs/tls.crt
+            - name: LAMASSU_CA_CLIENT_KEY_FILE
+              value: /certs/tls.key
+
+            - name: JAEGER_SERVICE_NAME
+              value: lamassu-cloud-proxy
+            - name: JAEGER_AGENT_HOST
+              value: jaeger
+            - name: JAEGER_AGENT_PORT
+              value: "6831"
+            - name: JAEGER_SAMPLER_TYPE
+              value: const
+            - name: JAEGER_SAMPLER_PARAM
+              value: "1"
+            - name: JAEGER_REPORTER_LOG_SPANS
+              value: "true"
+
+            - name: AMQP_SERVER_PORT
+              value: "5671"
+            - name: AMQP_SERVER_HOST
+              value: "rabbitmq"
+            - name: AMQP_CLIENT_CERT
+              value: /certs/tls.crt
+            - name: AMQP_CLIENT_KEY
+              value: /certs/tls.key
+            - name: AMQP_SERVER_CA_CERT
+              value: /certs/internal-ca.crt
+
+          volumeMounts:
+            - name: lamassu-cloud-proxy-tls-certificates
+              mountPath: /certs/tls.crt
+              subPath: tls.crt
+            - name: lamassu-cloud-proxy-tls-certificates
+              mountPath: /certs/tls.key
+              subPath: tls.key
+            - name: lamassu-cloud-proxy-tls-certificates
+              mountPath: /certs/internal-ca.crt
+              subPath: ca.crt
+          ports:
+            - containerPort: 8081
+      restartPolicy: Always
+      volumes:
+        - name: lamassu-cloud-proxy-tls-certificates
+          secret:
+            secretName: lamassu-cloud-proxy-cert-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lamassu-cloud-proxy
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: lamassu-cloud-proxy
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 8081
+    targetPort: 8081
+    protocol: TCP

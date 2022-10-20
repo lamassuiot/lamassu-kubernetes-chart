@@ -1,0 +1,143 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lamassu-dms-enroller-cert
+  namespace: {{.Release.Namespace}}
+spec:
+  isCA: false
+  commonName: lamassu-dms-enroller*
+  dnsNames:
+    - "lamassu-dms-enroller"
+    - "lamassu-dms-enroller*"
+  secretName: lamassu-dms-enroller-cert-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: lamassu-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: lamassu-dms-enroller-deployment
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: lamassu-dms-enroller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lamassu-dms-enroller
+  template:
+    metadata:
+      labels:
+        app: lamassu-dms-enroller
+    spec:     
+      containers:
+        - name: lamassu-dms-enroller
+          image: {{.Values.image.lamassu_dms_enroller}}
+          env:
+            - name: DEBUG_MODE
+              value: "info"
+            - name: PORT
+              value: "8085"
+            - name: PROTOCOL
+              value: https
+            - name: CERT_FILE
+              value: /certs/tls.crt
+            - name: KEY_FILE
+              value: /certs/tls.key
+            - name: MUTUAL_TLS_ENABLED
+              value: "false"
+            - name: MUTUAL_TLS_CLIENT_CA
+              value: /certs/internal-ca.crt
+            - name: POSTGRES_DB
+              value: dmsenroller
+            - name: POSTGRES_USER
+              value: {{.Values.db.db_user}}
+            - name: POSTGRES_PASSWORD
+              value: {{.Values.db.db_password}}
+            - name: POSTGRES_HOSTNAME
+              value: lamassu-db
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: LAMASSU_CA_ADDRESS
+              value: https://lamassu-ca:8087
+            - name: LAMASSU_CA_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: JAEGER_SERVICE_NAME
+              value: lamassu-dms-enroller
+            - name: JAEGER_AGENT_HOST
+              value: jaeger
+            - name: JAEGER_AGENT_PORT
+              value: "6831"
+            - name: JAEGER_SAMPLER_TYPE
+              value: const
+            - name: JAEGER_SAMPLER_PARAM
+              value: "1"
+            - name: JAEGER_REPORTER_LOG_SPANS
+              value: "true"
+            - name: OPENAPI_ENABLE_SECURITY_SCHEMA
+              value: "true"
+            - name: OPENAPI_SECURITY_OIDC_WELL_KNOWN_URL
+              value: https://auth.{{.Values.domain}}/auth/realms/lamassu/.well-known/openid-configuration
+          volumeMounts:
+            - name: lamassu-dms-enroller-tls-certificates
+              mountPath: /certs/tls.crt
+              subPath: tls.crt
+            - name: lamassu-dms-enroller-tls-certificates
+              mountPath: /certs/tls.key
+              subPath: tls.key
+            - name: lamassu-dms-enroller-tls-certificates
+              mountPath: /certs/internal-ca.crt
+              subPath: ca.crt
+          ports:
+            - containerPort: 8085
+      restartPolicy: Always
+      volumes:
+        - name: lamassu-dms-enroller-tls-certificates
+          secret:
+            secretName: lamassu-dms-enroller-cert-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lamassu-dms-enroller
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: lamassu-dms-enroller
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 8085
+    targetPort: 8085
+    protocol: TCP
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: lamassu-dms-enroller-ingress
+#   namespace: {{.Release.Namespace}}
+#   annotations: 
+#     cert-manager.io/issuer: "lamassu-ca-issuer"
+#     kubernetes.io/ingress.class: "nginx"
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+# spec:
+#   tls:
+#   - hosts:
+#     - lamassu-dms-enroller.{{.Values.domain}}
+#     secretName: downstream-crt-secret
+#   rules:
+#   - host: lamassu-dms-enroller.{{.Values.domain}}
+#     http: 
+#       paths:
+#       - pathType: Prefix
+#         path: /
+#         backend: 
+#           service: 
+#             name: "lamassu-dms-enroller"
+#             port:
+#               number: 8085

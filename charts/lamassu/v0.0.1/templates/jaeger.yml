@@ -1,0 +1,138 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: jaeger-cert
+  namespace: {{.Release.Namespace}}
+spec:
+  isCA: false
+  commonName: jaeger*
+  dnsNames:
+    - "jaeger"
+    - "jaeger*"
+  secretName: jaeger-cert-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: lamassu-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jaeger-pvc
+  namespace: {{.Release.Namespace}}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage:  100Mi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jaeger-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 100Mi
+  claimRef:
+    namespace: {{.Release.Namespace}}
+    name: jaeger-pvc
+  hostPath:
+    path: {{.Values.paths.jaeger_pv}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: jaeger-deployment
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: jaeger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      containers:
+        - name: jaeger
+          image: {{.Values.image.jaeger}}
+          volumeMounts:
+            - name: jaeger-pv
+              mountPath: /badger
+          ports:
+            - containerPort: 6831
+              containerPort: 16686
+          env:
+            - name: SPAN_STORAGE_TYPE
+              value: badger
+            - name: BADGER_EPHEMERAL
+              value: "false"
+            - name: BADGER_DIRECTORY_VALUE
+              value: /badger/data
+      restartPolicy: Always
+      volumes:
+        - name: jaeger-pv
+          persistentVolumeClaim:
+            claimName: jaeger-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: jaeger
+  type: ClusterIP
+  ports:
+  - name: udp
+    port: 6831
+    targetPort: 6831
+    protocol: UDP
+  - name: http
+    port: 16686
+    targetPort: 16686
+    protocol: TCP
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata: 
+#   name: jaeger-ingress
+#   namespace: {{.Release.Namespace}}
+#   annotations: 
+#     cert-manager.io/issuer: "lamassu-ca-issuer"
+#     kubernetes.io/ingress.class: "nginx"
+# spec:
+#   tls:
+#   - hosts:
+#     - jaeger.{{.Values.domain}}
+#     secretName: downstream-crt-secret
+#   rules:
+#   - host: jaeger.{{.Values.domain}}
+#     http: 
+#       paths:
+#       - pathType: Prefix
+#         path: /
+#         backend: 
+#           service: 
+#             name: "jaeger"
+#             port:
+#               number: 6831
+#     http: 
+#       paths:
+#       - pathType: Prefix
+#         path: /
+#         backend: 
+#           service: 
+#             name: "jaeger"
+#             port:
+#               number: 16686

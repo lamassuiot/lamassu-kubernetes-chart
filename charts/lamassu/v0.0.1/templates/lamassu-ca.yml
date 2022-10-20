@@ -1,0 +1,229 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lamassu-ca-service-account
+  namespace: {{.Release.Namespace}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lamassu-ca-role
+  namespace: {{.Release.Namespace}}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lamassu-ca-rolebinding
+  namespace: {{.Release.Namespace}} 
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lamassu-ca-role 
+subjects:
+- namespace: {{.Release.Namespace}} 
+  kind: ServiceAccount
+  name: lamassu-ca-service-account
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lamassu-ca-cert
+  namespace: {{.Release.Namespace}}
+spec:
+  isCA: false
+  commonName: lamassu-ca*
+  dnsNames:
+    - "lamassu-ca"
+    - "lamassu-ca*"
+  secretName: lamassu-ca-cert-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: lamassu-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: lamassu-ca-initcontainer-cm
+  namespace: {{.Release.Namespace}}
+data:
+  init.sh: |
+    echo "Initializing ..."
+    apt-get update
+    apt-get install curl jq -y
+
+    # Check if Vault is healthy
+
+    echo "Waiting vault to launch on 8200..."
+    until $(curl -s -k --output /dev/null --silent --head --fail https://vault:8200); do
+      printf '.'
+      sleep 1
+    done
+    echo "Vault launched"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: lamassu-ca-deployment
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: lamassu-ca
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lamassu-ca
+  template:
+    metadata:
+      labels:
+        app: lamassu-ca
+    spec:
+      serviceAccountName: lamassu-ca-service-account
+      initContainers:
+        - name: vault-initializer
+          image: ubuntu:20.04
+          volumeMounts:
+            - name: initcontainer-cmd
+              mountPath: /templates/init.sh
+              subPath: init.sh
+          command: ["/bin/bash", "-c"]
+          args: ["cp /templates/init.sh /init.sh && chmod +x /init.sh && bash /init.sh" ]
+      containers:
+        - name: lamassu-ca
+          image: {{.Values.image.lamassu_ca}}
+          env:
+            - name: DEBUG_MODE
+              value: "debug"
+            - name: PORT
+              value: "8087"
+            - name: PROTOCOL
+              value: https
+            - name: OCSP_URL
+              value: https://lamassu-ocsp:9098
+            - name: VAULT_ADDRESS
+              value: https://vault:8200
+            - name: VAULT_ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: lamassu-ca-vault-credentials
+                  key: role-id
+            - name: VAULT_SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: lamassu-ca-vault-credentials
+                  key: secret-id
+            - name: VAULT_UNSEAL_KEYS_FILE
+              value: /config/vault-credentials.json
+            - name: VAULT_PKI_CA_PATH
+              value: pki/lamassu/dev/
+            - name: AMQP_IP
+              value: rabbitmq
+            - name: AMQP_PORT
+              value: "5671"
+            - name: AMQP_SERVER_CA_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: OPENAPI_ENABLE_SECURITY_SCHEMA
+              value: "true"
+            - name: OPENAPI_SECURITY_OIDC_WELL_KNOWN_URL
+              value: https://auth.{{.Values.domain}}/auth/realms/lamassu/.well-known/openid-configuration
+            - name: JAEGER_SERVICE_NAME
+              value: lamassu-ca
+            - name: JAEGER_AGENT_HOST
+              value: jaeger
+            - name: JAEGER_AGENT_PORT
+              value: "6831"
+            - name: JAEGER_SAMPLER_TYPE
+              value: const
+            - name: JAEGER_SAMPLER_PARAM
+              value: "1"
+            - name: JAEGER_REPORTER_LOG_SPANS
+              value: "false"
+            - name: VAULT_CA
+              value: /certs/vault.crt
+            - name: MUTUAL_TLS_ENABLED
+              value: "true"
+            - name: MUTUAL_TLS_CLIENT_CA
+              value: /certs/internal-ca.crt
+            - name: CERT_FILE
+              value: /certs/tls.crt
+            - name: KEY_FILE
+              value: /certs/tls.key
+          volumeMounts:
+            - name: lamassu-ca-json-config
+              mountPath: /config/vault-credentials.json
+              subPath: json-file.json
+            - name: lamassu-ca-tls-certificates
+              mountPath: /certs/vault.crt
+              subPath: ca.crt
+            - name: lamassu-ca-tls-certificates
+              mountPath: /certs/tls.crt
+              subPath: tls.crt
+            - name: lamassu-ca-tls-certificates
+              mountPath: /certs/tls.key
+              subPath: tls.key
+            - name: lamassu-ca-tls-certificates
+              mountPath: /certs/internal-ca.crt
+              subPath: ca.crt
+          ports:
+            - containerPort: 8087
+      restartPolicy: Always
+      volumes:
+        - name: initcontainer-cmd
+          configMap:  
+            name: lamassu-ca-initcontainer-cm
+        - name: lamassu-ca-json-config
+          secret:
+            secretName: vault-credentials-file
+        - name: lamassu-ca-tls-certificates
+          secret:
+            secretName: lamassu-ca-cert-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lamassu-ca
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: lamassu-ca
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8087
+    targetPort: 8087
+    protocol: TCP
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata: 
+#   name: lamassu-ca-ingress
+#   namespace: {{.Release.Namespace}}
+#   annotations: 
+#     cert-manager.io/issuer: "lamassu-ca-issuer"
+#     kubernetes.io/ingress.class: "nginx"
+#     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+# spec:
+#   tls:
+#   - hosts:
+#     - lamassu-ca.{{.Values.domain}}
+#     secretName: downstream-crt-secret
+#   rules:
+#   - host: lamassu-ca.{{.Values.domain}}
+#     http: 
+#       paths:
+#       - pathType: Prefix
+#         path: /
+#         backend: 
+#           service: 
+#             name: "lamassu-ca"
+#             port:
+#               number: 8087
