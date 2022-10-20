@@ -42,8 +42,6 @@ spec:
   claimRef:
     namespace: {{.Release.Namespace}}
     name: jaeger-pvc
-  hostPath:
-    path: {{.Values.paths.jaeger_pv}}
 ---
 apiVersion: apps/v1
 kind: Deployment
