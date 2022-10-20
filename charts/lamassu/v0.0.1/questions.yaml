@@ -3,11 +3,20 @@ labels:
 categories:
 - PKI
 - IoT
+
 questions:
 - variable: domain
   label: Domain
-  description: Domain
-  group: "General Config"
+  description: Domain used to access the UI, APIs and other services exposed
+  group: "Lamassu Config"
   type: string
   default: dev.lamassu.io
+  required: true
+
+- variable: storageClassName
+  label: Kubernetes Storage Class Name
+  description: ""
+  group: "Kubernetes Config"
+  type: string
+  default: local-path
   required: true
