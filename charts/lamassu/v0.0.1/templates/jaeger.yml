@@ -30,19 +30,6 @@ spec:
     requests:
       storage:  100Mi
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: jaeger-pv
-spec:
-  accessModes:
-    - ReadWriteOnce
-  capacity:
-    storage: 100Mi
-  claimRef:
-    namespace: {{.Release.Namespace}}
-    name: jaeger-pvc
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
