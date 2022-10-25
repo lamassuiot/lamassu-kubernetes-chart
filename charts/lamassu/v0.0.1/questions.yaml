@@ -22,14 +22,14 @@ questions:
   default: dev.lamassu.io
   required: true
 
-- variable: hashicorp/consul.server.replicas
+- variable: consul.server.replicas
   label: Consul Replicas
   group: "Consul Config"
   type: int
   default: 3
   required: true
 
-- variable: hashicorp/vault.server.replicas
+- variable: vault.server.replicas
   label: Vault Replicas
   group: "Vault Config"
   type: int

@@ -32,16 +32,20 @@ services:
     image: jaegertracing/all-in-one:1.30.0
 
 # Consul values must be set on another section to be read by the subchart
-hashicorp/consul:
+consul:
   global:
     datacenter: lamassu-k8s
   server:
     replicas: 3
     storageClassName: *storage-class-name
 
-hashicorp/vault:
+vault:
   server:
     affinity: ""
     ha:
       enabled: true
       replicas: 5
+  ui:
+    enabled: true
+    serviceType: "NodePort"
+    serviceNodePort: 30100
