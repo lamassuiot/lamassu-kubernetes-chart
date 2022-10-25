@@ -41,9 +41,8 @@ data:
     apt-get install curl jq -y > /dev/null
 
     # Check if Vault is healthy
-    echo ">> Waiting vault to launch on 8200..."
+    echo ">> Waiting vault to listen on port 8200..."
     until $(curl -s -k --output /dev/null --silent --head --fail http://{{.Release.Name}}-vault:8200); do
-      printf '.'
       sleep 1
     done
     echo ">> Detected Vault Status: LAUNCHED"
@@ -183,7 +182,7 @@ data:
     echo -e " kubectl get secret lamassu-ca-vault-credentials -n {{.Release.Namespace}} -o jsonpath='{.data}'"
 
     echo -e "\n>> Vault Root Token and unseal keys can be found with:"
-    echo -e " kubectl get secret vault-root-credentials -n {{.Release.Namespace}} -o jsonpath='{.data}'"
+    echo -e " kubectl get secret vault-credentials-file -n default -o jsonpath='{.data.json-file\.json}' | base64 -d
 
 ---
 apiVersion: batch/v1
