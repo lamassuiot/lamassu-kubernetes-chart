@@ -1,5 +1,5 @@
 domain: dev.lamassu.io
-storageClassName: &storage-class-name "ikl-gfs" # <----  Default Value
+storageClassName: &storage-class-name "" # <----  Default Value
 
 services:
   apiGateway:

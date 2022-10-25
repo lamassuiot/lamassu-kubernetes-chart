@@ -29,9 +29,9 @@ questions:
   default: 3
   required: true
 
-- variable: vault.server.replicas
+- variable: vault.server.ha.replicas
   label: Vault Replicas
   group: "Vault Config"
   type: int
-  default: 5
+  default: 3
   required: true
