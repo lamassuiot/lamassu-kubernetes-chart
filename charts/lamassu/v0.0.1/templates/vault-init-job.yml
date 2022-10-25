@@ -43,7 +43,7 @@ data:
     # Check if Vault is healthy
 
     echo "Waiting vault to launch on 8200..."
-    until $(curl -s -k --output /dev/null --silent --head --fail https://vault:8200); do
+    until $(curl -s -k --output /dev/null --silent --head --fail http://{{.Release.Name}}-vault:8200); do
       printf '.'
       sleep 1
     done
@@ -52,7 +52,7 @@ data:
     
     # Check if Vault is initialized
     echo "Check if Vault is initialized..."
-    isVaultInitialized=$(curl -s -k https://vault:8200/v1/sys/init | jq -r .initialized)
+    isVaultInitialized=$(curl -s -k http://{{.Release.Name}}-vault:8200/v1/sys/init | jq -r .initialized)
     echo $isVaultInitialized
 
     if [ "$isVaultInitialized" == "true" ]; then 
@@ -62,7 +62,7 @@ data:
 
     echo "Vault is healthy but requires initizalization. Initialazing ...."
 
-    vault_credentials_raw=$(curl -s --request POST --data '{"secret_shares": 10,"secret_threshold": 5}' -k https://vault:8200/v1/sys/init)
+    vault_credentials_raw=$(curl -s --request POST --data '{"secret_shares": 10,"secret_threshold": 5}' -k http://{{.Release.Name}}-vault:8200/v1/sys/init)
     echo $vault_credentials_raw
 
     # vault_credentials_base64=$(echo $vault_credentials_raw | base64 --wrap=0)
@@ -96,13 +96,13 @@ data:
     echo "Unsealing ............................."
 
     # Introduciendo keys para unseal
-    curl -s --request PUT "https://vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[0])\" }"
-    curl -s --request PUT "https://vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[1])\" }"
-    curl -s --request PUT "https://vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[2])\" }"
-    curl -s --request PUT "https://vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[3])\" }"
-    curl -s --request PUT "https://vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[4])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[0])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[1])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[2])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[3])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[4])\" }"
    
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"type": "approle"}' -s "https://vault:8200/v1/sys/auth/approle"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"type": "approle"}' -s "http://{{.Release.Name}}-vault:8200/v1/sys/auth/approle"
     
     tee payload.json <<EOF
     {
@@ -113,18 +113,18 @@ data:
     } 
     EOF
     
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "https://vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA1-RSA4096"
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "https://vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA2-RSA2048"
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "https://vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA3-ECC384"
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "https://vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA4-ECC256"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "http://{{.Release.Name}}-vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA1-RSA4096"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "http://{{.Release.Name}}-vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA2-RSA2048"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "http://{{.Release.Name}}-vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA3-ECC384"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "http://{{.Release.Name}}-vault:8200/v1/sys/mounts/pki/lamassu/dev/_pki/Lamassu-Root-CA4-ECC256"
    
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "https://vault:8200/v1/sys/mounts/pki/lamassu/dev/_internal/Lamassu-DMS-Enroller"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @payload.json -s "http://{{.Release.Name}}-vault:8200/v1/sys/mounts/pki/lamassu/dev/_internal/Lamassu-DMS-Enroller"
 
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policy":"path \"sys/mounts/*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\npath \"sys/mounts\" {\n capabilities=[\"read\"]\n}\npath \"sys/policies/*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\npath \"pki/lamassu/dev*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}"}' -s "https://vault:8200/v1/sys/policy/lamassu-ca-policy"
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policy":"path \"Lamassu-Root-CA1-RSA4096/cert/ca\" {\n capabilities=[\"read\"]\n}\npath \"Lamassu-Root-CA2-RSA2048/cert/ca\" {\n capabilities=[\"read\"]\n}\n path \"Lamassu-Root-CA3-ECC384/cert/ca\" {\n capabilities=[\"read\"]\n}\npath \"Lamassu-Root-CA4-ECC256/cert/ca\" {\n capabilities=[\"read\"]\n}"}' -s "https://vault:8200/v1/sys/policy/ocsp-policy"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policy":"path \"sys/mounts/*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\npath \"sys/mounts\" {\n capabilities=[\"read\"]\n}\npath \"sys/policies/*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\npath \"pki/lamassu/dev*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}"}' -s "http://{{.Release.Name}}-vault:8200/v1/sys/policy/lamassu-ca-policy"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policy":"path \"Lamassu-Root-CA1-RSA4096/cert/ca\" {\n capabilities=[\"read\"]\n}\npath \"Lamassu-Root-CA2-RSA2048/cert/ca\" {\n capabilities=[\"read\"]\n}\n path \"Lamassu-Root-CA3-ECC384/cert/ca\" {\n capabilities=[\"read\"]\n}\npath \"Lamassu-Root-CA4-ECC256/cert/ca\" {\n capabilities=[\"read\"]\n}"}' -s "http://{{.Release.Name}}-vault:8200/v1/sys/policy/ocsp-policy"
     
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policies": "lamassu-ca-policy"}' -s "https://vault:8200/v1/auth/approle/role/lamassu-ca-role"
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policies": "ocsp-policy"}' -s "https://vault:8200/v1/auth/approle/role/ocsp-role"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policies": "lamassu-ca-policy"}' -s "http://{{.Release.Name}}-vault:8200/v1/auth/approle/role/lamassu-ca-role"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policies": "ocsp-policy"}' -s "http://{{.Release.Name}}-vault:8200/v1/auth/approle/role/ocsp-role"
 
     tee enroller.json <<EOF
     {
@@ -148,32 +148,32 @@ data:
     } 
     EOF
     
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA1-RSA4096/roles/enroller"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA1-RSA4096/roles/enroller"
     cat internal.json | jq '.common_name="LKS Next Root CA 1"' | jq '.key_bits="4096"' > internal_CA.json
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA1-RSA4096/root/generate/internal"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA1-RSA4096/root/generate/internal"
 
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA2-RSA2048/roles/enroller"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA2-RSA2048/roles/enroller"
     cat internal.json | jq '.common_name="LKS Next Root CA 2"' | jq '.key_bits="2048"' > internal_CA.json
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA2-RSA2048/root/generate/internal"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA2-RSA2048/root/generate/internal"
 
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA3-ECC384/roles/enroller"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA3-ECC384/roles/enroller"
     cat internal.json | jq '.common_name="LKS Next Root CA 3"' | jq '.key_bits="384"' > internal_CA.json
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA3-ECC384/root/generate/internal"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA3-ECC384/root/generate/internal"
 
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA4-ECC256/roles/enroller"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA4-ECC256/roles/enroller"
     cat internal.json | jq '.common_name="LKS Next Root CA 4"' | jq '.key_bits="256"' > internal_CA.json
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "https://vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA4-ECC256/root/generate/internal"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_pki/Lamassu-Root-CA4-ECC256/root/generate/internal"
 
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "https://vault:8200/v1/pki/lamassu/dev/_internal/Lamassu-DMS-Enroller/roles/enroller"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @enroller.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_internal/Lamassu-DMS-Enroller/roles/enroller"
     cat internal.json | jq '.common_name="Lamassu DMS Enroller"' | jq '.key_bits="4096"' | jq '.organization="Lamassu PKI"' | jq '.country=""' | jq '.province=""' | jq '.locality=""' > internal_CA.json
-    curl -k --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "https://vault:8200/v1/pki/lamassu/dev/_internal/Lamassu-DMS-Enroller/root/generate/internal"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data @internal_CA.json -s "http://{{.Release.Name}}-vault:8200/v1/pki/lamassu/dev/_internal/Lamassu-DMS-Enroller/root/generate/internal"
 
     rm payload.json enroller.json internal.json internal_CA.json
 
-    CA_VAULT_ROLEID=$(curl -s -k --header "X-Vault-Token: ${VAULT_TOKEN}" https://vault:8200/v1/auth/approle/role/lamassu-ca-role/role-id | jq -r .data.role_id | sed 's/\\n/\n/g' | sed -Ez '$ s/\n+$//' | base64)
+    CA_VAULT_ROLEID=$(curl -s -k --header "X-Vault-Token: ${VAULT_TOKEN}" http://{{.Release.Name}}-vault:8200/v1/auth/approle/role/lamassu-ca-role/role-id | jq -r .data.role_id | sed 's/\\n/\n/g' | sed -Ez '$ s/\n+$//' | base64)
     echo -e "\nEl valor de ROLEID es $CA_VAULT_ROLEID"
 
-    CA_VAULT_SECRETID=$(curl -s -k --header "X-Vault-Token: ${VAULT_TOKEN}" --request POST https://vault:8200/v1/auth/approle/role/lamassu-ca-role/secret-id  | jq -r .data.secret_id | sed 's/\\n/\n/g' | sed -Ez '$ s/\n+$//' | base64)
+    CA_VAULT_SECRETID=$(curl -s -k --header "X-Vault-Token: ${VAULT_TOKEN}" --request POST http://{{.Release.Name}}-vault:8200/v1/auth/approle/role/lamassu-ca-role/secret-id  | jq -r .data.secret_id | sed 's/\\n/\n/g' | sed -Ez '$ s/\n+$//' | base64)
     echo -e "\nEl valor de SECRETID $CA_VAULT_SECRETID"
 
     curl -s --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" -X POST ${APISERVER}/api/v1/namespaces/{{.Release.Namespace}}/secrets \
