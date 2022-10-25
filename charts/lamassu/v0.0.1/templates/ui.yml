@@ -37,7 +37,7 @@ spec:
     spec:     
       containers:
         - name: lamassu-ui
-          image: {{.Values.image.ui}}
+          image: {{.Values.services.ui.image}}
           env:
             - name: DOMAIN
               value: {{.Values.domain}}

@@ -11,7 +11,7 @@ questions:
   description: ""
   group: "Kubernetes General Config"
   type: storageclass
-  default: local-path
+  default:
   required: true
 
 - variable: domain
