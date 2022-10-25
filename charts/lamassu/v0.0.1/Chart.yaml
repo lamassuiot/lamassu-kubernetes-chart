@@ -19,4 +19,20 @@ version: 0.0.1
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
 appVersion: 1.16.1
-icon: file://../lamassu-minimal.png
+icon: https://avatars.githubusercontent.com/u/27340420?s=200&v=4
+sources:
+  - https://github.com/lamassuiot
+  - https://github.com/lamassuiot/lamassu-kubernetes-chart
+
+dependencies: # A list of the chart requirements (optional)
+  - name: hashicorp/consul
+    version: 0.49.0
+    repository: https://helm.releases.hashicorp.com
+    tags:
+      - consul
+
+  - name: hashicorp/vault
+    version: 0.22.0
+    repository: https://helm.releases.hashicorp.com
+    tags:
+      - vault

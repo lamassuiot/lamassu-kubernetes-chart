@@ -68,7 +68,7 @@ spec:
             - name: POSTGRES_PASSWORD
               value: {{.Values.db.db_password}}
             - name: MINIMUM_REENROLL_DAYS
-              value: "{{.Values.device_manager_minimum_reenroll_days}}"
+              value: "{{.Values.services.deviceManager.minimumReenrollmentDays}}"
             - name: CA_CERT_FILE
               value: /certs/internal-ca.crt
             - name: CA_SERVER_ADDR

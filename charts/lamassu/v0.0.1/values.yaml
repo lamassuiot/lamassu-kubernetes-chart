@@ -1,28 +1,47 @@
 domain: dev.lamassu.io
+storageClassName: &storage-class-name "ikl-gfs" # <----  Default Value
 
-device_manager_minimum_reenroll_days: 30
+services:
+  apiGateway:
+    image: lamassuiot/lamassu-gateway:v1.0.12
+    debugMode: false
+  keycloak:
+    image: lamassuiot/lamassu-auth:v1.0.12
+    user: admin
+    password: admin
+  ui:
+    image: lamassuiot/lamassu-ui:v0.0.14
+  ca:
+    image: lamassuiot/lamassu-ca:v1.0.18
+  deviceManager:
+    image: lamassuiot/lamassu-device-manager:v0.0.9
+    minimumReenrollmentDays: 30
+  dmsManager:
+    image: lamassuiot/lamassu-dms-enroller:v0.0.23
+  database:
+    image: lamassuiot/lamassu-db:v1.0.12
+    postgres_user: admin
+    postgres_password: admin
+  openPolicyAgent:
+    image: openpolicyagent/opa:0.37.1-envoy
+  cloudProxy:
+    image: lamassuiot/lamassu-cloud-proxy:v0.0.1
+  rabbitmq:
+    image: lamassuiot/lamassu-rabbitmq:v1.0.12
+  jaeger:
+    image: jaegertracing/all-in-one:1.30.0
 
-storageClassName: ikl-gfs
+# Consul values must be set on another section to be read by the subchart
+hashicorp/consul:
+  global:
+    datacenter: lamassu-k8s
+  server:
+    replicas: 3
+    storageClassName: *storage-class-name
 
-image:
-  consul: consul:1.9
-  vault: vault:1.7.3
-  lamassu_ca: lamassuiot/lamassu-ca:v1.0.18
-  jaeger: jaegertracing/all-in-one:1.30.0
-  lamassu_db: lamassuiot/lamassu-db:v1.0.12
-  auth: lamassuiot/lamassu-auth:v1.0.12
-  rabbitmq: lamassuiot/lamassu-rabbitmq:v1.0.12
-  opa: openpolicyagent/opa:0.37.1-envoy
-  ui: lamassuiot/lamassu-ui:v0.0.14
-  lamassu_dms_enroller: lamassuiot/lamassu-dms-enroller:v0.0.23
-  lamassu_device_manager: lamassuiot/lamassu-device-manager:v0.0.9
-  api_gateway: lamassuiot/lamassu-gateway:v1.0.12
-  cloud_proxy: lamassuiot/lamassu-cloud-proxy:v0.0.1
-
-db:
-  postgres_user: admin
-  postgres_password: admin
-  db_user: admin
-  db_password: admin
-  keycloak_user: admin
-  keycloak_password: admin
+hashicorp/vault:
+  server:
+    affinity: ""
+    ha:
+      enabled: true
+      replicas: 5

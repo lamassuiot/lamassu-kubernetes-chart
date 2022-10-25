@@ -5,6 +5,15 @@ categories:
 - IoT
 
 questions:
+
+- variable: storageClassName
+  label: Kubernetes Storage Class Name
+  description: ""
+  group: "Kubernetes General Config"
+  type: storageclass
+  default: local-path
+  required: true
+
 - variable: domain
   label: Domain
   description: Domain used to access the UI, APIs and other services exposed
@@ -13,10 +22,16 @@ questions:
   default: dev.lamassu.io
   required: true
 
-- variable: storageClassName
-  label: Kubernetes Storage Class Name
-  description: ""
-  group: "Kubernetes Config"
-  type: string
-  default: local-path
+- variable: hashicorp/consul.server.replicas
+  label: Consul Replicas
+  group: "Consul Config"
+  type: int
+  default: 3
+  required: true
+
+- variable: hashicorp/vault.server.replicas
+  label: Vault Replicas
+  group: "Vault Config"
+  type: int
+  default: 5
   required: true
