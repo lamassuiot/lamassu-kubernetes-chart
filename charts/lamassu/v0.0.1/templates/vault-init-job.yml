@@ -47,25 +47,26 @@ data:
       printf '.'
       sleep 1
     done
-    echo "Vault launched"
+    echo ">> Detected Vault Status: LAUNCHED"
     sleep 30
     
     # Check if Vault is initialized
-    echo "Check if Vault is initialized..."
+    echo ">> Checking Vault Sealed status ..."
     isVaultInitialized=$(curl -s -k http://{{.Release.Name}}-vault:8200/v1/sys/init | jq -r .initialized)
     echo $isVaultInitialized
 
     if [ "$isVaultInitialized" == "true" ]; then 
-      echo "Vault already initialized. Existing with succesfull code"
+      echo ">> Vault already initialized. Existing with successful code"
       exit 0
     fi
 
-    echo "Vault is healthy but requires initizalization. Initialazing ...."
+    echo ">> Vault is healthy but requires init"
+    echo ">> Initializing Vault"
 
-    vault_credentials_raw=$(curl -s --request POST --data '{"secret_shares": 10,"secret_threshold": 5}' -k http://{{.Release.Name}}-vault:8200/v1/sys/init)
-    echo $vault_credentials_raw
+    VAULT_CREDENTIALS_RAW=$(curl -s --request POST --data '{"secret_shares": 10,"secret_threshold": 5}' -k http://{{.Release.Name}}-vault:8200/v1/sys/init)
+    echo $VAULT_CREDENTIALS_RAW
 
-    # vault_credentials_base64=$(echo $vault_credentials_raw | base64 --wrap=0)
+    # vault_credentials_base64=$(echo $VAULT_CREDENTIALS_RAW | base64 --wrap=0)
     # echo $vault_credentials_base64
 
     APISERVER=https://kubernetes.default.svc
@@ -76,7 +77,7 @@ data:
 
     echo "Before secret creation"
 
-    UNSEAL_KEYS=$(echo $vault_credentials_raw | jq -r .keys)
+    UNSEAL_KEYS=$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys)
     echo "$UNSEAL_KEYS"
 
     UNSEAL_KEYS_BASE64=$(echo $UNSEAL_KEYS | base64 --wrap=0)
@@ -89,18 +90,18 @@ data:
     echo "Vault Credentials File persisted into kubernetes secret."
     echo "Provisioning vault: "
 
-    echo "$vault_credentials_raw" | jq '.'
+    echo "$VAULT_CREDENTIALS_RAW" | jq '.'
  
-    VAULT_TOKEN=$(echo $vault_credentials_raw | jq -r .root_token)
+    VAULT_TOKEN=$(echo $VAULT_CREDENTIALS_RAW | jq -r .root_token)
 
     echo "Unsealing ............................."
 
     # Introduciendo keys para unseal
-    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[0])\" }"
-    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[1])\" }"
-    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[2])\" }"
-    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[3])\" }"
-    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $vault_credentials_raw | jq -r .keys[4])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[0])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[1])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[2])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[3])\" }"
+    curl -s --request PUT "http://{{.Release.Name}}-vault:8200/v1/sys/unseal" -k --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[4])\" }"
    
     curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"type": "approle"}' -s "http://{{.Release.Name}}-vault:8200/v1/sys/auth/approle"
     
@@ -176,11 +177,24 @@ data:
     CA_VAULT_SECRETID=$(curl -s -k --header "X-Vault-Token: ${VAULT_TOKEN}" --request POST http://{{.Release.Name}}-vault:8200/v1/auth/approle/role/lamassu-ca-role/secret-id  | jq -r .data.secret_id | sed 's/\\n/\n/g' | sed -Ez '$ s/\n+$//' | base64)
     echo -e "\nEl valor de SECRETID $CA_VAULT_SECRETID"
 
+
+
+    # Store the unseal keys and root token in a Kubernetes secret
+    curl -s --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" -X POST ${APISERVER}/api/v1/namespaces/{{.Release.Namespace}}/secrets \
+      --data "{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"vault-root-credentials\"},\"type\":\"Opaque\",\"data\":$VAULT_CREDENTIALS_RAW}"
+
+    echo -e "\n>> Generated ROOT credentials for Vault can be obtained with:"
+    echo -e " kubectl get secret vault-root-credentials -n {{.Release.Namespace}} -o jsonpath='{.data}'"
+
+    # Store the roleid and secretid in a Kubernetes secret
     curl -s --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" -X POST ${APISERVER}/api/v1/namespaces/{{.Release.Namespace}}/secrets \
       --data "{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"lamassu-ca-vault-credentials\"},\"type\":\"Opaque\",\"data\":{\"role-id\":\"$CA_VAULT_ROLEID\", \"secret-id\":\"$CA_VAULT_SECRETID\"}}"
 
-    echo -e "\nEl valor de VAULT_TOKEN es $VAULT_TOKEN"
-    echo HASTA AQUI
+    echo -e "\n>> Generated credentials for CA application can be obtained with:"
+    echo -e " kubectl get secret lamassu-ca-vault-credentials -n {{.Release.Namespace}} -o jsonpath='{.data}'"
+
+    echo -e "\n>> Vault Root Token and unseal keys can be found with:"
+    echo -e "kubectl get secret {{.Release.Name}} lamassu-ca-vault-credentials -o jsonpath='{.data.vault-root-token}' | base64 --decode"
 ---
 apiVersion: batch/v1
 kind: Job
