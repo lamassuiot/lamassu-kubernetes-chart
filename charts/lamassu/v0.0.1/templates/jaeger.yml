@@ -50,7 +50,7 @@ spec:
     spec:
       containers:
         - name: jaeger
-          image: {{.Values.image.jaeger}}
+          image: {{.Values.services.jaeger.image}}
           volumeMounts:
             - name: jaeger-pv
               mountPath: /badger
