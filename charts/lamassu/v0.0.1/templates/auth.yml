@@ -1,0 +1,91 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: auth-cert
+  namespace: {{.Release.Namespace}}
+spec:
+  isCA: false
+  commonName: auth*
+  dnsNames:
+    - "auth"
+    - "auth*"
+  secretName: auth-cert-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: lamassu-ca-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: {{.Values.services.keycloak.image}}
+          volumeMounts:          
+            - name: auth-tls-certificates
+              mountPath: /etc/x509/https/tls.crt
+              subPath: tls.crt
+            - name: auth-tls-certificates
+              mountPath: /etc/x509/https/tls.key
+              subPath: tls.key
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+          env:
+            - name: DB_VENDOR
+              value: postgres
+            - name: DB_ADDR
+              value: lamassu-db
+            - name: DB_DATABASE
+              value: auth
+            - name: DB_USER
+              value: {{.Values.services.database.username}}
+            - name: DB_PASSWORD
+              value: {{.Values.services.database.password}}
+            - name: KEYCLOAK_USER
+              value: {{.Values.services.keycloak.password}}
+            - name: KEYCLOAK_PASSWORD
+              value: {{.Values.services.keycloak.password}}
+            - name: KEYCLOAK_IMPORT
+              value: /tmp/lamassu.json
+      restartPolicy: Always
+      volumes:
+        - name: auth-tls-certificates
+          secret:
+            secretName: auth-cert-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: auth
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  - name: https
+    port: 8443
+    targetPort: 8443
+    protocol: TCP

@@ -7,7 +7,7 @@ services:
     debugMode: false
   keycloak:
     image: lamassuiot/lamassu-auth:v1.0.12
-    user: admin
+    username: admin
     password: admin
   ui:
     image: lamassuiot/lamassu-ui:v0.0.14
@@ -20,8 +20,8 @@ services:
     image: lamassuiot/lamassu-dms-enroller:v0.0.23
   database:
     image: lamassuiot/lamassu-db:v1.0.12
-    postgres_user: admin
-    postgres_password: admin
+    username: admin
+    password: admin
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
   cloudProxy:
