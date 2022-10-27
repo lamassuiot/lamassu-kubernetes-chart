@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: lamassu-db
-          image: {{.Values.image.lamassu_db}}
+          image: {{.Values.services.database.image}}
           volumeMounts:
             - name: lamassu-db-pv
               mountPath: /var/lib/postgresql/data
