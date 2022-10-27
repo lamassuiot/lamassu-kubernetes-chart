@@ -42,10 +42,25 @@ consul:
 vault:
   server:
     affinity: ""
+    extraVolumes:
+    - type: secret
+      name: vault-server-tls
     ha:
       enabled: true
       replicas: 5
+      config: |
+        ui = true
+        listener "tcp" {
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          tls_cert_file = "/vault/userconfig/vault-server-tls/tls.crt"
+          tls_key_file  = "/vault/userconfig/vault-server-tls/tls.key"
+          tls_client_ca_file = "/vault/userconfig/vault-server-tls/ca.crt"
+        }
+
   ui:
     enabled: true
     serviceType: "NodePort"
     serviceNodePort: 30100
+  injector:
+    enabled: false

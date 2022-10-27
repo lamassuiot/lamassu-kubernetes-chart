@@ -14,7 +14,7 @@ spec:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: lamassu-ca-issuer
+    name: downstream-ca-issuer
     kind: Issuer
     group: cert-manager.io
 ---
@@ -28,12 +28,12 @@ spec:
   commonName: api-gateway
   dnsNames:
     - "api-gateway"
-  secretName: upstream-tls-certificate-api-gateway
+  secretName: api-gateway-upstream-cert
   privateKey:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: lamassu-ca-issuer
+    name: upstream-ca-issuer
     kind: Issuer
     group: cert-manager.io
 ---
@@ -681,7 +681,7 @@ spec:
             secretName: downstream-tls-certificate
         - name: upstream-certificate
           secret:
-            secretName: upstream-tls-certificate-api-gateway
+            secretName: api-gateway-upstream-cert
 ---
 apiVersion: v1
 kind: Service

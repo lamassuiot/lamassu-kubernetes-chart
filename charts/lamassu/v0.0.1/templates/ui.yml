@@ -9,12 +9,12 @@ spec:
   dnsNames:
     - "ui"
     - "ui*"
-  secretName: ui-cert-secret
+  secretName: ui-upstream-cert
   privateKey:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: lamassu-ca-issuer
+    name: upstream-ca-issuer
     kind: Issuer
     group: cert-manager.io
 ---
@@ -68,7 +68,7 @@ spec:
       volumes:
         - name: ui-tls-certificates
           secret:
-            secretName: ui-cert-secret
+            secretName: ui-upstream-cert
 ---
 apiVersion: v1
 kind: Service

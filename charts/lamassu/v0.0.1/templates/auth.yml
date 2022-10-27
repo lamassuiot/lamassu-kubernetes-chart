@@ -9,12 +9,12 @@ spec:
   dnsNames:
     - "auth"
     - "auth*"
-  secretName: auth-cert-secret
+  secretName: auth-upstream-cert
   privateKey:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: lamassu-ca-issuer
+    name: upstream-ca-issuer
     kind: Issuer
     group: cert-manager.io
 ---
@@ -69,7 +69,7 @@ spec:
       volumes:
         - name: auth-tls-certificates
           secret:
-            secretName: auth-cert-secret
+            secretName: auth-upstream-cert
 ---
 apiVersion: v1
 kind: Service
