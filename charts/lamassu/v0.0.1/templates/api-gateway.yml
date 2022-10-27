@@ -1,7 +1,7 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: api-gateway-cert
+  name: downstream-tls-certificate
   namespace: {{.Release.Namespace}}
 spec:
   isCA: false
@@ -21,7 +21,7 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: api-gateway-cert-up
+  name: api-gateway-upstream-cert
   namespace: {{.Release.Namespace}}
 spec:
   isCA: false

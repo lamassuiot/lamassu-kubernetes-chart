@@ -14,7 +14,7 @@ metadata:
 spec:
   isCA: true
   commonName: selfsigned-downstream-ca
-  name: root-downstream-ca-cert
+  secretName: root-downstream-ca-cert
   privateKey:
     algorithm: ECDSA
     size: 256
