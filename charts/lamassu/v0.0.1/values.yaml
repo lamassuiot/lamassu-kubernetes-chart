@@ -44,7 +44,7 @@ vault:
     affinity: ""
     extraVolumes:
     - type: secret
-      name: vault-server-tls
+      name: vault-upstream-cert
     ha:
       enabled: true
       replicas: 5
