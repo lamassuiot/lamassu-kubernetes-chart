@@ -1,7 +1,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: users-create-cm
+  name: auth-init
   namespace: {{.Release.Namespace}}
 data:
   users-create-script.sh: |
@@ -29,37 +29,3 @@ data:
     # Create operator
     opt/jboss/keycloak/bin/kcadm.sh create users -s username=operator -s enabled=true -r lamassu
     opt/jboss/keycloak/bin/kcadm.sh set-password -r lamassu --username=operator --new-password operator
-
-    # sleep 10000
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: users-job
-  namespace: {{.Release.Namespace}}
-  labels:
-    app: users-job
-spec:
-  template:
-    metadata:
-      name: users-job
-      labels:
-        app: users-job
-    spec:
-      serviceAccountName: job-service-account
-      containers:
-        - name: users-job
-          image: jboss/keycloak:13.0.0
-          volumeMounts:
-            - name: users-create
-              mountPath: /templates/init.sh
-              subPath: users-create-script.sh
-          securityContext:
-            runAsUser: 0
-          command: ["/bin/bash", "-c"]
-          args: ["cp /templates/init.sh /init.sh && chmod +x /init.sh && bash /init.sh" ]
-      restartPolicy: OnFailure
-      volumes:
-        - name: users-create
-          configMap:  
-            name: users-create-cm

@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-autounsealer-job
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: vault-autounsealer-job
+spec:
+  schedule: "*/3 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: vault-autounsealer-job
+          labels:
+            app: vault-autounsealer-job
+        spec:
+          serviceAccountName: vault-autounsealer
+          containers:
+            - name: vault-autounsealer-job
+              image: ubuntu:20.04
+              volumeMounts:
+                - name: init-script
+                  mountPath: /templates/init.sh
+                  subPath: init.sh
+                - name: vault-credentials
+                  mountPath: /vault/vault-credentials.json
+                  subPath: vault-creds.json
+              command: ["/bin/bash", "-c"]
+              args: ["cp /templates/init.sh /init.sh && chmod +x /init.sh && bash /init.sh" ]
+          restartPolicy: OnFailure
+          volumes:
+            - name: init-script
+              configMap:  
+                name: vault-autounsealer-script
+              volumes:
+            - name: vault-credentials
+              secret:
+                secretName: vault-credentials

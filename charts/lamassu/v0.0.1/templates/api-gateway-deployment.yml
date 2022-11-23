@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: api-gateway
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: {{.Values.services.apiGateway.image}}
+          volumeMounts:
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream.crt
+              subPath: tls.crt
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream.key
+              subPath: tls.key
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream-ca.crt
+              subPath: tls.crt
+            - name: upstream-certificate
+              mountPath: /certs/internal-ca.crt
+              subPath: ca.crt
+            - name: upstream-certificate
+              mountPath: /certs/upstream.crt
+              subPath: tls.crt
+            - name: upstream-certificate
+              mountPath: /certs/upstream.key
+              subPath: tls.key
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+            - containerPort: 9900
+          env:
+            - name: DOMAIN
+              value: {{.Values.domain}}
+            - name: DEBUG_MODE
+              value: "{{.Values.debugMode}}"
+          args:
+          - "envoy"
+          - "--config-path"
+          - "/tmpl/envoy.yaml.tmpl"
+      restartPolicy: Always
+      volumes:
+        - name: downstream-tls-certificate
+          secret:
+            secretName: downstream-cert
+        - name: upstream-certificate
+          secret:
+            secretName: api-gateway-upstream-cert

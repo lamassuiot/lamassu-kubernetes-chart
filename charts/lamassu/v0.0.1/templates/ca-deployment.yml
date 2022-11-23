@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: ca
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: ca
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ca
+  template:
+    metadata:
+      labels:
+        app: ca
+    spec:
+      containers:
+        - name: ca
+          image: {{.Values.services.ca.image}}
+          env:
+            - name: SERVICE_NAME
+              value: ca
+            - name: DEPLOYMENT_ENVIRONMENT 
+              value: production
+            - name: JAEGER_EXPORTER_URL 
+              value: "a"
+            - name: DEBUG_MODE
+              value: "{{.Values.debugMode}}"
+            - name: PORT
+              value: "8085"
+            - name: PROTOCOL
+              value: https
+            - name: CERT_FILE
+              value: /certs/tls.crt
+            - name: KEY_FILE
+              value: /certs/tls.key
+            - name: MUTUAL_TLS_ENABLED
+              value: "true"
+            - name: MUTUAL_TLS_CLIENT_CA
+              value: /certs/internal-ca.crt
+            - name: AMQP_SERVER_HOST
+              value: rabbitmq
+            - name: AMQP_SERVER_PORT
+              value: "5671"
+            - name: AMQP_SERVER_CA_CERT
+              value: /certs/internal-ca.crt
+
+            - name: POSTGRES_HOSTNAME
+              value: postgresql-pgpool
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: ca
+            - name: POSTGRES_USERNAME
+              value: {{.Values.services.database.username}}
+            - name: POSTGRES_PASSWORD
+              value: {{.Values.services.database.password}}
+            - name: OCSP_URL
+              value: https://{{.Values.domain}}/api/ocsp/
+            - name: VAULT_ADDRESS
+              value: https://vault:8200
+            - name: VAULT_ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-ca-credentials
+                  key: role-id
+            - name: VAULT_SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-ca-credentials
+                  key: secret-id
+            - name: VAULT_UNSEAL_KEYS_FILE
+              value: /config/vault-credentials.json
+            - name: VAULT_PKI_CA_PATH
+              value: pki/lamassu/dev/
+            - name: VAULT_CA
+              value: /certs/vault.crt
+            - name: ENGINE
+              value: vault
+          volumeMounts:
+            - name: ca-json-config
+              mountPath: /config/vault-credentials.json
+              subPath: unseal-keys.json
+            - name: tls-certificates
+              mountPath: /certs/vault.crt
+              subPath: ca.crt
+            - name: tls-certificates
+              mountPath: /certs/tls.crt
+              subPath: tls.crt
+            - name: tls-certificates
+              mountPath: /certs/tls.key
+              subPath: tls.key
+            - name: tls-certificates
+              mountPath: /certs/internal-ca.crt
+              subPath: ca.crt
+          ports:
+            - containerPort: 8085
+      restartPolicy: Always
+      volumes:
+        - name: initcontainer-cmd
+          configMap:  
+            name: ca-initcontainer-cm
+        - name: ca-json-config
+          secret:
+            secretName: vault-credentials
+        - name: tls-certificates
+          secret:
+            secretName: ca-upstream-cert

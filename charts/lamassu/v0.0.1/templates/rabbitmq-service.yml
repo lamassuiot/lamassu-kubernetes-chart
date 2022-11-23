@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: rabbitmq
+  type: ClusterIP
+  ports:
+  - name: amqp
+    port: 5671
+    targetPort: 5671
+  - name: https
+    port: 15671
+    targetPort: 15671
+    protocol: TCP

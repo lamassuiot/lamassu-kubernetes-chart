@@ -1,29 +1,30 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: vault-init-job
+  name: auth-init
   namespace: {{.Release.Namespace}}
   labels:
-    app: vault-init-job
+    app: auth-init
 spec:
   template:
     metadata:
-      name: vault-init-job
+      name: auth-init
       labels:
-        app: vault-init-job
+        app: auth-init
     spec:
-      serviceAccountName: vault-init
       containers:
-        - name: vault-init-job
-          image: ubuntu:20.04
+        - name: auth-init
+          image: jboss/keycloak:13.0.0
           volumeMounts:
-            - name: init-script
+            - name: auth-init
               mountPath: /templates/init.sh
-              subPath: init.sh
+              subPath: users-create-script.sh
+          securityContext:
+            runAsUser: 0
           command: ["/bin/bash", "-c"]
           args: ["cp /templates/init.sh /init.sh && chmod +x /init.sh && bash /init.sh" ]
       restartPolicy: OnFailure
       volumes:
-        - name: init-script
+        - name: auth-init
           configMap:  
-            name: vault-init-script
+            name: auth-init

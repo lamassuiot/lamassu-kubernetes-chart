@@ -1,23 +1,24 @@
 domain: dev.lamassu.io
+debugMode: false
 storageClassName: &storage-class-name "" # <----  Default Value
 
 services:
   apiGateway:
-    image: lamassuiot/lamassu-gateway:v1.0.12
+    image: lamassuiot/lamassu-gateway-dev:latest
     debugMode: false
   keycloak:
-    image: lamassuiot/lamassu-auth:v1.0.12
+    image: lamassuiot/lamassu-auth-dev:latest
     username: admin
     password: admin
   ui:
-    image: lamassuiot/lamassu-ui:v0.0.14
+    image: lamassuiot/lamassu-ui-dev:latest
   ca:
-    image: lamassuiot/lamassu-ca:v1.0.18
+    image: lamassuiot/lamassu-ca-dev:latest
   deviceManager:
-    image: lamassuiot/lamassu-device-manager:v0.0.9
-    minimumReenrollmentDays: 30
+    image: lamassuiot/lamassu-device-manager-dev:latest
+    minimumReenrollmentDays: 90
   dmsManager:
-    image: lamassuiot/lamassu-dms-enroller:v0.0.23
+    image: lamassuiot/lamassu-dms-manager-dev:latest
   database:
     image: lamassuiot/lamassu-db:v1.0.12
     username: admin
@@ -25,42 +26,71 @@ services:
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
   cloudProxy:
-    image: lamassuiot/lamassu-cloud-proxy:v0.0.1
+    image: lamassuiot/lamassu-cloud-proxy-dev:latest
   rabbitmq:
-    image: lamassuiot/lamassu-rabbitmq:v1.0.12
+    image: lamassuiot/lamassu-rabbitmq-dev:latest
   jaeger:
     image: jaegertracing/all-in-one:1.30.0
 
-# Consul values must be set on another section to be read by the subchart
+##############################
+# Subcharts values
+##############################
+
+postgresql-ha:
+  fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
+  global:
+    storageClass:  *storage-class-name
+    postgresql:
+      username: "admin"
+      password: "admin"
+      # database: ""
+      repmgrUsername: "admin"
+      repmgrPassword: "admin"
+      # repmgrDatabase: ""
+      existingSecret: ""
+  postgresql:
+   replicaCount: 3
+   initdbScriptsCM: postgres-ha-init
+
 consul:
+  fullnameOverride: "consul" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
     datacenter: lamassu-k8s
+  client:
+    enabled: false
   server:
+    affinity: "null"  #set to null to remove affinity rule. By default consul only deploys 1 service per node. See: https://developer.hashicorp.com/consul/docs/k8s/helm#v-server-affinity
     replicas: 3
     storageClassName: *storage-class-name
 
 vault:
+  fullnameOverride: "vault" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
+  global:
+    tlsDisable: false
   server:
     affinity: ""
     extraVolumes:
-    - type: secret
-      name: vault-upstream-cert
+      - type: secret
+        name: vault-upstream-cert
     ha:
       enabled: true
-      replicas: 5
+      replicas: 3
+      apiAddr: https://127.0.0.1:8200
       config: |
         ui = true
         listener "tcp" {
           address = "[::]:8200"
           cluster_address = "[::]:8201"
-          tls_cert_file = "/vault/userconfig/vault-server-tls/tls.crt"
-          tls_key_file  = "/vault/userconfig/vault-server-tls/tls.key"
-          tls_client_ca_file = "/vault/userconfig/vault-server-tls/ca.crt"
+          tls_cert_file = "/vault/userconfig/vault-upstream-cert/tls.crt"
+          tls_key_file  = "/vault/userconfig/vault-upstream-cert/tls.key"
+          tls_client_ca_file = "/vault/userconfig/vault-upstream-cert/ca.crt"
         }
 
+        storage "consul" {
+          path = "vault/"
+          address = "consul-server:8500"
+        }
   ui:
     enabled: true
-    serviceType: "NodePort"
-    serviceNodePort: 30100
   injector:
     enabled: false

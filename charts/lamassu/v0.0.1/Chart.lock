@@ -5,5 +5,8 @@ dependencies:
 - name: vault
   repository: https://helm.releases.hashicorp.com
   version: 0.22.0
-digest: sha256:84bae6125164bc318e2f3f3de99cf2df02589958d4250ec6ea99e4102d127259
-generated: "2022-10-25T07:49:22.0532523+02:00"
+- name: postgresql-ha
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.0.3
+digest: sha256:b7d9ddd4c3dcd1c97190edb9d3d7df3fd11ace4fad515e4515da3e0cbe430be7
+generated: "2022-11-12T17:58:54.638934237Z"

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: rabbitmq
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: {{.Values.services.rabbitmq.image}}
+          volumeMounts:
+            - name: rabbitmq-json-config
+              mountPath: /etc/rabbitmq/rabbitmq.conf
+              subPath: rabbitmq.conf
+            - name: rabbitmq-tls-certificates
+              mountPath: /certs/tls.crt
+              subPath: tls.crt
+            - name: rabbitmq-tls-certificates
+              mountPath: /certs/tls.key
+              subPath: tls.key
+            - name: rabbitmq-tls-certificates
+              mountPath: /certs/internal-ca.crt
+              subPath: ca.crt
+          ports:
+            - containerPort: 5671
+            - containerPort: 15671
+            
+      restartPolicy: Always
+      volumes:
+        - name: rabbitmq-json-config
+          configMap:  
+            name: rabbitmq-cm
+        - name: rabbitmq-tls-certificates
+          secret:
+            secretName: rabbitmq-upstream-cert

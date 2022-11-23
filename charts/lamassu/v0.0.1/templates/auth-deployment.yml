@@ -1,27 +1,7 @@
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: auth-cert
-  namespace: {{.Release.Namespace}}
-spec:
-  isCA: false
-  commonName: auth*
-  dnsNames:
-    - "auth"
-    - "auth*"
-  secretName: auth-upstream-cert
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  issuerRef:
-    name: upstream-ca-issuer
-    kind: Issuer
-    group: cert-manager.io
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deployment
+  name: auth
   namespace: {{.Release.Namespace}}
   labels:
     app: auth
@@ -52,7 +32,7 @@ spec:
             - name: DB_VENDOR
               value: postgres
             - name: DB_ADDR
-              value: lamassu-db
+              value: postgresql-pgpool #Service Name for HA postgres
             - name: DB_DATABASE
               value: auth
             - name: DB_USER
@@ -70,22 +50,3 @@ spec:
         - name: auth-tls-certificates
           secret:
             secretName: auth-upstream-cert
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: auth
-  namespace: {{.Release.Namespace}}
-spec:
-  selector:
-    app: auth
-  type: ClusterIP
-  ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
-    protocol: TCP
-  - name: https
-    port: 8443
-    targetPort: 8443
-    protocol: TCP
