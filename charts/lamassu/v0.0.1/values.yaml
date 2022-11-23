@@ -31,6 +31,23 @@ services:
     image: lamassuiot/lamassu-rabbitmq-dev:latest
   jaeger:
     image: jaegertracing/all-in-one:1.30.0
+  alerts:
+    image: lamassuiot/lamassu-alerts-dev:latest
+    smtp:
+      from: ""
+      insecure: true
+      enable_ssl: true
+      username: ""
+      password: ""
+      host: ""
+      port: 25
+
+simulationTools:
+  enabled: false
+  virtualDevice:
+    image: lamassuiot/lamassuiot-virtual-device:2.0.0
+  virtualDms:
+    image: lamassuiot/lamassuiot-virtual-dms:2.0.0
 
 ##############################
 # Subcharts values

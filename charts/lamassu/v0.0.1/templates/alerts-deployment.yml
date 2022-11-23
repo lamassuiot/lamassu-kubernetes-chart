@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
-  name: dms-manager-deployment
+  name: alerts-deployment
   namespace: {{.Release.Namespace}}
   labels:
-    app: dms-manager
+    app: alerts
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dms-manager
+      app: alerts
   template:
     metadata:
       labels:
-        app: dms-manager
+        app: alerts
     spec:     
       containers:
-        - name: dms-manager
-          image: {{.Values.services.dmsManager.image}}
+        - name: alerts
+          image: {{.Values.services.alerts.image}}
           env:
             - name: SERVICE_NAME
-              value: dmsManager
+              value: alerts
             - name: DEPLOYMENT_ENVIRONMENT 
               value: production
             - name: JAEGER_EXPORTER_URL 
@@ -51,15 +51,31 @@ spec:
             - name: POSTGRES_PORT
               value: "5432"
             - name: POSTGRES_DATABASE
-              value: dmsmanager
+              value: alerts
             - name: POSTGRES_USER
               value: {{.Values.services.database.username}}
             - name: POSTGRES_PASSWORD
-              value: {{.Values.services.database.password}}  
-            - name: LAMASSU_CA_ADDRESS
-              value: ca:8085
-            - name: LAMASSU_CA_CERT_FILE
-              value: /certs/internal-ca.crt
+              value: {{.Values.services.database.password}}
+
+            - name: SMTP_FROM
+              value: {{.Values.services.alerts.smtp.from}}
+            - name: SMTP_INSECURE
+              value: "{{.Values.services.alerts.smtp.insecure}}"
+            - name: SMTP_ENABLE_SSL
+              value: "{{.Values.services.alerts.smtp.enable_ssl}}"
+            - name: SMTP_USERNAME
+              value: {{.Values.services.alerts.smtp.username}}
+            - name: SMTP_PASSWORD
+              value: {{.Values.services.alerts.smtp.password}}
+            - name: SMTP_HOST
+              value: {{.Values.services.alerts.smtp.host}}
+            - name: SMTP_PORT
+              value: "{{.Values.services.alerts.smtp.port}}"
+            - name: TEMPLATE_HTML
+              value: /app/templates/email.html
+            - name: TEMPLATE_JSON
+              value: /app/templates/config.json
+
           volumeMounts:
             - name: tls-certificates
               mountPath: /certs/tls.crt
@@ -76,4 +92,4 @@ spec:
       volumes:
         - name: tls-certificates
           secret:
-            secretName: dms-manager-upstream-cert
+            secretName: alerts-upstream-cert
