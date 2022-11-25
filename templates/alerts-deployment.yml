@@ -1,30 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
-  name: ca
+  name: alerts-deployment
   namespace: {{.Release.Namespace}}
   labels:
-    app: ca
+    app: alerts
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ca
+      app: alerts
   template:
     metadata:
       labels:
-        app: ca
-    spec:
+        app: alerts
+    spec:     
       containers:
-        - name: ca
-          image: {{.Values.services.ca.image}}
+        - name: alerts
+          image: {{.Values.services.alerts.image}}
+          imagePullPolicy: Always
           env:
             - name: SERVICE_NAME
-              value: ca
+              value: alerts
             - name: DEPLOYMENT_ENVIRONMENT 
               value: production
             - name: JAEGER_EXPORTER_URL 
-              value: "a"
+              value: "http://localhost:2020"
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
             - name: PORT
@@ -51,40 +52,32 @@ spec:
             - name: POSTGRES_PORT
               value: "5432"
             - name: POSTGRES_DATABASE
-              value: ca
-            - name: POSTGRES_USERNAME
+              value: alerts
+            - name: POSTGRES_USER
               value: {{.Values.services.database.username}}
             - name: POSTGRES_PASSWORD
               value: {{.Values.services.database.password}}
-            - name: OCSP_URL
-              value: https://{{.Values.domain}}/api/ocsp/
-            - name: VAULT_ADDRESS
-              value: https://vault:8200
-            - name: VAULT_ROLE_ID
-              valueFrom:
-                secretKeyRef:
-                  name: vault-ca-credentials
-                  key: role-id
-            - name: VAULT_SECRET_ID
-              valueFrom:
-                secretKeyRef:
-                  name: vault-ca-credentials
-                  key: secret-id
-            - name: VAULT_UNSEAL_KEYS_FILE
-              value: /config/vault-credentials.json
-            - name: VAULT_PKI_CA_PATH
-              value: pki/lamassu/dev/
-            - name: VAULT_CA
-              value: /certs/vault.crt
-            - name: ENGINE
-              value: vault
+
+            - name: SMTP_FROM
+              value: {{.Values.services.alerts.smtp.from}}
+            - name: SMTP_INSECURE
+              value: "{{.Values.services.alerts.smtp.insecure}}"
+            - name: SMTP_ENABLE_SSL
+              value: "{{.Values.services.alerts.smtp.enable_ssl}}"
+            - name: SMTP_USERNAME
+              value: {{.Values.services.alerts.smtp.username}}
+            - name: SMTP_PASSWORD
+              value: {{.Values.services.alerts.smtp.password}}
+            - name: SMTP_HOST
+              value: {{.Values.services.alerts.smtp.host}}
+            - name: SMTP_PORT
+              value: "{{.Values.services.alerts.smtp.port}}"
+            - name: TEMPLATE_HTML
+              value: /app/templates/email.html
+            - name: TEMPLATE_JSON
+              value: /app/templates/config.json
+
           volumeMounts:
-            - name: ca-json-config
-              mountPath: /config/vault-credentials.json
-              subPath: unseal-keys.json
-            - name: tls-certificates
-              mountPath: /certs/vault.crt
-              subPath: ca.crt
             - name: tls-certificates
               mountPath: /certs/tls.crt
               subPath: tls.crt
@@ -98,12 +91,6 @@ spec:
             - containerPort: 8085
       restartPolicy: Always
       volumes:
-        - name: initcontainer-cmd
-          configMap:  
-            name: ca-initcontainer-cm
-        - name: ca-json-config
-          secret:
-            secretName: vault-credentials
         - name: tls-certificates
           secret:
-            secretName: ca-upstream-cert
+            secretName: alerts-upstream-cert

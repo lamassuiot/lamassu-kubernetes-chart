@@ -1,26 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
-  name: device-manager-deployment
+  name: dms-manager-deployment
   namespace: {{.Release.Namespace}}
   labels:
-    app: device-manager
+    app: dms-manager
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: device-manager
+      app: dms-manager
   template:
     metadata:
       labels:
-        app: device-manager
+        app: dms-manager
     spec:     
       containers:
-        - name: device-manager
-          image: {{.Values.services.deviceManager.image}}
+        - name: dms-manager
+          image: {{.Values.services.dmsManager.image}}
+          imagePullPolicy: Always
           env:
             - name: SERVICE_NAME
-              value: deviceManager
+              value: dmsManager
             - name: DEPLOYMENT_ENVIRONMENT 
               value: production
             - name: JAEGER_EXPORTER_URL 
@@ -51,7 +52,7 @@ spec:
             - name: POSTGRES_PORT
               value: "5432"
             - name: POSTGRES_DATABASE
-              value: devicemanager
+              value: dmsmanager
             - name: POSTGRES_USER
               value: {{.Values.services.database.username}}
             - name: POSTGRES_PASSWORD
@@ -60,12 +61,6 @@ spec:
               value: ca:8085
             - name: LAMASSU_CA_CERT_FILE
               value: /certs/internal-ca.crt
-            - name: LAMASSU_DMS_MANAGER_ADDRESS
-              value: dms-manager:8085
-            - name: LAMASSU_DMS_MANAGER_CERT_FILE
-              value: /certs/internal-ca.crt
-            - name: MINIMUM_REENROLL_DAYS
-              value: "{{.Values.services.deviceManager.minimumReenrollmentDays}}"
           volumeMounts:
             - name: tls-certificates
               mountPath: /certs/tls.crt
@@ -82,4 +77,4 @@ spec:
       volumes:
         - name: tls-certificates
           secret:
-            secretName: device-manager-upstream-cert
+            secretName: dms-manager-upstream-cert

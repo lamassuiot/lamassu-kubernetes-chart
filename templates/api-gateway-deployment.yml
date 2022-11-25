@@ -18,6 +18,7 @@ spec:
       containers:
         - name: api-gateway
           image: {{.Values.services.apiGateway.image}}
+          imagePullPolicy: Always
           volumeMounts:
             - name: downstream-tls-certificate
               mountPath: /certs/downstream.crt

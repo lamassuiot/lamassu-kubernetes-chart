@@ -18,6 +18,7 @@ spec:
       containers:
         - name: opa-server
           image: {{.Values.services.openPolicyAgent.image}}
+          imagePullPolicy: Always
           volumeMounts:
             - name: opa-server-policy-config
               mountPath: /opa/policy.rego

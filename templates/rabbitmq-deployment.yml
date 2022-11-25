@@ -18,6 +18,7 @@ spec:
       containers:
         - name: rabbitmq
           image: {{.Values.services.rabbitmq.image}}
+          imagePullPolicy: Always
           volumeMounts:
             - name: rabbitmq-json-config
               mountPath: /etc/rabbitmq/rabbitmq.conf

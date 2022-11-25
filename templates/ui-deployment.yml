@@ -18,6 +18,7 @@ spec:
       containers:
         - name: ui
           image: {{.Values.services.ui.image}}
+          imagePullPolicy: Always
           env:
             - name: DOMAIN
               value: {{.Values.domain}}

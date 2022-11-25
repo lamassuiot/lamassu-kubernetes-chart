@@ -18,6 +18,7 @@ spec:
       containers:
         - name: auth
           image: {{.Values.services.keycloak.image}}
+          imagePullPolicy: Always
           volumeMounts:          
             - name: auth-tls-certificates
               mountPath: /etc/x509/https/tls.crt
