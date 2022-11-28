@@ -59,11 +59,11 @@ spec:
             - name: CONNECTOR_PERSISTENCE_DIR
               value: /id-volume
             - name: CONSUL_PROTOCOL
-              value: https
+              value: http
             - name: CONSUL_HOST
               value: consul-server
             - name: CONSUL_PORT
-              value: "8501"
+              value: "8500"
             - name: CONSUL_CA
               value: /certs/internal-ca.crt
             - name: AWS_ACCESS_KEY_ID

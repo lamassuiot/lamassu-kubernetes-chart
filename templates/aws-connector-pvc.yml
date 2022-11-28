@@ -5,6 +5,8 @@ metadata:
   name: aws-connector-identifier
   namespace: {{.Release.Namespace}}
 spec:
+  accessModes:
+    - ReadWriteOnce
   storageClassName: {{.Values.storageClassName}}
   resources:
     requests:
