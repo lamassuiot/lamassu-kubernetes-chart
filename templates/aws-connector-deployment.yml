@@ -1,0 +1,100 @@
+{{- if .Values.services.awsConnector.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: aws-connector
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: aws-connector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aws-connector
+  template:
+    metadata:
+      labels:
+        app: aws-connector
+    spec:     
+      containers:
+        - name: aws-connector
+          image: {{.Values.services.awsConnector.image}}
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_NAME
+              value: aws-connector
+            - name: DEPLOYMENT_ENVIRONMENT 
+              value: production
+            - name: JAEGER_EXPORTER_URL 
+              value: "http://localhost:2020"
+            - name: DEBUG_MODE
+              value: "{{.Values.debugMode}}"
+            - name: PORT
+              value: "8085"
+            - name: PROTOCOL
+              value: https
+            - name: CERT_FILE
+              value: /certs/tls.crt
+            - name: KEY_FILE
+              value: /certs/tls.key
+            - name: MUTUAL_TLS_ENABLED
+              value: "true"
+            - name: MUTUAL_TLS_CLIENT_CA
+              value: /certs/internal-ca.crt
+            - name: AMQP_SERVER_HOST
+              value: rabbitmq
+            - name: AMQP_SERVER_PORT
+              value: "5671"
+            - name: AMQP_SERVER_CA_CERT
+              value: /certs/internal-ca.crt
+
+            - name: LAMASSU_CA_ADDRESS
+              value: ca:8085
+            - name: LAMASSU_CA_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: CONNECTOR_TYPE
+              value: aws
+            - name: CONNECTOR_NAME
+              value:  {{.Values.services.awsConnector.name}}
+            - name: CONNECTOR_PERSISTENCE_DIR
+              value: /id-volume
+            - name: CONSUL_PROTOCOL
+              value: https
+            - name: CONSUL_HOST
+              value: consul-server
+            - name: CONSUL_PORT
+              value: "8501"
+            - name: CONSUL_CA
+              value: /certs/internal-ca.crt
+            - name: AWS_ACCESS_KEY_ID
+              value: "{{.Values.services.awsConnector.aws.accessKeyId}}"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{.Values.services.awsConnector.aws.secretAccessKey}}
+            - name: AWS_DEFAULT_REGION
+              value: {{.Values.services.awsConnector.aws.defaultRegion}}
+            - name: AWS_SQS_INBOUND_QUEUE_NAME
+              value: {{.Values.services.awsConnector.aws.sqs.inboundQueueName}}
+
+          volumeMounts:
+            - name: connector-identifier
+              mountPath: /id-volume
+            - name: tls-certificates
+              mountPath: /certs/tls.crt
+              subPath: tls.crt
+            - name: tls-certificates
+              mountPath: /certs/tls.key
+              subPath: tls.key
+            - name: tls-certificates
+              mountPath: /certs/internal-ca.crt
+              subPath: ca.crt
+          ports:
+            - containerPort: 8085
+      restartPolicy: Always
+      volumes:
+        - name: tls-certificates
+          secret:
+            secretName: aws-connector-upstream-cert
+        - name: connector-identifier
+          persistentVolumeClaim:
+            claimName: aws-connector-identifier
+{{- end }}

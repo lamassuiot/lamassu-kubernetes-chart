@@ -19,6 +19,15 @@ spec:
         - name: api-gateway
           image: {{.Values.services.apiGateway.image}}
           imagePullPolicy: Always
+          env:
+            - name: DOMAIN
+              value: "'*'"
+            - name: DEBUG_MODE
+              value: "{{.Values.debugMode}}"
+          args:
+          - "envoy"
+          - "--config-path"
+          - "/tmpl/envoy.yaml.tmpl"
           volumeMounts:
             - name: downstream-tls-certificate
               mountPath: /certs/downstream.crt
@@ -42,15 +51,6 @@ spec:
             - containerPort: 80
             - containerPort: 443
             - containerPort: 9900
-          env:
-            - name: DOMAIN
-              value: {{.Values.domain}}
-            - name: DEBUG_MODE
-              value: "{{.Values.debugMode}}"
-          args:
-          - "envoy"
-          - "--config-path"
-          - "/tmpl/envoy.yaml.tmpl"
       restartPolicy: Always
       volumes:
         - name: downstream-tls-certificate

@@ -1,0 +1,12 @@
+{{- if .Values.services.awsConnector.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aws-connector-identifier
+  namespace: {{.Release.Namespace}}
+spec:
+  storageClassName: {{.Values.storageClassName}}
+  resources:
+    requests:
+      storage: 1Mi
+{{- end }}

@@ -1,0 +1,16 @@
+{{- if .Values.services.awsConnector.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: aws-connector
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: aws-connector
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 8085
+    targetPort: 8085
+    protocol: TCP
+{{- end }}

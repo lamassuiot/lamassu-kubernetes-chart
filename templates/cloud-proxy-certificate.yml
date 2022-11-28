@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cloud-proxy-upstream-cert
+  namespace: {{.Release.Namespace}}
+spec:
+  isCA: false
+  commonName: cloud-proxy
+  dnsNames:
+    - "cloud-proxy"
+    - "cloud-proxy*"
+  secretName: cloud-proxy-upstream-cert
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: upstream-ca-issuer
+    kind: Issuer
+    group: cert-manager.io

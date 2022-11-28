@@ -41,6 +41,17 @@ services:
       password: ""
       host: ""
       port: 25
+  awsConnector:
+    image: lamassuiot/lamassu-aws-connector-dev:latest
+    enabled: false
+    name: ""
+    aws:
+      accessKeyId: ""
+      secretAccessKey: ""
+      defaultRegion: ""
+      sqs:
+        inboundQueueName:  ""
+        outbountQueueName:  ""
 
 simulationTools:
   enabled: false
