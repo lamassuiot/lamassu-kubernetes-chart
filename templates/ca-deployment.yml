@@ -81,6 +81,8 @@ spec:
               value: /certs/vault.crt
             - name: ENGINE
               value: vault
+            - name: ABOUT_TO_EXPIRE_DAYS
+              value: "90"
           volumeMounts:
             - name: ca-json-config
               mountPath: /config/vault-credentials.json
