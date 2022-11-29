@@ -11,9 +11,6 @@ data:
     TOKEN=$(cat ${SERVICEACCOUNT}/token)
     CACERT=${SERVICEACCOUNT}/ca.crt
 
-    apt-get update > /dev/null
-    apt-get install curl jq -y > /dev/null
-
     # Check if Vault is healthy
     echo ">> Waiting vault to listen on port 8200..."
     until $(curl -s -k --output /dev/null --silent --head --fail https://vault:8200); do

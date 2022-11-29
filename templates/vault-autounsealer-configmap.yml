@@ -11,9 +11,6 @@ data:
     TOKEN=$(cat ${SERVICEACCOUNT}/token)
     CACERT=${SERVICEACCOUNT}/ca.crt
 
-    apt-get update > /dev/null
-    apt-get install curl jq -y > /dev/null
-
     VAULT_CREDENTIALS_RAW=$(cat /vault/vault-credentials.json)
     echo $VAULT_CREDENTIALS_RAW
 
