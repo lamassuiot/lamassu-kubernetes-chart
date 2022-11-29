@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: root-downstream-cert
-  namespace: {{.Release.Namespace}}
+  name: {{.Release.Namespace}}-{{.Release.Names}}-root-downstream-cert
+  namespace: istio-system
 spec:
   isCA: true
   commonName: "downstream-selfsigned-cert"
-  secretName: root-downstream-cert
+  secretName: {{.Release.Namespace}}-{{.Release.Names}}-root-downstream-cert
   privateKey:
     algorithm: ECDSA
     size: 256

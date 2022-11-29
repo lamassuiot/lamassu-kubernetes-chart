@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: default-gateway
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+      - lamassu.zpd.ikerlan.es
+      - auth.lamassu.zpd.ikerlan.es
+    tls:
+      httpsRedirect: true # sends 301 redirect for http requests
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: {{.Release.Namespace}}-{{.Release.Names}}-downstream-cert # This should match the Certificate secretName
+    hosts:
+      - lamassu.zpd.ikerlan.es
+      - auth.lamassu.zpd.ikerlan.es

@@ -1,8 +1,8 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: downstream-ca-issuer
-  namespace: {{.Release.Namespace}}
+  name: {{.Release.Namespace}}-{{.Release.Name}}-downstream-ca-issuer
+  namespace: istio-system
 spec:
   ca:
-    secretName: root-downstream-cert
+    secretName: {{.Release.Namespace}}-{{.Release.Name}}-root-downstream-cert

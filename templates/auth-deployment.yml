@@ -19,13 +19,6 @@ spec:
         - name: auth
           image: {{.Values.services.keycloak.image}}
           imagePullPolicy: Always
-          volumeMounts:          
-            - name: auth-tls-certificates
-              mountPath: /etc/x509/https/tls.crt
-              subPath: tls.crt
-            - name: auth-tls-certificates
-              mountPath: /etc/x509/https/tls.key
-              subPath: tls.key
           ports:
             - containerPort: 8080
             - containerPort: 8443
@@ -46,8 +39,10 @@ spec:
               value: {{.Values.services.keycloak.password}}
             - name: KEYCLOAK_IMPORT
               value: /tmp/lamassu.json
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+            - name: REDIRECT_SOCKET
+              value: proxy-https
+            - name: KEYCLOAK_FRONTEND_URL
+              value: https://auth.{{.Values.domain}}/auth
       restartPolicy: Always
-      volumes:
-        - name: auth-tls-certificates
-          secret:
-            secretName: auth-upstream-cert
