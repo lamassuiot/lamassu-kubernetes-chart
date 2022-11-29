@@ -40,9 +40,11 @@ spec:
               value: "true"
             - name: MUTUAL_TLS_CLIENT_CA
               value: /certs/internal-ca.crt
+            - name: AMQP_SERVER_USE_BASIC_AUTH
+              value: "false"
             - name: AMQP_SERVER_ENABLE_TLS
               value: "true"
-                        - name: AMQP_SERVER_HOST
+            - name: AMQP_SERVER_HOST
               value: rabbitmq
             - name: AMQP_SERVER_PORT
               value: "5671"
