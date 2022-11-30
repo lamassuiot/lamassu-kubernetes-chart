@@ -53,7 +53,7 @@ spec:
               value: /certs/internal-ca.crt
 
             - name: LAMASSU_CA_ADDRESS
-              value: ca:8085
+              value: https://ca:8085
             - name: LAMASSU_CA_CERT_FILE
               value: /certs/internal-ca.crt
             - name: CONNECTOR_TYPE
