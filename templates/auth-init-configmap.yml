@@ -29,3 +29,6 @@ data:
     # Create operator
     opt/jboss/keycloak/bin/kcadm.sh create users -s username=operator -s enabled=true -r lamassu
     opt/jboss/keycloak/bin/kcadm.sh set-password -r lamassu --username=operator --new-password operator
+
+    #Terminate IstioProxy: https://github.com/istio/istio/issues/6324#issuecomment-533923427
+    curl -sf -XPOST http://127.0.0.1:15020/quitquitquit

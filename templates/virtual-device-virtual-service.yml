@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: virtual-device
+  namespace: {{.Release.Namespace}}
+spec:
+  hosts:
+  - "virtual-device.{{.Values.domain}}"
+  gateways:
+  - virtual-simulators
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 7001
+        host: virtual-device

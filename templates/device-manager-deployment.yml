@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: device-manager-deployment
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: device-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: device-manager
+  template:
+    metadata:
+      labels:
+        app: device-manager
+    spec:     
+      containers:
+        - name: device-manager
+          image: {{.Values.services.deviceManager.image}}
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_NAME
+              value: deviceManager
+            - name: DEBUG_MODE
+              value: "{{.Values.debugMode}}"
+            - name: PORT
+              value: "8085"
+            - name: PROTOCOL
+              value: http
+            - name: AMQP_SERVER_USE_BASIC_AUTH
+              value: "true"
+            - name: AMQP_SERVER_USERNAME
+              value: "guest"
+            - name: AMQP_SERVER_PASSWORD
+              value: "guest"
+            - name: AMQP_SERVER_HOST
+              value: rabbitmq
+            - name: AMQP_SERVER_ENABLE_TLS
+              value: "false"
+            - name: AMQP_SERVER_PORT
+              value: "5672"
+
+            - name: POSTGRES_HOSTNAME
+              value: postgresql-pgpool
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: devicemanager
+            - name: POSTGRES_USER
+              value: {{.Values.services.database.username}}
+            - name: POSTGRES_PASSWORD
+              value: {{.Values.services.database.password}}  
+            - name: LAMASSU_CA_ADDRESS
+              value: http://ca:8085
+            - name: LAMASSU_DMS_MANAGER_ADDRESS
+              value: http://dms-manager:8085
+            - name: MINIMUM_REENROLL_DAYS
+              value: "{{.Values.services.deviceManager.minimumReenrollmentDays}}"
+          ports:
+            - containerPort: 8085
+      restartPolicy: Always

@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: virtual-simulators
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+      - virtual-device.lamassu.zpd.ikerlan.es
+      - virtual-dms.lamassu.zpd.ikerlan.es

@@ -1,0 +1,44 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: vault-autounsealer-script
+  namespace: {{.Release.Namespace}}
+data:
+  init.sh: |
+    APISERVER=https://kubernetes.default.svc
+    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+    TOKEN=$(cat ${SERVICEACCOUNT}/token)
+    CACERT=${SERVICEACCOUNT}/ca.crt
+
+    VAULT_CREDENTIALS_RAW=$(cat /vault/vault-credentials.json)
+    echo $VAULT_CREDENTIALS_RAW
+
+    VAULT_TOKEN=$(echo $VAULT_CREDENTIALS_RAW | jq -r .root_token)
+    echo $VAULT_TOKEN
+
+    curl -s --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" ${APISERVER}/api/v1/namespaces/{{.Release.Namespace}}/endpoints/vault > endpoints.json
+    
+    for k in $(jq '.subsets[].addresses | keys | .[]' endpoints.json); do
+      value=$(jq ".subsets[].addresses[$k]" endpoints.json)
+      ip=$(jq -r '.ip' <<< "$value");
+      podName=$(jq -r '.targetRef.name' <<< "$value");
+      echo "    Checking vault pod $k $podName -> $ip"
+      curl -s "http://${ip}:8200/v1/sys/seal-status" --header "X-Vault-Token: ${VAULT_TOKEN}"
+      sealed_status=$(curl -s "http://${ip}:8200/v1/sys/seal-status" --header "X-Vault-Token: ${VAULT_TOKEN}" | jq .sealed)
+      echo $sealed_status
+      if [ "$sealed_status" == "false" ]; then 
+        echo "        pod $k $podName -> $ip not sealed. Skiping"
+      else
+        echo "        pod $k $podName -> $ip SEALED. Unsealing pod"
+        # Send keys for unsealing
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[0])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[1])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[2])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[3])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[4])\" }"
+      fi
+    done
+
+    #Terminate IstioProxy: https://github.com/istio/istio/issues/6324#issuecomment-533923427
+    curl -sf -XPOST http://127.0.0.1:15020/quitquitquit

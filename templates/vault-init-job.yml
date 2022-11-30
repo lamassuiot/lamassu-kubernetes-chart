@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init-job
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: vault-init-job
+spec:
+  template:
+    metadata:
+      name: vault-init-job
+      labels:
+        app: vault-init-job
+    spec:
+      serviceAccountName: vault-init
+      containers:
+        - name: vault-init-job
+          image: lamassuiot/ubuntu-k8s-toolbox:1.0
+          volumeMounts:
+            - name: init-script
+              mountPath: /templates/init.sh
+              subPath: init.sh
+          command: ["/bin/bash", "-c"]
+          args: ["cp /templates/init.sh /init.sh && chmod +x /init.sh && bash /init.sh" ]
+      restartPolicy: OnFailure
+      volumes:
+        - name: init-script
+          configMap:  
+            name: vault-init-script

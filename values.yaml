@@ -64,6 +64,14 @@ simulationTools:
 # Subcharts values
 ##############################
 
+rabbitmq:
+  fullnameOverride: "rabbitmq"
+  global:
+    storageClass:  *storage-class-name
+  auth:
+    username: "guest"
+    password: "guest"
+
 postgresql-ha:
   fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
@@ -94,24 +102,19 @@ consul:
 vault:
   fullnameOverride: "vault" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
-    tlsDisable: false
+    tlsDisable: true
   server:
     affinity: ""
-    extraVolumes:
-      - type: secret
-        name: vault-upstream-cert
     ha:
       enabled: true
       replicas: 3
-      apiAddr: https://127.0.0.1:8200
+      apiAddr: http://127.0.0.1:8200
       config: |
         ui = true
         listener "tcp" {
-          address = "[::]:8200"
-          cluster_address = "[::]:8201"
-          tls_cert_file = "/vault/userconfig/vault-upstream-cert/tls.crt"
-          tls_key_file  = "/vault/userconfig/vault-upstream-cert/tls.key"
-          tls_client_ca_file = "/vault/userconfig/vault-upstream-cert/ca.crt"
+          tls_disable = 1
+          address = "0.0.0.0:8200"
+          cluster_address = "0.0.0.0:8201"
         }
 
         storage "consul" {

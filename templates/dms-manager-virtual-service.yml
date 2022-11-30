@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dms-manager
+  namespace: {{.Release.Namespace}}
+spec:
+  hosts:
+  - "{{.Values.domain}}"
+  gateways:
+  - default-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/dmsmanager/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 8085
+        host: dms-manager

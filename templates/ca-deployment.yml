@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: ca
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: ca
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ca
+  template:
+    metadata:
+      labels:
+        app: ca
+    spec:
+      containers:
+        - name: ca
+          image: {{.Values.services.ca.image}}
+          imagePullPolicy: Always
+          env:
+            - name: SERVICE_NAME
+              value: ca
+            - name: DEBUG_MODE
+              value: "{{.Values.debugMode}}"
+            - name: PORT
+              value: "8085"
+            - name: PROTOCOL
+              value: http
+            - name: AMQP_SERVER_USE_BASIC_AUTH
+              value: "true"
+            - name: AMQP_SERVER_USERNAME
+              value: "guest"
+            - name: AMQP_SERVER_PASSWORD
+              value: "guest"
+            - name: AMQP_SERVER_HOST
+              value: rabbitmq
+            - name: AMQP_SERVER_ENABLE_TLS
+              value: "false"
+            - name: AMQP_SERVER_PORT
+              value: "5672"
+
+            - name: POSTGRES_HOSTNAME
+              value: postgresql-pgpool
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DATABASE
+              value: ca
+            - name: POSTGRES_USERNAME
+              value: {{.Values.services.database.username}}
+            - name: POSTGRES_PASSWORD
+              value: {{.Values.services.database.password}}
+            - name: OCSP_URL
+              value: https://{{.Values.domain}}/api/ocsp/
+            - name: VAULT_ADDRESS
+              value: http://vault:8200
+            - name: VAULT_ROLE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-ca-credentials
+                  key: role-id
+            - name: VAULT_SECRET_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vault-ca-credentials
+                  key: secret-id
+            - name: VAULT_UNSEAL_KEYS_FILE
+              value: /config/vault-credentials.json
+            - name: VAULT_PKI_CA_PATH
+              value: pki/lamassu/dev/
+            # - name: VAULT_CA
+            #   value: /certs/vault.crt
+            - name: ENGINE
+              value: vault
+            - name: ABOUT_TO_EXPIRE_DAYS
+              value: "90"
+          volumeMounts:
+            - name: ca-json-config
+              mountPath: /config/vault-credentials.json
+              subPath: unseal-keys.json
+          ports:
+            - containerPort: 8085
+      restartPolicy: Always
+      volumes:
+        - name: ca-json-config
+          secret:
+            secretName: vault-credentials

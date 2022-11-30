@@ -1,0 +1,90 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: vault-init-script
+  namespace: {{.Release.Namespace}}
+data:
+  init.sh: |
+    APISERVER=https://kubernetes.default.svc
+    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+    TOKEN=$(cat ${SERVICEACCOUNT}/token)
+    CACERT=${SERVICEACCOUNT}/ca.crt
+
+    # Check if Vault is healthy
+    echo ">> Waiting vault to listen on port 8200..."
+    until $(curl -s --output /dev/null --silent --head --fail http://vault:8200); do
+      sleep 1
+    done
+    echo ">> Detected vault status: LAUNCHED"
+    sleep 10
+    
+    # Check if Vault is initialized
+    echo ">> Checking vault sealed status ..."
+
+    isVaultInitialized=$(curl -s http://vault:8200/v1/sys/init | jq -r .initialized)
+    if [ "$isVaultInitialized" == "true" ]; then 
+      echo ">> Vault already initialized. Existing with successful code"
+      exit 0
+    fi
+
+    echo ">> Vault is healthy but requires init"
+    echo ">> Initializing vault"
+    
+    VAULT_CREDENTIALS_RAW=$(curl -s --request POST --data '{"secret_shares": 10,"secret_threshold": 5}'  http://vault:8200/v1/sys/init)
+
+    UNSEAL_KEYS=$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys)
+    UNSEAL_KEYS_BASE64=$(echo $UNSEAL_KEYS | base64 --wrap=0)
+    VAULT_CREDENTIALS_BASE64=$(echo $VAULT_CREDENTIALS_RAW | base64 --wrap=0)
+
+    curl -s --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" -X POST ${APISERVER}/api/v1/namespaces/{{.Release.Namespace}}/secrets \
+    --data "{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"vault-credentials\"},\"type\":\"Opaque\",\"data\":{\"vault-creds.json\": \"$VAULT_CREDENTIALS_BASE64\",\"unseal-keys.json\":\"$UNSEAL_KEYS_BASE64\"}}"    
+    VAULT_TOKEN=$(echo $VAULT_CREDENTIALS_RAW | jq -r .root_token) > /dev/null 2>&1
+
+    curl -s --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" ${APISERVER}/api/v1/namespaces/{{.Release.Namespace}}/endpoints/vault > endpoints.json
+    for k in $(jq '.subsets[].addresses | keys | .[]' endpoints.json); do
+      value=$(jq ".subsets[].addresses[$k]" endpoints.json)
+      ip=$(jq -r '.ip' <<< "$value");
+      podName=$(jq -r '.targetRef.name' <<< "$value");
+      echo "    Checking vault pod $k $podName -> $ip"
+      curl -s "http://${ip}:8200/v1/sys/seal-status" --header "X-Vault-Token: ${VAULT_TOKEN}"
+      sealed_status=$(curl -s "http://${ip}:8200/v1/sys/seal-status" --header "X-Vault-Token: ${VAULT_TOKEN}" | jq .sealed)
+      echo $sealed_status
+      if [ "$sealed_status" == "false" ]; then 
+        echo "        pod $k $podName -> $ip not sealed. Skiping"
+      else
+        echo "        pod $k $podName -> $ip SEALED. Unsealing pod"
+        # Send keys for unsealing
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[0])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[1])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[2])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[3])\" }"
+        curl -s --request PUT "http://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[4])\" }"
+      fi
+    done
+
+
+    echo ">> Provisioning vault..."
+
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"type": "approle"}' -s "http://vault:8200/v1/sys/auth/approle"
+
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policy":"path \"sys/mounts/*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\npath \"sys/mounts\" {\n capabilities=[\"read\"]\n}\npath \"sys/policies/*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}\npath \"pki/lamassu/dev*\" {\n capabilities=[\"read\", \"create\", \"update\", \"delete\", \"list\", \"sudo\"]\n}"}' -s "http://vault:8200/v1/sys/policy/lamassu-ca-policy"
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policy":"path \"Lamassu-Root-CA1-RSA4096/cert/ca\" {\n capabilities=[\"read\"]\n}\npath \"Lamassu-Root-CA2-RSA2048/cert/ca\" {\n capabilities=[\"read\"]\n}\n path \"Lamassu-Root-CA3-ECC384/cert/ca\" {\n capabilities=[\"read\"]\n}\npath \"Lamassu-Root-CA4-ECC256/cert/ca\" {\n capabilities=[\"read\"]\n}"}' -s  "http://vault:8200/v1/sys/policy/ocsp-policy"
+
+    curl --header "X-Vault-Token: ${VAULT_TOKEN}" --data '{"policies": "lamassu-ca-policy"}' -s "http://vault:8200/v1/auth/approle/role/lamassu-ca-role"
+
+    CA_VAULT_ROLEID=$(curl -s --header "X-Vault-Token: ${VAULT_TOKEN}" http://vault:8200/v1/auth/approle/role/lamassu-ca-role/role-id | jq -r .data.role_id | sed 's/\\n/\n/g' | sed -Ez '$ s/\n+$//' | base64)
+    CA_VAULT_SECRETID=$(curl -s --header "X-Vault-Token: ${VAULT_TOKEN}" --request POST http://vault:8200/v1/auth/approle/role/lamassu-ca-role/secret-id  | jq -r .data.secret_id | sed 's/\\n/\n/g' | sed -Ez '$ s/\n+$//' | base64)
+
+    # Store the roleid and secretid in a Kubernetes secret
+    curl -s --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" -X POST ${APISERVER}/api/v1/namespaces/{{.Release.Namespace}}/secrets \
+      --data "{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"vault-ca-credentials\"},\"type\":\"Opaque\",\"data\":{\"role-id\":\"$CA_VAULT_ROLEID\", \"secret-id\":\"$CA_VAULT_SECRETID\"}}" > /dev/null
+
+    echo -e "\n>> Generated credentials for CA application can be obtained with:"
+    echo -e "kubectl get secret lamassu-ca-vault-credentials -n {{.Release.Namespace}} -o jsonpath='{.data}'"
+
+    echo -e "\n>> Vault Root Token and unseal keys can be found with:"
+    echo -e "kubectl get secret vault-credentials -n {{.Release.Namespace}} -o jsonpath='{.data.vault-creds\.json}' | base64 -d "
+
+    #Terminate IstioProxy: https://github.com/istio/istio/issues/6324#issuecomment-533923427
+    curl -sf -XPOST http://127.0.0.1:15020/quitquitquit

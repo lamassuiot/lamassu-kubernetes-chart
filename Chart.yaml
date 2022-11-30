@@ -43,3 +43,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     tags:
       - postgres
+
+  - name: rabbitmq
+    version: 11.1.5
+    repository: https://charts.bitnami.com/bitnami
