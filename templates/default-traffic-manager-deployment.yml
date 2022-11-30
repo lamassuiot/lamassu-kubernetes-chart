@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: default-traffic-manager
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: default-traffic-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: default-traffic-manager
+  template:
+    metadata:
+      labels:
+        app: default-traffic-manager
+    spec:
+      containers:
+        - name: default-traffic-manager
+          image: envoyproxy/envoy:v1.21.6
+          imagePullPolicy: Always
+          args:
+          - "envoy"
+          - "--config-path"
+          - "/etc/envoy.yaml"
+          - "-l debug"
+          volumeMounts:
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream.crt
+              subPath: tls.crt
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream.key
+              subPath: tls.key
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream-ca.crt
+              subPath: ca.crt
+            - name: envoy-config
+              mountPath: /etc/envoy.yaml
+              subPath: config
+          ports:
+            - containerPort: 443
+      restartPolicy: Always
+      volumes:
+        - name: downstream-tls-certificate
+          secret:
+            secretName: downstream-cert
+        - name: envoy-config
+          configMap:
+            name: default-traffic-manager-config

@@ -1,0 +1,43 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: mesh-internal
+  namespace: {{.Release.Namespace}}
+spec:
+  hosts:
+    - "*.{{.Release.Namespace}}.svc.cluster.local"
+  gateways:
+    - mesh
+  http:
+  - match:
+    - uri:
+        prefix: /api/devmanager/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 8085
+        host: device-manager
+
+  - match:
+    - uri:
+        prefix: /api/ca/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 8085
+        host: ca
+
+  - match:
+    - uri:
+        prefix: /api/dmsmanager/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 8085
+        host: dms-manager

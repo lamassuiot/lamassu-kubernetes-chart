@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: default-traffic-manager
+  namespace: {{.Release.Namespace}}
+spec:
+  selector:
+    app: default-traffic-manager
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 443
+    targetPort: 443
+    protocol: TCP

@@ -21,8 +21,7 @@ spec:
       name: https
       protocol: HTTPS
     tls:
-      mode: SIMPLE
-      credentialName: {{.Release.Namespace}}-{{.Release.Names}}-downstream-cert # This should match the Certificate secretName
+      mode: PASSTHROUGH
     hosts:
       - lamassu.zpd.ikerlan.es
       - auth.lamassu.zpd.ikerlan.es

@@ -1,19 +1,19 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{.Release.Namespace}}-{{.Release.Names}}-downstream-tls-certificate
-  namespace: istio-system
+  name: downstream-tls-certificate
+  namespace: {{.Release.Namespace}}
 spec:
   isCA: false
   commonName: {{.Values.domain}}
   dnsNames:
     - "{{.Values.domain}}"
     - "*.{{.Values.domain}}"
-  secretName: {{.Release.Namespace}}-{{.Release.Names}}-downstream-cert
+  secretName: downstream-cert
   privateKey:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: {{.Release.Namespace}}-{{.Release.Names}}-downstream-ca-issuer
+    name: downstream-ca-issuer
     kind: Issuer
     group: cert-manager.io
