@@ -64,6 +64,17 @@ simulationTools:
 # Subcharts values
 ##############################
 
+rabbitmq:
+  fullnameOverride: "rabbitmq"
+  global:
+    storageClass:  *storage-class-name
+  auth:
+    username: "user"
+    password: "user"
+    tls:
+      enabled: true
+      existingSecret: rabbitmq-upstream-cert
+
 postgresql-ha:
   fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:

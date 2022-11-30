@@ -8,5 +8,8 @@ dependencies:
 - name: postgresql-ha
   repository: https://charts.bitnami.com/bitnami
   version: 10.0.3
-digest: sha256:b7d9ddd4c3dcd1c97190edb9d3d7df3fd11ace4fad515e4515da3e0cbe430be7
-generated: "2022-11-12T17:58:54.638934237Z"
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 11.1.5
+digest: sha256:40ae34aba6ba5205613bbf382e8636ee6f34fbbb37b3438b9909d1b30629b8e8
+generated: "2022-11-30T15:24:19.115326301Z"
