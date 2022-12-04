@@ -3,6 +3,8 @@ kind: Deployment
 metadata:  
   name: api-gateway
   namespace: {{.Release.Namespace}}
+  annotations:
+    reloader.stakater.com/auto: "true"
   labels:
     app: api-gateway
 spec:
@@ -21,7 +23,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: DOMAIN
-              value: "'*'"
+              value: {{.Values.domain}}
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
           args:
@@ -55,7 +57,7 @@ spec:
       volumes:
         - name: downstream-tls-certificate
           secret:
-            secretName: downstream-cert
+            secretName: {{ template "downstream.certSecret" . }}
         - name: upstream-certificate
           secret:
             secretName: api-gateway-upstream-cert

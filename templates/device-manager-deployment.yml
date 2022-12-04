@@ -3,6 +3,8 @@ kind: Deployment
 metadata:  
   name: device-manager-deployment
   namespace: {{.Release.Namespace}}
+  annotations:
+    reloader.stakater.com/auto: "true"
   labels:
     app: device-manager
 spec:
@@ -22,10 +24,6 @@ spec:
           env:
             - name: SERVICE_NAME
               value: deviceManager
-            - name: DEPLOYMENT_ENVIRONMENT 
-              value: production
-            - name: JAEGER_EXPORTER_URL 
-              value: "http://localhost:2020"
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
             - name: PORT

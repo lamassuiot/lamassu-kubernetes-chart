@@ -1,2 +1,7 @@
-{{- define "chart.namespace" -}}{{ .Release.Namespace }}{{- end -}}
-{{- define "chart.name" -}}{{ .Release.Name }}{{- end -}}
+{{- define "downstream.certSecret" -}}
+{{- if .Values.tls.selfSigned -}}
+{{- print "downstream-cert" -}}
+{{- else -}}
+{{- print .Values.tls.secretName -}}
+{{- end -}}
+{{- end -}}

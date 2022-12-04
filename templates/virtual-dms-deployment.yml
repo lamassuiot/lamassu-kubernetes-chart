@@ -1,4 +1,4 @@
-{{- if .Values.simulationTools.enabled }}
+{{- if .Values.simulationTools.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
@@ -25,4 +25,4 @@ spec:
           ports:
             - containerPort: 7002
       restartPolicy: Always
-{{- end }}
+{{- end -}}

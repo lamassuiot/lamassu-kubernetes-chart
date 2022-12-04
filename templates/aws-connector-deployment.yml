@@ -4,6 +4,8 @@ kind: Deployment
 metadata:  
   name: aws-connector
   namespace: {{.Release.Namespace}}
+  annotations:
+    reloader.stakater.com/auto: "true"
   labels:
     app: aws-connector
 spec:
@@ -105,4 +107,4 @@ spec:
         - name: connector-identifier
           persistentVolumeClaim:
             claimName: aws-connector-identifier
-{{- end }}
+{{- end -}}

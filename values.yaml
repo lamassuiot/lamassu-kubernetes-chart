@@ -2,6 +2,11 @@ domain: dev.lamassu.io
 debugMode: false
 storageClassName: &storage-class-name "" # <----  Default Value
 
+#Downstream TLS
+tls:
+  selfSigned: true
+  secretName: ""
+
 services:
   apiGateway:
     image: lamassuiot/lamassu-gateway-dev:latest
@@ -29,8 +34,6 @@ services:
     image: lamassuiot/lamassu-cloud-proxy-dev:latest
   rabbitmq:
     image: lamassuiot/lamassu-rabbitmq-dev:latest
-  jaeger:
-    image: jaegertracing/all-in-one:1.30.0
   alerts:
     image: lamassuiot/lamassu-alerts-dev:latest
     smtp:
@@ -68,6 +71,8 @@ rabbitmq:
   fullnameOverride: "rabbitmq"
   global:
     storageClass:  *storage-class-name
+  podAnnotations:
+    reloader.stakater.com/auto: "true"
   auth:
     username: "user"
     password: "user"
@@ -88,9 +93,11 @@ postgresql-ha:
       # repmgrDatabase: ""
       existingSecret: ""
   postgresql:
-   replicaCount: 3
-   initdbScriptsCM: postgres-ha-init
+    replicaCount: 3
+    initdbScriptsCM: postgres-ha-init
+    syncReplication: true
 
+#https://developer.hashicorp.com/consul/docs/k8s/helm
 consul:
   fullnameOverride: "consul" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
@@ -99,15 +106,22 @@ consul:
     enabled: false
   server:
     affinity: "null"  #set to null to remove affinity rule. By default consul only deploys 1 service per node. See: https://developer.hashicorp.com/consul/docs/k8s/helm#v-server-affinity
+    annotations: |
+      "reloader.stakater.com/auto": "true"
     replicas: 3
     storageClassName: *storage-class-name
 
+#https://developer.hashicorp.com/vault/docs/platform/k8s/helm/configuration
 vault:
   fullnameOverride: "vault" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
     tlsDisable: false
   server:
+    authDelegator:
+      enabled: false
     affinity: ""
+    annotations:
+      reloader.stakater.com/auto: "true"
     extraVolumes:
       - type: secret
         name: vault-upstream-cert

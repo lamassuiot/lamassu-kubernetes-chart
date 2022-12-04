@@ -18,4 +18,4 @@ spec:
     name: upstream-ca-issuer
     kind: Issuer
     group: cert-manager.io
-{{- end }}
+{{- end -}}

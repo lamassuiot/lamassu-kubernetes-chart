@@ -13,4 +13,4 @@ spec:
     port: 8085
     targetPort: 8085
     protocol: TCP
-{{- end }}
+{{- end -}}
