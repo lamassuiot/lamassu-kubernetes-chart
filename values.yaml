@@ -10,7 +10,6 @@ tls:
 services:
   apiGateway:
     image: lamassuiot/lamassu-gateway-dev:latest
-    debugMode: false
   keycloak:
     image: lamassuiot/lamassu-auth-dev:latest
     username: admin
@@ -19,9 +18,10 @@ services:
     image: lamassuiot/lamassu-ui-dev:latest
   ca:
     image: lamassuiot/lamassu-ca-dev:latest
+    aboutToExpire: 90
   deviceManager:
     image: lamassuiot/lamassu-device-manager-dev:latest
-    minimumReenrollmentDays: 90
+    minimumReenrollmentDays: 100
   dmsManager:
     image: lamassuiot/lamassu-dms-manager-dev:latest
   database:
@@ -38,7 +38,7 @@ services:
     image: lamassuiot/lamassu-alerts-dev:latest
     smtp:
       from: ""
-      insecure: true
+      insecure: false
       enable_ssl: true
       username: ""
       password: ""
@@ -47,13 +47,13 @@ services:
   awsConnector:
     image: lamassuiot/lamassu-aws-connector-dev:latest
     enabled: false
-    name: ""
+    name: "AWS default connector"
     aws:
       accessKeyId: ""
       secretAccessKey: ""
       defaultRegion: ""
       sqs:
-        inboundQueueName:  ""
+        inboundQueueName:  "lamassuResponse"
         outbountQueueName:  ""
 
 simulationTools:

@@ -24,10 +24,6 @@ spec:
           env:
             - name: SERVICE_NAME
               value: ca
-            - name: DEPLOYMENT_ENVIRONMENT 
-              value: production
-            - name: JAEGER_EXPORTER_URL 
-              value: "a"
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
             - name: PORT
@@ -90,7 +86,7 @@ spec:
             - name: ENGINE
               value: vault
             - name: ABOUT_TO_EXPIRE_DAYS
-              value: "90"
+              value: "{{.Values.services.ca.aboutToExpire}}"
           volumeMounts:
             - name: ca-json-config
               mountPath: /config/vault-credentials.json
