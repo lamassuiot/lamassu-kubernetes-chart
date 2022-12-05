@@ -59,58 +59,58 @@ export NS=lamassu
 
 3. Install the helm chart. There are many ways to deploy Lamassu using this charts depending which subsytems are needed. Choose one of the following deployment modes
 
-   **Core deployment**
+  **Core deployment**
 
-   Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained runing `kubectl get sc`)
+  Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained runing `kubectl get sc`)
 
-   ```bash
-   helm install lamassu . --create-namespace -n $NS \
- --set domain=dev.lamassu.io \
- --set storageClassName=local-path \
- --set debugMode=true
-   ```
+  ```bash
+  helm install lamassu . --create-namespace -n $NS \
+  --set domain=dev.lamassu.io \
+  --set storageClassName=local-path \
+  --set debugMode=true
+  ```
 
-   **Core deployment + Simulation tools**
+  **Core deployment + Simulation tools**
 
-   ```bash
-   helm install lamassu . --create-namespace -n $NS \
- --set domain=dev.lamassu.io \
- --set storageClassName=local-path \
- --set debugMode=true \
-   --set simulationTools.enabled=true
-   ```
+  ```bash
+  helm install lamassu . --create-namespace -n $NS \
+  --set domain=dev.lamassu.io \
+  --set storageClassName=local-path \
+  --set debugMode=true \
+  --set simulationTools.enabled=true
+  ```
 
-   **Core deployment + Alerts with email/STMP**
+  **Core deployment + Alerts with email/STMP**
 
-   The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables secction for more information on how to configure this service
+  The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables secction for more information on how to configure this service
 
-   ```bash
-   helm install lamassu . --create-namespace -n $NS \
- --set domain=dev.lamassu.io \
- --set storageClassName=local-path \
- --set debugMode=true \
-   --set services.alerts.smtp.from="lamassu-alerts@lamassu.io" \
- --set services.alerts.smtp.username="lamassu-alerts@lamassu.io"
-   ```
+  ```bash
+  helm install lamassu . --create-namespace -n $NS \
+  --set domain=dev.lamassu.io \
+  --set storageClassName=local-path \
+  --set debugMode=true \
+  --set services.alerts.smtp.from="lamassu-alerts@lamassu.io" \
+  --set services.alerts.smtp.username="lamassu-alerts@lamassu.io"
+  ```
 
-   **Core deployment + AWS Connector**
+  **Core deployment + AWS Connector**
 
-   The AWS connector can also be deployed using the following command. Please note that it is required to provsion the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
+  The AWS connector can also be deployed using the following command. Please note that it is required to provsion the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
 
-   Once all AWS services have been deployed via de CDK, then deploy your Lamassu instance. Make sure to change the `services.awsConnector.aws.accessKeyId`, `services.awsConnector.aws.secretAccessKey` and `services.awsConnector.aws.defaultRegion` to the appropriate values:
+  Once all AWS services have been deployed via de CDK, then deploy your Lamassu instance. Make sure to change the `services.awsConnector.aws.accessKeyId`, `services.awsConnector.aws.secretAccessKey` and `services.awsConnector.aws.defaultRegion` to the appropriate values:
 
-   ```bash
-   helm install lamassu . --create-namespace -n $NS \
- --set domain=dev.lamassu.io \
- --set storageClassName=local-path \
- --set debugMode=true \
- --set services.awsConnector.enabled=true \
- --set services.awsConnector.name="My AWS Account" \
- --set services.awsConnector.aws.accessKeyId="**************" \
- --set services.awsConnector.aws.secretAccessKey="************" \
- --set services.awsConnector.aws.defaultRegion="eu-west-1" \
- --set services.awsConnector.aws.sqs.inboundQueueName="lamassuResponse"
-   ```
+  ```bash
+  helm install lamassu . --create-namespace -n $NS \
+  --set domain=dev.lamassu.io \
+  --set storageClassName=local-path \
+  --set debugMode=true \
+  --set services.awsConnector.enabled=true \
+  --set services.awsConnector.name="My AWS Account" \
+  --set services.awsConnector.aws.accessKeyId="**************" \
+  --set services.awsConnector.aws.secretAccessKey="************" \
+  --set services.awsConnector.aws.defaultRegion="eu-west-1" \
+  --set services.awsConnector.aws.sqs.inboundQueueName="lamassuResponse"
+  ```
 
 ### Clean uninstall
 
@@ -118,27 +118,27 @@ In order to remove all the provisioned resources, run this commands:
 
 1. Choose the namespace where Lamassu has been deployed:
 
-```bash
-export NS=lamassu
-```
+  ```bash
+  export NS=lamassu
+  ```
 
 2. Uninstall the helm release:
 
-```bash
-helm uninstall lamassu -n $NS
-```
+  ```bash
+  helm uninstall lamassu -n $NS
+  ```
 
 3. Remove all provisioned secrets:
 
-```bash
-kubectl delete secrets -n $NS --all
-```
+  ```bash
+  kubectl delete secrets -n $NS --all
+  ```
 
 4. Remove all persisten volume claims:
 
-```bash
-kubectl delete pvc -n $NS --all
-```
+  ```bash
+  kubectl delete pvc -n $NS --all
+  ```
 
 ### Variables
 
