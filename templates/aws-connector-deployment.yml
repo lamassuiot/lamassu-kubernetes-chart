@@ -22,13 +22,10 @@ spec:
         - name: aws-connector
           image: {{.Values.services.awsConnector.image}}
           imagePullPolicy: Always
+          tty: true          
           env:
             - name: SERVICE_NAME
               value: aws-connector
-            - name: DEPLOYMENT_ENVIRONMENT 
-              value: production
-            - name: JAEGER_EXPORTER_URL 
-              value: "http://localhost:2020"
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
             - name: PORT

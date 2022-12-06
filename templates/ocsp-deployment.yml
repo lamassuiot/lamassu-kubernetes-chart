@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
-  name: alerts
+  name: ocsp
   namespace: {{.Release.Namespace}}
   annotations:
     reloader.stakater.com/auto: "true"
   labels:
-    app: alerts
+    app: ocsp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: alerts
+      app: ocsp
   template:
     metadata:
       labels:
-        app: alerts
+        app: ocsp
     spec:     
       containers:
-        - name: alerts
-          image: {{.Values.services.alerts.image}}
+        - name: ocsp
+          image: {{.Values.services.ocsp.image}}
           imagePullPolicy: Always
-          tty: true
+          tty: true          
           env:
             - name: SERVICE_NAME
-              value: alerts
+              value: ocsp
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
             - name: PORT
@@ -54,37 +54,22 @@ spec:
             - name: AMQP_SERVER_CA_CERT
               value: /certs/internal-ca.crt
 
-            - name: POSTGRES_HOSTNAME
-              value: postgresql-pgpool
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: POSTGRES_DATABASE
-              value: alerts
-            - name: POSTGRES_USERNAME
-              value: {{.Values.services.database.username}}
-            - name: POSTGRES_PASSWORD
-              value: {{.Values.services.database.password}}
-
-            - name: SMTP_FROM
-              value: {{.Values.services.alerts.smtp.from}}
-            - name: SMTP_INSECURE
-              value: "{{.Values.services.alerts.smtp.insecure}}"
-            - name: SMTP_ENABLE_SSL
-              value: "{{.Values.services.alerts.smtp.enable_ssl}}"
-            - name: SMTP_USERNAME
-              value: {{.Values.services.alerts.smtp.username}}
-            - name: SMTP_PASSWORD
-              value: {{.Values.services.alerts.smtp.password}}
-            - name: SMTP_HOST
-              value: {{.Values.services.alerts.smtp.host}}
-            - name: SMTP_PORT
-              value: "{{.Values.services.alerts.smtp.port}}"
-            - name: TEMPLATE_HTML
-              value: /app/templates/email.html
-            - name: TEMPLATE_JSON
-              value: /app/templates/config.json
+            - name: LAMASSU_CA_ADDRESS
+              value: https://ca:8085
+            - name: LAMASSU_CA_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: SIGNER_CERT
+              value: /certs/signer.crt
+            - name: SIGNER_KEY
+              value: /certs/signer.key
 
           volumeMounts:
+            - name: downstream-certificates
+              mountPath: /certs/signer.crt
+              subPath: tls.crt
+            - name: downstream-certificates
+              mountPath: /certs/signer.key
+              subPath: tls.key
             - name: tls-certificates
               mountPath: /certs/tls.crt
               subPath: tls.crt
@@ -100,4 +85,7 @@ spec:
       volumes:
         - name: tls-certificates
           secret:
-            secretName: alerts-upstream-cert
+            secretName: ocsp-upstream-cert
+        - name: downstream-certificates
+          secret:
+            secretName: {{ template "downstream.certSecret" . }}

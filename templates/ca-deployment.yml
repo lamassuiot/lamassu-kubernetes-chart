@@ -21,6 +21,7 @@ spec:
         - name: ca
           image: {{.Values.services.ca.image}}
           imagePullPolicy: Always
+          tty: true         
           env:
             - name: SERVICE_NAME
               value: ca
@@ -77,8 +78,8 @@ spec:
                 secretKeyRef:
                   name: vault-ca-credentials
                   key: secret-id
-            - name: VAULT_UNSEAL_KEYS_FILE
-              value: /config/vault-credentials.json
+            - name: VAULT_AUTO_UNSEAL_ENABLED
+              value: "false"
             - name: VAULT_PKI_CA_PATH
               value: pki/lamassu/dev/
             - name: VAULT_CA
@@ -87,10 +88,11 @@ spec:
               value: vault
             - name: ABOUT_TO_EXPIRE_DAYS
               value: "{{.Values.services.ca.aboutToExpire}}"
+            - name: PERIODIC_SCAN_ENABLED
+              value: "{{.Values.services.ca.periodicScan.enabled}}"
+            - name: PERIODIC_SCAN_CRON
+              value: "{{.Values.services.ca.periodicScan.cron}}"
           volumeMounts:
-            - name: ca-json-config
-              mountPath: /config/vault-credentials.json
-              subPath: unseal-keys.json
             - name: tls-certificates
               mountPath: /certs/vault.crt
               subPath: ca.crt
@@ -110,9 +112,6 @@ spec:
         - name: initcontainer-cmd
           configMap:  
             name: ca-initcontainer-cm
-        - name: ca-json-config
-          secret:
-            secretName: vault-credentials
         - name: tls-certificates
           secret:
             secretName: ca-upstream-cert

@@ -21,6 +21,7 @@ spec:
         - name: api-gateway
           image: {{.Values.services.apiGateway.image}}
           imagePullPolicy: Always
+          tty: true          
           env:
             - name: DOMAIN
               value: {{.Values.domain}}

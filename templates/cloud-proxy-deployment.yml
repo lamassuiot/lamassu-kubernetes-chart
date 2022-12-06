@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
-  name: cloud-proxy-deployment
+  name: cloud-proxy
   namespace: {{.Release.Namespace}}
   annotations:
     reloader.stakater.com/auto: "true"
@@ -21,6 +21,7 @@ spec:
         - name: cloud-proxy
           image: {{.Values.services.cloudProxy.image}}
           imagePullPolicy: Always
+          tty: true          
           env:
             - name: SERVICE_NAME
               value: cloud-proxy
@@ -59,7 +60,7 @@ spec:
               value: "5432"
             - name: POSTGRES_DATABASE
               value: cloudproxy
-            - name: POSTGRES_USER
+            - name: POSTGRES_USERNAME
               value: {{.Values.services.database.username}}
             - name: POSTGRES_PASSWORD
               value: {{.Values.services.database.password}}

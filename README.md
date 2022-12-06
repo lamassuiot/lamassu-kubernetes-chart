@@ -70,6 +70,23 @@ export NS=lamassu
   --set debugMode=true
   ```
 
+  **Core deployment using external Certificates (Used by API Gateway)**
+
+  Make sure to point to the actual paths to the `.cert` file and the .key `file`
+  ```bash
+  #First, create secret using files with certificate and key to use:
+  kubectl create secret tls external-downstream-cert -n $NS \
+  --cert=path/to/cert/file \
+  --key=path/to/key/file
+
+  helm install lamassu . --create-namespace -n $NS \
+  --set domain=dev.lamassu.io \
+  --set storageClassName=local-path \
+  --set debugMode=true
+  --set tls.selfSigned=false
+  --set tls.secretName=external-downstream-cert
+  ```
+
   **Core deployment + Simulation tools**
 
   ```bash
@@ -142,27 +159,31 @@ In order to remove all the provisioned resources, run this commands:
 
 ### Variables
 
-| Name                                              | Description                                                              | Value                     |
-|---------------------------------------------------|--------------------------------------------------------------------------|---------------------------|
-| `debugMode`                                       | Deploy services with additional logs                                     | `false`                   |
-| `domain`                                          | Domain to use in ingress controller and other services                   | `"dev.lamassu.io"`        |
-| `storageClassName`                                | Storage class to use while provisioning PersistenVolumes                 | `""`                      |
-| `services.ca.aboutToExpire`                       | Number of days until a Certificate or CA is labeled as `About To expire` | `90`                      |
-| `services.deviceManager.minimumReenrollmentDays`  | Minimum Reenrollment Days                                                | `100`                     |
-| `services.database.username`                      | Databes Username                                                         | `admin`                   |
-| `services.database.password`                      | Databes Password                                                         | `admin`                   |
-| `services.alerts.smtp.from`                       | Display name for sender email address                                    | `""`                      |
-| `services.alerts.smtp.insecure`                   | Skip certificate validation for SMTP server                              | `false`                   |
-| `services.alerts.smtp.enable_ssl`                 | Enable SSL connection for SMTP server                                    | `true`                    |
-| `services.alerts.smtp.username`                   | Username for accessing the SMTP server                                   | `""`                      |
-| `services.alerts.smtp.password`                   | Password for accessing for SMTP server                                   | `""`                      |
-| `services.alerts.smtp.host`                       | Hostname for the SMTP server                                             | `""`                      |
-| `services.alerts.smtp.port`                       | Port for the SMTP server                                                 | `25`                      |
-| `services.awsConnector.enabled`                   | Enable the AWS Connector Deployment                                      | `false`                   |
-| `services.awsConnector.name`                      | Display name of the connector                                            | `"AWS default connector"` |
-| `services.awsConnector.aws.accessKeyId`           | Access key ID to access AWS via SDK                                      | `""`                      |
-| `services.awsConnector.aws.secretAccessKey`       | Secret access key to access AWS via SDK                                  | `""`                      |
-| `services.awsConnector.aws.defaultRegion`         | Default region for for accessing AWS via SDK                             | `""`                      |
-| `services.awsConnector.aws.sqs.inboundQueueName`  | SQS Queue to listen events from AWS                                      | `"lamassuResponse"`       |
-| `services.awsConnector.aws.sqs.outbountQueueName` | SQS Queue to publish all cloud events                                    | `""`                      |
-| `simulationTools.enabled`                         | Enable simulation tools                                                  | `false`                   |
+| Name                                              | Description                                                                                                                  | Value                     |
+|---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|---------------------------|
+| `debugMode`                                       | Deploy services with additional logs                                                                                         | `false`                   |
+| `domain`                                          | Domain to use in ingress controller and other services                                                                       | `"dev.lamassu.io"`        |
+| `storageClassName`                                | Storage class to use while provisioning PersistenVolumes                                                                     | `""`                      |
+| `tls.selfSigned`                                  | If true, a self signed certificate will be generated and used for downstream connections by the API-Gateway                  | `true`                    |
+| `tls.secretName`                                  | If `tls.selfSigned` is false, then the API-Gateway will use this secret to obtain the certificate for downstream connections | `""`                      |
+| `services.ca.aboutToExpire`                       | Number of days until a Certificate or CA is labeled as `About To expire`                                                     | `90`                      |
+| `services.ca.periodicScan.enabled`                | Activate the Periodic Scan system                                                                                            | `true`               |
+| `services.ca.periodicScan.cron`                   | Cron expression at which the Periodic Scan is launched                                                                       | `0 * * * *`               |
+| `services.deviceManager.minimumReenrollmentDays`  | Minimum Reenrollment Days                                                                                                    | `100`                     |
+| `services.database.username`                      | Databes Username                                                                                                             | `admin`                   |
+| `services.database.password`                      | Databes Password                                                                                                             | `admin`                   |
+| `services.alerts.smtp.from`                       | Display name for sender email address                                                                                        | `""`                      |
+| `services.alerts.smtp.insecure`                   | Skip certificate validation for SMTP server                                                                                  | `false`                   |
+| `services.alerts.smtp.enable_ssl`                 | Enable SSL connection for SMTP server                                                                                        | `true`                    |
+| `services.alerts.smtp.username`                   | Username for accessing the SMTP server                                                                                       | `""`                      |
+| `services.alerts.smtp.password`                   | Password for accessing for SMTP server                                                                                       | `""`                      |
+| `services.alerts.smtp.host`                       | Hostname for the SMTP server                                                                                                 | `""`                      |
+| `services.alerts.smtp.port`                       | Port for the SMTP server                                                                                                     | `25`                      |
+| `services.awsConnector.enabled`                   | Enable the AWS Connector Deployment                                                                                          | `false`                   |
+| `services.awsConnector.name`                      | Display name of the connector                                                                                                | `"AWS default connector"` |
+| `services.awsConnector.aws.accessKeyId`           | Access key ID to access AWS via SDK                                                                                          | `""`                      |
+| `services.awsConnector.aws.secretAccessKey`       | Secret access key to access AWS via SDK                                                                                      | `""`                      |
+| `services.awsConnector.aws.defaultRegion`         | Default region for for accessing AWS via SDK                                                                                 | `""`                      |
+| `services.awsConnector.aws.sqs.inboundQueueName`  | SQS Queue to listen events from AWS                                                                                          | `"lamassuResponse"`       |
+| `services.awsConnector.aws.sqs.outbountQueueName` | SQS Queue to publish all cloud events                                                                                        | `""`                      |
+| `simulationTools.enabled`                         | Enable simulation tools                                                                                                      | `false`                   |

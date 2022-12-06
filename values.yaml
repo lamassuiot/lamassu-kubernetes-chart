@@ -16,9 +16,14 @@ services:
     password: admin
   ui:
     image: lamassuiot/lamassu-ui-dev:latest
+  ocsp:
+    image: lamassuiot/lamassu-ocsp-dev:latest
   ca:
     image: lamassuiot/lamassu-ca-dev:latest
     aboutToExpire: 90
+    periodicScan:
+      enabled: true
+      cron: "0 * * * *"
   deviceManager:
     image: lamassuiot/lamassu-device-manager-dev:latest
     minimumReenrollmentDays: 100
