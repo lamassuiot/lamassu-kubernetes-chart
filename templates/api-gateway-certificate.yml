@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: api-gateway
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "api-gateway"
   secretName: api-gateway-upstream-cert

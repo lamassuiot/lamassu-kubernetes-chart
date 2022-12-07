@@ -6,7 +6,9 @@ metadata:
 spec:
   isCA: false
   commonName: vault*
+  duration: {{.Values.tls.duration}}
   dnsNames:
+    - "vault-active"
     - "vault"
     - "vault*"
   secretName: vault-upstream-cert

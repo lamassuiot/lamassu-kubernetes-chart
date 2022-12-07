@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: auth*
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "auth"
     - "auth*"

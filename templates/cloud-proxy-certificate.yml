@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: cloud-proxy
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "cloud-proxy"
     - "cloud-proxy*"

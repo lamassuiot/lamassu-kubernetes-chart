@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: alerts
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "alerts"
     - "alerts*"

@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: rabbitmq*
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "rabbitmq"
     - "rabbitmq*"

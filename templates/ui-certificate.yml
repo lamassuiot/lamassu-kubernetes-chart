@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: ui*
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "ui"
     - "ui*"

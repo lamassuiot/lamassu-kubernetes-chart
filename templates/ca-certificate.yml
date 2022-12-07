@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: ca*
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "ca"
     - "ca*"

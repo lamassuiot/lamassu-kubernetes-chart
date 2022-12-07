@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: device-manager*
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "device-manager"
     - "device-manager*"

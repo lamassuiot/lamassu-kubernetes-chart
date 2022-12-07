@@ -6,6 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: ocsp*
+  duration: {{.Values.tls.duration}}
   dnsNames:
     - "ocsp"
     - "ocsp*"
