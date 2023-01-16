@@ -19,6 +19,8 @@ spec:
       containers:
         - name: virtual-device
           image: {{.Values.simulationTools.virtualDevice.image}}
+          imagePullPolicy: Always
+          tty: true      
           env:
             - name: VDMS_ADDRESS
               value: http://virtual-dms:7002
@@ -36,7 +38,27 @@ spec:
               value: "a"
             - name: AZURE_IOT_HUB_CA 
               value: "/app/azure-iothub-ca.crt"
+            - name: OPERATOR_USERNAME 
+              value: "enroller"
+            - name: OPERATOR_PASSWORD 
+              value: "enroller"
+            - name: DOWNSTREAM_CERT 
+              value: "/certs/downstream.crt"
+            - name: DMS_NAME 
+              value: "HostCloudDMS"
+            - name: HOST_CLOUD_DMS 
+              value: "true"
+            - name: BOOTSTRAP_CA_NAME
+              value: BootstrapCA1
+          volumeMounts:
+            - name: downstream-tls-certificates
+              mountPath: /certs/downstream.crt
+              subPath: tls.crt
           ports:
             - containerPort: 7001
       restartPolicy: Always
+      volumes:
+        - name: downstream-tls-certificates
+          secret:
+            secretName: downstream-cert
 {{- end -}}

@@ -10,38 +10,38 @@ tls:
 
 services:
   apiGateway:
-    image: lamassuiot/lamassu-gateway-dev:latest
+    image: lamassuiot/lamassu-gateway:2.0.0
   keycloak:
-    image: lamassuiot/lamassu-auth-dev:latest
+    image: lamassuiot/lamassu-auth:2.0.0
     username: admin
     password: admin
   ui:
-    image: lamassuiot/lamassu-ui-dev:latest
+    image: lamassuiot/lamassu-ui:2.0.0
   ocsp:
-    image: lamassuiot/lamassu-ocsp-dev:latest
+    image: lamassuiot/lamassu-ocsp:2.0.0
   ca:
-    image: lamassuiot/lamassu-ca-dev:latest
+    image: lamassuiot/lamassu-ca:2.0.0
     aboutToExpire: 90
     periodicScan:
       enabled: true
       cron: "0 * * * *"
   deviceManager:
-    image: lamassuiot/lamassu-device-manager-dev:latest
+    image: lamassuiot/lamassu-device-manager:2.0.0
     minimumReenrollmentDays: 100
   dmsManager:
-    image: lamassuiot/lamassu-dms-manager-dev:latest
+    image: lamassuiot/lamassu-dms-manager:2.0.0
   database:
-    image: lamassuiot/lamassu-db:v1.0.12
+    image: lamassuiot/lamassu-db:2.0.0
     username: admin
     password: admin
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
   cloudProxy:
-    image: lamassuiot/lamassu-cloud-proxy-dev:latest
+    image: lamassuiot/lamassu-cloud-proxy:2.0.0
   rabbitmq:
-    image: lamassuiot/lamassu-rabbitmq-dev:latest
+    image: lamassuiot/lamassu-rabbitmq:2.0.0
   alerts:
-    image: lamassuiot/lamassu-alerts-dev:latest
+    image: lamassuiot/lamassu-alerts:2.0.0
     smtp:
       from: ""
       insecure: false
@@ -51,7 +51,7 @@ services:
       host: ""
       port: 25
   awsConnector:
-    image: lamassuiot/lamassu-aws-connector-dev:latest
+    image: lamassuiot/lamassu-aws-connector:2.0.0
     enabled: false
     name: "AWS default connector"
     aws:
@@ -59,8 +59,8 @@ services:
       secretAccessKey: ""
       defaultRegion: ""
       sqs:
-        inboundQueueName:  "lamassuResponse"
-        outbountQueueName:  ""
+        inboundQueueName: "lamassuResponse"
+        outbountQueueName: ""
 
 simulationTools:
   enabled: false
@@ -76,7 +76,7 @@ simulationTools:
 rabbitmq:
   fullnameOverride: "rabbitmq"
   global:
-    storageClass:  *storage-class-name
+    storageClass: *storage-class-name
   podAnnotations:
     reloader.stakater.com/auto: "true"
   auth:
@@ -89,7 +89,7 @@ rabbitmq:
 postgresql-ha:
   fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
-    storageClass:  *storage-class-name
+    storageClass: *storage-class-name
     postgresql:
       username: "admin"
       password: "admin"
@@ -110,24 +110,25 @@ consul:
     datacenter: lamassu-k8s
     tls:
       enabled: true
+      enableAutoEncrypt: true
       verify: false
-      caCert: 
+      caCert:
         secretName: ca-upstream-cert
   client:
     enabled: false
   server:
     serverCert:
       secretName: consul-upstream-cert
-    affinity: "null"  #set to null to remove affinity rule. By default consul only deploys 1 service per node. See: https://developer.hashicorp.com/consul/docs/k8s/helm#v-server-affinity
-    annotations: |
-      "reloader.stakater.com/auto": "true"
+    affinity: "null" #set to null to remove affinity rule. By default consul only deploys 1 service per node. See: https://developer.hashicorp.com/consul/docs/k8s/helm#v-server-affinity
+    # annotations: |
+    #   "reloader.stakater.com/auto": "true"
     replicas: 3
     storageClassName: *storage-class-name
     extraConfig: |
       {
         "enable_agent_tls_for_checks": true
       }
-      
+
 
 #https://developer.hashicorp.com/vault/docs/platform/k8s/helm/configuration
 vault:

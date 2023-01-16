@@ -6,6 +6,8 @@ metadata:
 spec:
   isCA: false
   commonName: consul*
+  duration: {{.Values.tls.duration}}
+  # renewBefore: "55m"
   dnsNames:
     - "consul"
     - "consul-server" #Services use this 
