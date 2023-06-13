@@ -1,0 +1,6 @@
+{
+    "themes": [{
+        "name" : "lamassu.v2",
+        "types": [ "login" ]
+    }]
+}

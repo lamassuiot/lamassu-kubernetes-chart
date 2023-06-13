@@ -19,19 +19,22 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: {{.Values.services.apiGateway.image}}
+          image: envoyproxy/envoy:v1.25-latest
           imagePullPolicy: Always
           tty: true          
           env:
-            - name: DOMAIN
-              value: {{.Values.domain}}
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
-          args:
-          - "envoy"
-          - "--config-path"
-          - "/tmpl/envoy.yaml.tmpl"
+          command: ["/bin/bash", "-c"]
+          args: 
+            - /docker-entrypoint.sh
           volumeMounts:
+            - name: envoy-config
+              mountPath: /etc/envoy.yaml
+              subPath: config.yml
+            - name: envoy-config
+              mountPath: /docker-entrypoint.sh
+              subPath: init.sh
             - name: downstream-tls-certificate
               mountPath: /certs/downstream.crt
               subPath: tls.crt
@@ -62,3 +65,7 @@ spec:
         - name: upstream-certificate
           secret:
             secretName: api-gateway-upstream-cert
+        - name: envoy-config
+          configMap:  
+            name: api-gateway-config
+            defaultMode: 480 #this value MUST be set in decimal NOT in octal

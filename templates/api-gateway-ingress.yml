@@ -21,36 +21,3 @@ spec:
             name: "api-gateway"
             port:
               number: 443
-
-  - host: auth.{{.Values.domain}}
-    http: 
-      paths:
-      - pathType: Prefix
-        path: /
-        backend: 
-          service: 
-            name: "api-gateway"
-            port:
-              number: 443
-
-  - host: vault.{{.Values.domain}}
-    http: 
-      paths:
-      - pathType: Prefix
-        path: /
-        backend: 
-          service: 
-            name: "api-gateway"
-            port:
-              number: 443
-
-  - host: consul.{{.Values.domain}}
-    http: 
-      paths:
-      - pathType: Prefix
-        path: /
-        backend: 
-          service: 
-            name: "api-gateway"
-            port:
-              number: 443
