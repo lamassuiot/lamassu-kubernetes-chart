@@ -1,3 +1,4 @@
+{{- if .Values.vault.global.enabled -}}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -39,3 +40,4 @@ data:
         curl -k -s --request PUT "https://${ip}:8200/v1/sys/unseal" --header 'Content-Type: application/json' --data-raw "{\"key\": \"$(echo $VAULT_CREDENTIALS_RAW | jq -r .keys[4])\" }"
       fi
     done
+{{- end -}}

@@ -42,9 +42,9 @@ spec:
             - name: AMQP_SERVER_USE_BASIC_AUTH
               value: "true"
             - name: AMQP_SERVER_USERNAME
-              value: "{{.Values.rabbitmq.auth.username}}"
+              value: {{.Values.rabbitmq.auth.username}}
             - name: AMQP_SERVER_PASSWORD
-              value: "{{.Values.rabbitmq.auth.password}}"
+              value: {{.Values.rabbitmq.auth.password}}
             - name: AMQP_SERVER_ENABLE_TLS
               value: "true"
             - name: AMQP_SERVER_HOST
@@ -53,7 +53,6 @@ spec:
               value: "5671"
             - name: AMQP_SERVER_CA_CERT
               value: /certs/internal-ca.crt
-
             - name: POSTGRES_HOSTNAME
               value: postgresql-pgpool
             - name: POSTGRES_PORT
@@ -61,11 +60,12 @@ spec:
             - name: POSTGRES_DATABASE
               value: ca
             - name: POSTGRES_USERNAME
-              value: {{.Values.services.database.username}}
+              value: {{.Values.postgresqlha.global.postgresql.username}}
             - name: POSTGRES_PASSWORD
-              value: {{.Values.services.database.password}}
+              value: {{.Values.postgresqlha.global.postgresql.password}}
             - name: OCSP_URL
               value: https://{{.Values.domain}}/api/ocsp/
+            {{ if eq .Values.services.ca.engine "vault"}}
             - name: VAULT_ADDRESS
               value: https://vault-active:8200
             - name: VAULT_ROLE_ID
@@ -84,8 +84,17 @@ spec:
               value: pki/lamassu/dev/
             - name: VAULT_CA
               value: /certs/vault.crt
+            {{ end }}
+            {{ if eq .Values.services.ca.engine "awsSecretManager" }}
+            - name: AWS_DEFAULT_REGION
+              value: {{.Values.services.ca.aws.region}}
+            - name: AWS_ACCESS_KEY_ID
+              value: {{.Values.services.ca.aws.accessKeyId}}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{.Values.services.ca.aws.secretAccessKey}}
+            {{ end }}
             - name: ENGINE
-              value: vault
+              value: {{.Values.services.ca.engine}}
             - name: ABOUT_TO_EXPIRE_DAYS
               value: "{{.Values.services.ca.aboutToExpire}}"
             - name: PERIODIC_SCAN_ENABLED
@@ -93,9 +102,11 @@ spec:
             - name: PERIODIC_SCAN_CRON
               value: "{{.Values.services.ca.periodicScan.cron}}"
           volumeMounts:
+            {{ if eq .Values.services.ca.engine "vault" }}
             - name: tls-certificates
               mountPath: /certs/vault.crt
               subPath: ca.crt
+            {{ end }}
             - name: tls-certificates
               mountPath: /certs/tls.crt
               subPath: tls.crt

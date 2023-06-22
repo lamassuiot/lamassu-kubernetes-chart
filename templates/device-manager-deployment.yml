@@ -61,9 +61,9 @@ spec:
             - name: POSTGRES_DATABASE
               value: devicemanager
             - name: POSTGRES_USERNAME
-              value: {{.Values.services.database.username}}
+              value: {{.Values.postgresqlha.global.postgresql.username}}
             - name: POSTGRES_PASSWORD
-              value: {{.Values.services.database.password}}  
+              value: {{.Values.postgresqlha.global.postgresql.password}}  
             - name: LAMASSU_CA_ADDRESS
               value: https://ca:8085
             - name: LAMASSU_CA_CERT_FILE
@@ -71,6 +71,8 @@ spec:
             - name: LAMASSU_DMS_MANAGER_ADDRESS
               value: https://dms-manager:8085
             - name: LAMASSU_DMS_MANAGER_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: CA_CERT_FILE
               value: /certs/internal-ca.crt
             - name: MINIMUM_REENROLL_DAYS
               value: "{{.Values.services.deviceManager.minimumReenrollmentDays}}"

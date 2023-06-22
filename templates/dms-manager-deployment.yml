@@ -63,14 +63,16 @@ spec:
             - name: POSTGRES_DATABASE
               value: dmsmanager
             - name: POSTGRES_USERNAME
-              value: {{.Values.services.database.username}}
+              value: {{.Values.postgresqlha.global.postgresql.username}}
             - name: POSTGRES_PASSWORD
-              value: {{.Values.services.database.password}}  
+              value: {{.Values.postgresqlha.global.postgresql.password}}  
             - name: LAMASSU_CA_ADDRESS
               value: https://ca:8085
             - name: LAMASSU_CA_CERT_FILE
               value: /certs/internal-ca.crt
             - name: DOWNSTREAM_CERT
+              value: /certs/downstream.crt
+            - name: DOWNSTREAM_CA_CERT
               value: /certs/downstream.crt
           volumeMounts:
             - name: tls-certificates

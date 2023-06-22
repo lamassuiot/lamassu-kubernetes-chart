@@ -19,7 +19,7 @@ spec:
         - name: opa-server
           image: {{.Values.services.openPolicyAgent.image}}
           imagePullPolicy: Always
-          tty: true          
+          tty: true
           volumeMounts:
             - name: opa-server-policy-config
               mountPath: /opa/policy.rego
@@ -35,10 +35,18 @@ spec:
             - --server
             - --addr=0.0.0.0:8181
             - --config-file=/opa/config.yaml
-            - --log-level=info
-            - --log-format=text
-            - --ignore=.*
             - /opa/policy.rego
+        - name: rem-logger
+          image: {{.Values.services.openPolicyAgent.remLogger.image}}
+          imagePullPolicy: Always
+          tty: true          
+          ports:
+            - containerPort: 8080
+          env:
+            {{ if eq .Values.debugMode true }}
+            - name: DEBUG
+              value: "true"
+            {{ end }}
       restartPolicy: Always
       volumes:
         - name: opa-server-policy-config

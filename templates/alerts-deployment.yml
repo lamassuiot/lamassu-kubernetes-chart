@@ -61,9 +61,9 @@ spec:
             - name: POSTGRES_DATABASE
               value: alerts
             - name: POSTGRES_USERNAME
-              value: {{.Values.services.database.username}}
+              value: {{.Values.postgresqlha.global.postgresql.username}}
             - name: POSTGRES_PASSWORD
-              value: {{.Values.services.database.password}}
+              value: {{.Values.postgresqlha.global.postgresql.password}}
 
             - name: SMTP_FROM
               value: {{.Values.services.alerts.smtp.from}}

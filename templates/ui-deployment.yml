@@ -24,20 +24,14 @@ spec:
           env:
             - name: DOMAIN
               value: {{.Values.domain}}
-            - name: REACT_APP_AUTH_ENDPOINT
-              value: "https://auth.{{.Values.domain}}/auth"
-            - name: REACT_APP_AUTH_REALM
-              value: "lamassu"
-            - name: REACT_APP_AUTH_CLIENT_ID
-              value: "frontend"
-            - name: REACT_APP_LAMASSU_CLOUD_PROXY_API
-              value: "https://{{.Values.domain}}/api/cloudproxy"
-            - name: REACT_APP_LAMASSU_CA_API
-              value: "https://{{.Values.domain}}/api/ca"
-            - name: REACT_APP_LAMASSU_DMS_ENROLLER_API
-              value: "https://{{.Values.domain}}/api/dmsenroller"
-            - name: REACT_APP_LAMASSU_DEVMANAGER
-              value: "https://{{.Values.domain}}/api/devmanager"
+            - name: OIDC_AUTHORITY
+              value: {{.Values.auth.oidc.frontend.authority}}
+            - name: OIDC_CLIENT_ID
+              value: {{.Values.auth.oidc.frontend.clientId}}
+            - name: COGNITO_ENABLED
+              value: "false"
+            - name: COGNITO_HOSTED_UI_DOMAIN
+              value: ""
           volumeMounts:
             - name: ui-tls-certificates
               mountPath: /certs/tls.crt

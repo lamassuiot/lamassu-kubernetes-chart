@@ -1,3 +1,4 @@
+{{- if .Values.vault.global.enabled -}}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -85,3 +86,4 @@ data:
 
     echo -e "\n>> Vault Root Token and unseal keys can be found with:"
     echo -e "kubectl get secret vault-credentials -n {{.Release.Namespace}} -o jsonpath='{.data.vault-creds\.json}' | base64 -d "
+{{- end -}}

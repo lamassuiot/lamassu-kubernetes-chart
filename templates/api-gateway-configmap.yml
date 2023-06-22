@@ -24,36 +24,6 @@ data:
 
     static_resources:
       listeners:
-        {{ if .Values.apiGateway.exposedServices.consul }}
-        - name: couchdb5984
-          address:
-            socket_address:
-              address: 0.0.0.0
-              port_value: 5984
-          filter_chains:
-            - filters:
-                - name: envoy.filters.network.tcp_proxy
-                  typed_config:
-                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                    stat_prefix: destination
-                    cluster: couchdb_cluster
-        {{ end }}
-
-        {{ if .Values.apiGateway.exposedServices.rabbitmq }}
-        - name: rabbitmq_amqp5671
-          address:
-            socket_address:
-              address: 0.0.0.0
-              port_value: 5671
-          filter_chains:
-            - filters:
-                - name: envoy.filters.network.tcp_proxy
-                  typed_config:
-                    "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                    stat_prefix: destination
-                    cluster: rabbitmq_cluster
-        {{ end }}
-
         - name: http80
           address:
             socket_address:
@@ -109,6 +79,8 @@ data:
                           domains:
                             - "*"
                           routes:
+
+                            {{ if .Values.services.keycloak.enabled }}
                             - match:
                                 prefix: "/auth"
                               route:
@@ -120,6 +92,7 @@ data:
                                 envoy.filters.http.jwt_authn:
                                   "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
                                   disabled: true
+                            {{ end }}
 
                             - match:
                                 prefix: "/api/ocsp/"
@@ -163,8 +136,6 @@ data:
                                 prefix_rewrite: "/"
                                 cluster: api_alerts_cluster
 
-
-                            {{ if .Values.apiGateway.exposedServices.vault }}
                             - match:
                                 prefix: "/_internal/vault"
                               route:
@@ -177,7 +148,6 @@ data:
                                 envoy.filters.http.jwt_authn:
                                   "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
                                   disabled: true
-                            {{ end }}
 
                             - match:
                                 prefix: "/"
@@ -192,7 +162,6 @@ data:
                                   disabled: true
 
                     http_filters:
-                      {{ if .Values.apiGateway.enableAuthorization }}
                       - name: envoy.ext_authz
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
@@ -206,9 +175,7 @@ data:
                               target_uri: opa-server:9191
                               stat_prefix: ext_authz
                             timeout: 0.5s
-                      {{ end }}
 
-                      {{ if .Values.apiGateway.enableAuthentication }}
                       - name: envoy.filters.http.jwt_authn
                         typed_config:
                           "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
@@ -217,11 +184,14 @@ data:
                               forward: true
                               remote_jwks:
                                 http_uri:
-                                  uri: {{ .Values.auth.oidc.jwksUrl }}
+                                  uri: {{ .Values.auth.oidc.apiGateway.jwksUrl }}
+                                  {{ if .Values.services.keycloak.enabled }}
                                   cluster: auth_cluster
-                                  timeout: 1s
-                                cache_duration:
-                                  seconds: 300
+                                  {{ else }}
+                                  cluster: jwks_cluster
+                                  {{ end }}
+                                  timeout: 10s
+                                cache_duration: 600s
                           bypass_cors_preflight: true
                           rules:
                             - match:
@@ -233,7 +203,6 @@ data:
                             - match:
                                 # Lamassu UI
                                 prefix: "/"
-                        {{ end }}
 
                       - name: envoy.filters.http.router
                         typed_config:
@@ -435,7 +404,7 @@ data:
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
 
-
+        {{ if .Values.services.keycloak.enabled }}
         - name: auth_cluster
           connect_timeout: 0.25s
           type: STRICT_DNS
@@ -456,11 +425,33 @@ data:
               healthy_threshold: 1
               http_health_check:
                 path: /auth/health
-
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        {{ else }}
+        - name: jwks_cluster
+          connect_timeout: 5s
+          type: STRICT_DNS
+          dns_lookup_family: V4_ONLY
+          load_assignment:
+            cluster_name: jwks_cluster
+            endpoints:
+            - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: {{ template "apiGateway.upstreamJwksCluster.url" . }}
+                      port_value: 443
+          transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext"
+              common_tls_context:
+                validation_context:
+                  trusted_ca:
+                    filename: /etc/ssl/certs/ca-certificates.crt
+        {{ end }}
 
         - name: ocsp_cluster
           connect_timeout: 0.25s

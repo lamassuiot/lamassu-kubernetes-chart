@@ -1,3 +1,4 @@
+{{- if .Values.vault.global.enabled -}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -15,7 +16,7 @@ spec:
       serviceAccountName: vault-init
       containers:
         - name: vault-init-job
-          image: lamassuiot/ubuntu-k8s-toolbox:1.0
+          image: ghcr.io/lamassuiot/toolbox:dev
           volumeMounts:
             - name: init-script
               mountPath: /templates/init.sh
@@ -27,3 +28,4 @@ spec:
         - name: init-script
           configMap:  
             name: vault-init-script
+{{- end -}}

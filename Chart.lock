@@ -1,15 +1,15 @@
 dependencies:
 - name: consul
   repository: https://helm.releases.hashicorp.com
-  version: 1.0.1
+  version: 0.49.0
 - name: vault
   repository: https://helm.releases.hashicorp.com
-  version: 0.23.0
+  version: 0.22.0
 - name: postgresql-ha
   repository: https://charts.bitnami.com/bitnami
   version: 10.0.3
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 11.1.5
-digest: sha256:40ae34aba6ba5205613bbf382e8636ee6f34fbbb37b3438b9909d1b30629b8e8
-generated: "2022-11-30T15:24:19.115326301Z"
+digest: sha256:29b768ee19959e0eda41281fff3093b7e8853ab82d2eace81e4a88e7fdfddf11
+generated: "2023-06-21T16:12:10.710667+02:00"

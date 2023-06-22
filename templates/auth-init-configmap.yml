@@ -1,3 +1,4 @@
+{{- if .Values.services.keycloak.enabled -}}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -9,24 +10,26 @@ data:
     # apt-get install curl jq -y
 
     # Check if Auth is healthy
+    export REALM=lms
 
     echo "Waiting Auth to launch on 8080..."
-    until $(curl -s -o /dev/null -f http://auth:8080/auth/ -I | grep HTTP | awk '{print $2}'); do
+    until curl --silent --fail http://auth:8080/auth/health/ready | grep -q '"status": "UP"' ; do
       printf '.'
       sleep 1
     done
-    sleep 60
     echo "Auth is launched"
 
     
-    opt/jboss/keycloak/bin/kcadm.sh config credentials --server http://auth:8080/auth --realm master --user admin --password admin
+    /opt/keycloak/bin/kcadm.sh config credentials --server http://auth:8080/auth --realm master --user {{.Values.services.keycloak.adminCreds.username}} --password {{.Values.services.keycloak.adminCreds.password}}
 
-    # Create enroller
-    opt/jboss/keycloak/bin/kcadm.sh create users -s username=enroller -s enabled=true -r lamassu
-    opt/jboss/keycloak/bin/kcadm.sh set-password -r lamassu --username=enroller --new-password enroller
-    opt/jboss/keycloak/bin/kcadm.sh add-roles --uusername enroller --rolename admin -r lamassu
-
-    # Create operator
-    opt/jboss/keycloak/bin/kcadm.sh create users -s username=operator -s enabled=true -r lamassu
-    opt/jboss/keycloak/bin/kcadm.sh set-password -r lamassu --username=operator --new-password operator
-    opt/jboss/keycloak/bin/kcadm.sh add-roles --uusername operator --rolename operator -r lamassu
+    {{- range $user := .Values.services.keycloak.initUsers }}
+    echo "Creating user '{{ $user.username }}'"
+    /opt/keycloak/bin/kcadm.sh create users -s username={{ $user.username }} -s enabled=true -r $REALM
+    echo "Setting password for user '{{ $user.username }}'"
+    /opt/keycloak/bin/kcadm.sh set-password -r $REALM --username={{ $user.username }} --new-password {{ $user.password }}
+      {{- range $role := $user.roles }}
+      echo "Assigning role '{{ $role }}' password for user '{{ $user.username }}'"
+    /opt/keycloak/bin/kcadm.sh add-roles --username {{ $user.username }} --rolename {{ $role }} -r $REALM
+      {{- end }}
+    {{- end }}    
+{{- end -}}

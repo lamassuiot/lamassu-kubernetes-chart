@@ -9,7 +9,11 @@ data:
       envoy_ext_authz_grpc:
         addr: :9191
         path: lamassu/gateway/security/allow
+    services:
+      rem_logger:
+        url: http://localhost:8080
     decision_logs:
-      console: true
+      # console: true
+      service: rem_logger
     status:
       console: true

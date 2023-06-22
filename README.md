@@ -4,13 +4,10 @@
 
 This is the Official Helm chart for installing and configuring Lamassu IoT on Kubernetes.
 
-### Prerequisites
+### Prerequisites - Kubernetes setup
 
 * **Helm 3.2+**
 * **Kubernetes 1.24** (This is the earliest tested version, it may work in previous versions)
-
-  > **Pro tip**
-  > This helm chart can be deployed together with Rancher
 
 It is also mandatory to have the following plugins enabled on the kubernetes cluster
 
@@ -196,3 +193,46 @@ In order to remove all the provisioned resources, run this commands:
 | `services.awsConnector.aws.sqs.inboundQueueName`  | SQS Queue to listen events from AWS                                                                                          | `"lamassuResponse"`       |
 | `services.awsConnector.aws.sqs.outbountQueueName` | SQS Queue to publish all cloud events                                                                                        | `""`                      |
 | `simulationTools.enabled`                         | Enable simulation tools                                                                                                      | `false`                   |
+
+### External OIDC Configuration
+
+By default the helm chart deploys keycloak as the IAM provider, but it can be disabled and use your own IAM provider based on the OIDC protoco. Start by creating the new values file named `external-oidc.yml` to use by helm while installing:
+
+1. The first step is disabling keycloak in order to aliviate the kubernete load:
+
+  ```yaml
+  services:
+    keycloak:
+      enabled: false
+  ```
+
+2. Navigate to your IAM's OIDC Well Known URL /.well-known/openid-configuration. For the `jwksUrl` yaml field, use the `jwks_uri` field from the well-known. Also for the `authorizationEndpoint` obtain the `authorization_endpoint` value by your ODIC Provider:
+
+  ```yaml
+  auth: 
+    oidc:
+      frontend:
+        authorizationEndpoint: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/auth
+      apiGateway:
+        jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
+  ```
+
+3. Create a new Client in yout OIDC provider to be used by the UI. Bare in mind that the UI should be redirected to the **DOMAIN** variable. Your OIDC must allow such redirect for the frontend client.
+
+4. Provide de Client ID to be used by the frontend in the `auth.oidc.frontend.clientId` variable.
+
+5. The content of the `external-oidc.yml` values file should be:
+  ```yaml
+  services:
+    keycloak:
+      enabled: false
+  auth: 
+    oidc:
+      frontend:
+        clientId: frontend
+        authorizationEndpoint: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/auth
+      apiGateway:
+        jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
+  ```
+
+### External Postgres Configuration

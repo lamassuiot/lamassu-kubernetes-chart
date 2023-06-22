@@ -1,3 +1,4 @@
+{{- if .Values.vault.global.enabled -}}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -18,7 +19,7 @@ spec:
           serviceAccountName: vault-autounsealer
           containers:
             - name: vault-autounsealer-job
-              image: lamassuiot/ubuntu-k8s-toolbox:1.0
+              image: ghcr.io/lamassuiot/toolbox:dev
               volumeMounts:
                 - name: init-script
                   mountPath: /templates/init.sh
@@ -37,3 +38,4 @@ spec:
             - name: vault-credentials
               secret:
                 secretName: vault-credentials
+{{- end -}}

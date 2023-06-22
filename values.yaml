@@ -1,6 +1,6 @@
-domain: dev.lamassu.io
-debugMode: false
-storageClassName: &storage-class-name "" # <----  Default Value
+domain: &DOMAIN dev.lamassu.io
+debugMode: true
+storageClassName: &STORAGE_CLASS_NAE "" # <----  Default Value
 
 #Downstream TLS
 tls:
@@ -8,40 +8,60 @@ tls:
   secretName: ""
   duration: "2160h" #2160h == 90days
 
+auth: 
+  oidc:
+    frontend:
+      clientId: "frontend"
+      authority: https://dev.lamassu.io/auth/realms/lamassu
+    apiGateway:
+      jwksUrl: https://auth:8443/auth/realms/lamassu/protocol/openid-connect/certs
+  authorization:
+    rolesClaim: realm_access.roles
+    roles:
+      admin: admin
+      operator: operator
 services:
-  apiGateway:
-    image: lamassuiot/lamassu-gateway:2.0.0
   keycloak:
-    image: lamassuiot/lamassu-auth:2.0.0
-    username: admin
-    password: admin
+    enabled: true
+    image: ghcr.io/lamassuiot/keycloak:dev
+    adminCreds:
+      username: "admin"
+      password: "admin"
+    initUsers:
+      - username: "enroller"
+        password: "enroller"
+        roles:
+          - "pki-admin" 
+      - username: "operator"
+        password: "operator"
   ui:
-    image: lamassuiot/lamassu-ui:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-ui:dev
   ocsp:
-    image: lamassuiot/lamassu-ocsp:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-ocsp:2.0.0
   ca:
-    image: lamassuiot/lamassu-ca:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-ca:dev
+    engine: "vault"
+    aws:
+      region: ""
+      accessKeyId: ""
+      secretAccessKey: ""
     aboutToExpire: 90
     periodicScan:
       enabled: true
       cron: "0 * * * *"
   deviceManager:
-    image: lamassuiot/lamassu-device-manager:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-devmanager:dev
     minimumReenrollmentDays: 100
   dmsManager:
-    image: lamassuiot/lamassu-dms-manager:2.0.0
-  database:
-    image: lamassuiot/lamassu-db:2.0.0
-    username: admin
-    password: admin
+    image: ghcr.io/lamassuiot/lamassu-dmsmanager:dev
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
+    remLogger:
+      image: ghcr.io/lamassuiot/opa-rem-logger:dev
   cloudProxy:
-    image: lamassuiot/lamassu-cloud-proxy:2.0.0
-  rabbitmq:
-    image: lamassuiot/lamassu-rabbitmq:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-cloudproxy:2.0.0
   alerts:
-    image: lamassuiot/lamassu-alerts:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.0.0
     smtp:
       from: ""
       insecure: false
@@ -73,10 +93,12 @@ simulationTools:
 # Subcharts values
 ##############################
 
+# https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq
 rabbitmq:
+  enabled: true
   fullnameOverride: "rabbitmq"
   global:
-    storageClass: *storage-class-name
+    storageClass: *STORAGE_CLASS_NAE
   podAnnotations:
     reloader.stakater.com/auto: "true"
   auth:
@@ -86,10 +108,12 @@ rabbitmq:
       enabled: true
       existingSecret: rabbitmq-upstream-cert
 
-postgresql-ha:
+# https://github.com/bitnami/charts/tree/main/bitnami/postgresqlha
+postgresqlha:
+  enabled: true
   fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
-    storageClass: *storage-class-name
+    storageClass: *STORAGE_CLASS_NAE
     postgresql:
       username: "admin"
       password: "admin"
@@ -107,6 +131,7 @@ postgresql-ha:
 consul:
   fullnameOverride: "consul" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
+    enabled: true
     datacenter: lamassu-k8s
     tls:
       enabled: true
@@ -123,7 +148,7 @@ consul:
     # annotations: |
     #   "reloader.stakater.com/auto": "true"
     replicas: 3
-    storageClassName: *storage-class-name
+    storageClassName: *STORAGE_CLASS_NAE
     extraConfig: |
       {
         "enable_agent_tls_for_checks": true
@@ -134,6 +159,7 @@ consul:
 vault:
   fullnameOverride: "vault" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:
+    enabled: true
     tlsDisable: false
   server:
     authDelegator:
