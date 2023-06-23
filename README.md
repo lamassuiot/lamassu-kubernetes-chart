@@ -277,8 +277,8 @@ auth:
   authorization:
     rolesClaim: "cognito:groups"
     roles:
-      admin: admin
-      operator: operator
+      admin: pki-admin
+      operator: pki-operator
 ```
 
 ##### Authentication and Authorisation 
@@ -302,8 +302,8 @@ auth:
   authorization:
     rolesClaim: "cognito:groups"
     roles:
-      admin: admin
-      operator: operator    
+      admin: pki-admin
+      operator: pki-operator  
 ```
 
 ### External Postgres Configuration
