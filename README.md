@@ -11,7 +11,7 @@ This is the Official Helm chart for installing and configuring Lamassu IoT on Ku
 
 It is also mandatory to have the following plugins enabled on the kubernetes cluster
 
-* **SotrageClass Provisioner** There is no particular plugin as it depends on the Kubernetes distribution used.
+* **StorageClass Provisioner** There is no particular plugin as it depends on the Kubernetes distribution used.
   * `MicroK8s`: This distribution already has a default Storage Class provisioner `microk8s.io/hostpath` named `microk8s-hostpath`
   * `k3s`: The default installation of k3s already has a Storage Class provisioner `rancher.io/local-path` named `local-path`
   * `Minikube`: The default installation of k3s already has a Storage Class provisioner `k8s.io/minikube-hostpath` named `standard`
@@ -22,17 +22,17 @@ It is also mandatory to have the following plugins enabled on the kubernetes clu
   * `Minikube`: The default installation includes this service
   * `EKS`: TODO
 * **Ingress Controller** The recommended ingress controller is provided by Nginx. Follow the official documentation to install this plugin: [https://kubernetes.github.io/ingress-nginx/](https://kubernetes.github.io/ingress-nginx/).
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable ingress`. Once the ingress controller is installed, apply this patch to allow mutual TLS connections to go through the nginx controller `microk8s kubectl -n ingress patch ds nginx-ingress-microk8s-controller --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable ingress`. Once the ingress controller is installed, apply this patch to allow mutual TLS connections to go through the nginx controller `microk8s kubectl -n ingress patch ds nginx-ingress-microk8s-controller --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'`
   * `k3s`: Follow the official docs
   * `Minikube`: Run `minikube addons enable ingress`
   * `EKS`: TODO
 * **Load Balancer Provider**
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable metallb` and follow the instructions. You will have to specify the CIDR range used by MetalLB i.e. `microk8s enable metallb:192.168.1.240/24`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable metallb` and follow the instructions. You will have to specify the CIDR range used by MetalLB i.e. `microk8s enable metallb:192.168.1.240/24`
   * `k3s`: The default installation includes this service
   * `Minikube`:  Run `minikube addons enable metallb`
   * `EKS`: TODO
 * **CertManager** Follow the official docs [https://cert-manager.io/](https://cert-manager.io/)
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable cert-manager`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable cert-manager`
   * `k3s`: Follow the official docs
   * `Minikube`: TODO
   * `EKS`: TODO
@@ -42,7 +42,7 @@ It is also mandatory to have the following plugins enabled on the kubernetes clu
 
 * Make sure your ingress controller has the SSL Passthrough enabled, otherwise the Lamassu chart won't work as expected. Refer to the Prerequisites > Ingress Controller section
 
-* Depending on how the nginx ingress controller is installed, it may not pick the provisioned Ingress, and thus, no traffic will be routed through it. In those cases, run this commands and make sure your nginx ingress controller picks Lamassu's Ingress deffinitions:
+* Depending on how the nginx ingress controller is installed, it may not pick the provisioned Ingress, and thus, no traffic will be routed through it. In those cases, run this commands and make sure your nginx ingress controller picks Lamassu's Ingress definitions:
 
 
 
@@ -63,11 +63,11 @@ cd lamassu-kubernetes-chart
 export NS=lamassu
 ```
 
-3. Install the helm chart. There are many ways to deploy Lamassu using this charts depending which subsytems are needed. Choose one of the following deployment modes
+3. Install the helm chart. There are many ways to deploy Lamassu using this charts depending which subsystems are needed. Choose one of the following deployment modes
 
   **Core deployment**
 
-  Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained runing `kubectl get sc`)
+  Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained running `kubectl get sc`)
 
   ```bash
   helm install lamassu . --create-namespace -n $NS \
@@ -103,9 +103,9 @@ export NS=lamassu
   --set simulationTools.enabled=true
   ```
 
-  **Core deployment + Alerts with email/STMP**
+  **Core deployment + Alerts with email/SMTP**
 
-  The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables secction for more information on how to configure this service
+  The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables section for more information on how to configure this service
 
   ```bash
   helm install lamassu . --create-namespace -n $NS \
@@ -118,7 +118,7 @@ export NS=lamassu
 
   **Core deployment + AWS Connector**
 
-  The AWS connector can also be deployed using the following command. Please note that it is required to provsion the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
+  The AWS connector can also be deployed using the following command. Please note that it is required to provision the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
 
   Once all AWS services have been deployed via de CDK, then deploy your Lamassu instance. Make sure to change the `services.awsConnector.aws.accessKeyId`, `services.awsConnector.aws.secretAccessKey` and `services.awsConnector.aws.defaultRegion` to the appropriate values:
 
