@@ -29,9 +29,9 @@ spec:
             - name: OIDC_CLIENT_ID
               value: {{.Values.auth.oidc.frontend.clientId}}
             - name: COGNITO_ENABLED
-              value: "false"
+              value: "{{.Values.auth.oidc.frontend.awsCognito.enabled}}"
             - name: COGNITO_HOSTED_UI_DOMAIN
-              value: ""
+              value: {{.Values.auth.oidc.frontend.awsCognito.hostedUiDomain}}
           volumeMounts:
             - name: ui-tls-certificates
               mountPath: /certs/tls.crt

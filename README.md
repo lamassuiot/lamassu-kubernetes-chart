@@ -11,7 +11,7 @@ This is the Official Helm chart for installing and configuring Lamassu IoT on Ku
 
 It is also mandatory to have the following plugins enabled on the kubernetes cluster
 
-* **SotrageClass Provisioner** There is no particular plugin as it depends on the Kubernetes distribution used.
+* **StorageClass Provisioner** There is no particular plugin as it depends on the Kubernetes distribution used.
   * `MicroK8s`: This distribution already has a default Storage Class provisioner `microk8s.io/hostpath` named `microk8s-hostpath`
   * `k3s`: The default installation of k3s already has a Storage Class provisioner `rancher.io/local-path` named `local-path`
   * `Minikube`: The default installation of k3s already has a Storage Class provisioner `k8s.io/minikube-hostpath` named `standard`
@@ -22,17 +22,17 @@ It is also mandatory to have the following plugins enabled on the kubernetes clu
   * `Minikube`: The default installation includes this service
   * `EKS`: TODO
 * **Ingress Controller** The recommended ingress controller is provided by Nginx. Follow the official documentation to install this plugin: [https://kubernetes.github.io/ingress-nginx/](https://kubernetes.github.io/ingress-nginx/).
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable ingress`. Once the ingress controller is installed, apply this patch to allow mutual TLS connections to go through the nginx controller `microk8s kubectl -n ingress patch ds nginx-ingress-microk8s-controller --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable ingress`. Once the ingress controller is installed, apply this patch to allow mutual TLS connections to go through the nginx controller `microk8s kubectl -n ingress patch ds nginx-ingress-microk8s-controller --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'`
   * `k3s`: Follow the official docs
   * `Minikube`: Run `minikube addons enable ingress`
   * `EKS`: TODO
 * **Load Balancer Provider**
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable metallb` and follow the instructions. You will have to specify the CIDR range used by MetalLB i.e. `microk8s enable metallb:192.168.1.240/24`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable metallb` and follow the instructions. You will have to specify the CIDR range used by MetalLB i.e. `microk8s enable metallb:192.168.1.240/24`
   * `k3s`: The default installation includes this service
   * `Minikube`:  Run `minikube addons enable metallb`
   * `EKS`: TODO
 * **CertManager** Follow the official docs [https://cert-manager.io/](https://cert-manager.io/)
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable cert-manager`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable cert-manager`
   * `k3s`: Follow the official docs
   * `Minikube`: TODO
   * `EKS`: TODO
@@ -42,7 +42,7 @@ It is also mandatory to have the following plugins enabled on the kubernetes clu
 
 * Make sure your ingress controller has the SSL Passthrough enabled, otherwise the Lamassu chart won't work as expected. Refer to the Prerequisites > Ingress Controller section
 
-* Depending on how the nginx ingress controller is installed, it may not pick the provisioned Ingress, and thus, no traffic will be routed through it. In those cases, run this commands and make sure your nginx ingress controller picks Lamassu's Ingress deffinitions:
+* Depending on how the nginx ingress controller is installed, it may not pick the provisioned Ingress, and thus, no traffic will be routed through it. In those cases, run this commands and make sure your nginx ingress controller picks Lamassu's Ingress definitions:
 
 
 
@@ -63,11 +63,11 @@ cd lamassu-kubernetes-chart
 export NS=lamassu
 ```
 
-3. Install the helm chart. There are many ways to deploy Lamassu using this charts depending which subsytems are needed. Choose one of the following deployment modes
+3. Install the helm chart. There are many ways to deploy Lamassu using this charts depending which subsystems are needed. Choose one of the following deployment modes
 
   **Core deployment**
 
-  Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained runing `kubectl get sc`)
+  Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained running `kubectl get sc`)
 
   ```bash
   helm install lamassu . --create-namespace -n $NS \
@@ -103,9 +103,9 @@ export NS=lamassu
   --set simulationTools.enabled=true
   ```
 
-  **Core deployment + Alerts with email/STMP**
+  **Core deployment + Alerts with email/SMTP**
 
-  The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables secction for more information on how to configure this service
+  The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables section for more information on how to configure this service
 
   ```bash
   helm install lamassu . --create-namespace -n $NS \
@@ -118,7 +118,7 @@ export NS=lamassu
 
   **Core deployment + AWS Connector**
 
-  The AWS connector can also be deployed using the following command. Please note that it is required to provsion the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
+  The AWS connector can also be deployed using the following command. Please note that it is required to provision the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
 
   Once all AWS services have been deployed via de CDK, then deploy your Lamassu instance. Make sure to change the `services.awsConnector.aws.accessKeyId`, `services.awsConnector.aws.secretAccessKey` and `services.awsConnector.aws.defaultRegion` to the appropriate values:
 
@@ -176,8 +176,8 @@ In order to remove all the provisioned resources, run this commands:
 | `services.ca.periodicScan.enabled`                | Activate the Periodic Scan system                                                                                            | `true`               |
 | `services.ca.periodicScan.cron`                   | Cron expression at which the Periodic Scan is launched                                                                       | `0 * * * *`               |
 | `services.deviceManager.minimumReenrollmentDays`  | Minimum Reenrollment Days                                                                                                    | `100`                     |
-| `services.database.username`                      | Databes Username                                                                                                             | `admin`                   |
-| `services.database.password`                      | Databes Password                                                                                                             | `admin`                   |
+| `services.database.username`                      | Database Username                                                                                                             | `admin`                   |
+| `services.database.password`                      | Database Password                                                                                                             | `admin`                   |
 | `services.alerts.smtp.from`                       | Display name for sender email address                                                                                        | `""`                      |
 | `services.alerts.smtp.insecure`                   | Skip certificate validation for SMTP server                                                                                  | `false`                   |
 | `services.alerts.smtp.enable_ssl`                 | Enable SSL connection for SMTP server                                                                                        | `true`                    |
@@ -191,14 +191,18 @@ In order to remove all the provisioned resources, run this commands:
 | `services.awsConnector.aws.secretAccessKey`       | Secret access key to access AWS via SDK                                                                                      | `""`                      |
 | `services.awsConnector.aws.defaultRegion`         | Default region for for accessing AWS via SDK                                                                                 | `""`                      |
 | `services.awsConnector.aws.sqs.inboundQueueName`  | SQS Queue to listen events from AWS                                                                                          | `"lamassuResponse"`       |
-| `services.awsConnector.aws.sqs.outbountQueueName` | SQS Queue to publish all cloud events                                                                                        | `""`                      |
+| `services.awsConnector.aws.sqs.outboundQueueName` | SQS Queue to publish all cloud events                                                                                        | `""`                      |
 | `simulationTools.enabled`                         | Enable simulation tools                                                                                                      | `false`                   |
+
+### Accessing Lamassu: Path-based routing
+
+Lamassu offers its services by routing traffic through the API Gateway. Based on the `domain` variable used by lamassu, the API Gateway will route traffic to the corresponding services (some services will not be routed if they are disabled):
 
 ### External OIDC Configuration
 
-By default the helm chart deploys keycloak as the IAM provider, but it can be disabled and use your own IAM provider based on the OIDC protoco. Start by creating the new values file named `external-oidc.yml` to use by helm while installing:
+By default the helm chart deploys keycloak as the IAM provider, but it can be disabled and use your own IAM provider based on the OIDC protocol. Start by creating the new values file named `external-oidc.yml` to use by helm while installing:
 
-1. The first step is disabling keycloak in order to aliviate the kubernete load:
+1. The first step is disabling keycloak in order to alleviate the kubernetes load:
 
   ```yaml
   services:
@@ -207,7 +211,7 @@ By default the helm chart deploys keycloak as the IAM provider, but it can be di
   ```
 
 2. Navigate to your IAM's OIDC Well Known URL /.well-known/openid-configuration. For the `jwksUrl` yaml field, use the `jwks_uri` field from the well-known. Also for the `authorizationEndpoint` obtain the `authorization_endpoint` value by your ODIC Provider:
-
+ 
   ```yaml
   auth: 
     oidc:
@@ -217,7 +221,7 @@ By default the helm chart deploys keycloak as the IAM provider, but it can be di
         jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
   ```
 
-3. Create a new Client in yout OIDC provider to be used by the UI. Bare in mind that the UI should be redirected to the **DOMAIN** variable. Your OIDC must allow such redirect for the frontend client.
+3. Create a new Client in your OIDC provider to be used by the UI. Bare in mind that the UI should be redirected to the `DOMAIN` variable. Your OIDC must allow such redirect for the frontend client.
 
 4. Provide de Client ID to be used by the frontend in the `auth.oidc.frontend.clientId` variable.
 

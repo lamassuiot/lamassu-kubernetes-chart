@@ -82,7 +82,7 @@ spec:
             - name: AWS_SQS_INBOUND_QUEUE_NAME
               value: {{.Values.services.awsConnector.aws.sqs.inboundQueueName}}
             - name: AWS_SQS_OUTBOUND_QUEUE_NAME
-              value: {{.Values.services.awsConnector.aws.sqs.outbountQueueName}}
+              value: {{.Values.services.awsConnector.aws.sqs.outboundQueueName}}
           volumeMounts:
             - name: connector-identifier
               mountPath: /id-volume

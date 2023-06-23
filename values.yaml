@@ -13,6 +13,9 @@ auth:
     frontend:
       clientId: "frontend"
       authority: https://dev.lamassu.io/auth/realms/lamassu
+      awsCognito: 
+        enabled: false
+        hostedUiDomain: ""
     apiGateway:
       jwksUrl: https://auth:8443/auth/realms/lamassu/protocol/openid-connect/certs
   authorization:
@@ -80,7 +83,7 @@ services:
       defaultRegion: ""
       sqs:
         inboundQueueName: "lamassuResponse"
-        outbountQueueName: ""
+        outboundQueueName: ""
 
 simulationTools:
   enabled: false
