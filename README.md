@@ -150,8 +150,8 @@ By default the helm chart deploys keycloak as the IAM provider, but it can be di
 
 ```yaml
 services:
-	keycloak: 
-		enabled: false
+   keycloak: 
+     enabled: false
 ```
 
 
@@ -182,8 +182,8 @@ auth:
 6. The content of the `external-oidc.yml` values file should be:
 ```yaml
 services: 
-  keycloack:
-    enabled: false
+   keycloack:
+      enabled: false
 autn:
   oidc:
      frontend:
