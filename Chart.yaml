@@ -37,10 +37,10 @@ dependencies:
 
   #https://artifacthub.io/packages/helm/bitnami/postgresqlha
   - name: postgresql-ha
-    alias: postgresqlha
+    alias: integratedPostgres
     version: 10.0.3
     repository: https://charts.bitnami.com/bitnami
-    condition: postgresqlha.enabled
+    condition: integratedPostgres.enabled
 
   - name: rabbitmq
     version: 11.1.5

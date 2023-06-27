@@ -1,3 +1,4 @@
+{{- if .Values.integratedPostgres.enabled -}}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -11,3 +12,4 @@ data:
     CREATE DATABASE cloudproxy;
     CREATE DATABASE devicemanager;
     CREATE DATABASE dmsmanager;
+{{- end -}}

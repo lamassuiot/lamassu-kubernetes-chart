@@ -10,7 +10,6 @@ spec:
   duration: {{.Values.tls.duration}}
   dnsNames:
     - "{{.Values.domain}}"
-    - "*.{{.Values.domain}}"
   secretName: downstream-cert
   privateKey:
     algorithm: ECDSA

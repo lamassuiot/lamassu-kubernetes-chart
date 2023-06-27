@@ -111,8 +111,13 @@ rabbitmq:
       enabled: true
       existingSecret: rabbitmq-upstream-cert
 
+externalPostgres:
+  hostname: ""
+  port: 5432
+  username: ""
+  password: ""
 # https://github.com/bitnami/charts/tree/main/bitnami/postgresqlha
-postgresqlha:
+integratedPostgres:
   enabled: true
   fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
   global:

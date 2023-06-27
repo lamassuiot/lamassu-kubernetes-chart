@@ -55,15 +55,15 @@ spec:
               value: /certs/internal-ca.crt
 
             - name: POSTGRES_HOSTNAME
-              value: postgresql-pgpool
+              value: {{ include "postgres.hostname" . }}
             - name: POSTGRES_PORT
-              value: "5432"
+              value: "{{ include "postgres.port" . }}"
             - name: POSTGRES_DATABASE
               value: alerts
             - name: POSTGRES_USERNAME
-              value: {{.Values.postgresqlha.global.postgresql.username}}
+              value: {{ include "postgres.username" . }}
             - name: POSTGRES_PASSWORD
-              value: {{.Values.postgresqlha.global.postgresql.password}}
+              value: {{ include "postgres.password" . }}
 
             - name: SMTP_FROM
               value: {{.Values.services.alerts.smtp.from}}
