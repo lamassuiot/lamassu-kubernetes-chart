@@ -136,6 +136,14 @@ export NS=lamassu
   ```
 ## Configuration
 
+### Core deployment
+
+```yaml
+domain: dev.lamassu.io 
+storageClassName: local-path
+debugMode: false
+```
+
 ### External OIDC Configuration
 
 #### General Solution
