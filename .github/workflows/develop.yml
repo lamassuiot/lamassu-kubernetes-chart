@@ -9,7 +9,7 @@ on:
       - develop
 
 env:
-  DOCKER_IMAGE_PREFIX: ghcr.io/lamassuiot/lamassu
+  DOCKER_IMAGE_PREFIX: ghcr.io/lamassuiot
 
 jobs:
   build_auxiliar_compose_release:
@@ -34,8 +34,8 @@ jobs:
           context: config/auth
           push: true
           tags: |
-            $DOCKER_IMAGE_PREFIX-auth-dev:${{ github.sha }}
-            $DOCKER_IMAGE_PREFIX-auth-dev:latest
+            $DOCKER_IMAGE_PREFIX/keycloak:${{ github.sha }}
+            $DOCKER_IMAGE_PREFIX/keycloak:dev
 
       - name: Build Toolbox Docker image
         uses: docker/build-push-action@v2
@@ -43,5 +43,5 @@ jobs:
           context: config/toolbox
           push: true
           tags: |
-            $DOCKER_IMAGE_PREFIX-toolbox-dev:${{ github.sha }}
-            $DOCKER_IMAGE_PREFIX-toolbox-dev:latest
+            $DOCKER_IMAGE_PREFIX/toolbox:${{ github.sha }}
+            $DOCKER_IMAGE_PREFIX/toolbox:dev
