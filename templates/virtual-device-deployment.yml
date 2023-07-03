@@ -57,8 +57,16 @@ spec:
           ports:
             - containerPort: 7001
       restartPolicy: Always
+      {{if eq .Values.tls.type "externalCerts" -}}
       volumes:
-        - name: downstream-tls-certificates
+        - name: downstream-tls-certificate
           secret:
-            secretName: downstream-cert
+            secretName:  {{ .Values.tls.externalCertsOptions.secretName . }}
+      {{- end -}}
+      {{- if ne .Values.tls.type "externalCerts" -}}
+      volumes:
+        - name: downstream-tls-certificate
+          secret:
+            secretName:  downstream-cert
+      {{- end}}
 {{- end -}}
