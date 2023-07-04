@@ -39,11 +39,6 @@ spec:
     size: 256
   issuerRef:
     name: letsencrypt-issuer
-    {{if .Values.tls.letsEncryptOptions.clusterIssuer -}}
-    kind: ClusterIssuer
-    {{- end -}}
-    {{if .Values.tls.letsEncryptOptions.issuer -}}
     kind: Issuer
-    {{- end}}
     group: cert-manager.io
 {{- end -}}

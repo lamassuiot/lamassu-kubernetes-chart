@@ -9,7 +9,7 @@ metadata:
     {{- if eq .Values.tls.type "letsEncrypt"}}
     acme.cert-manager.io/http01-edit-in-place: "true"
     {{- end}}
-    {{- if eq .Values.tls.type "externalCerts"}}
+    {{- if eq .Values.tls.type "external"}}
     nginx.ingress.kubernetes.io/proxy-ssl-secret: {{.Release.Namespace}}/downstream-cert
     {{- end}}
     #Routed Service recives HTTPS connections

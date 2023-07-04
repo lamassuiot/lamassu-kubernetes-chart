@@ -89,18 +89,37 @@ export NS=lamassu
   --set domain=dev.lamassu.io \
   --set storageClassName=local-path \
   --set debugMode=true
-  --set tls.type=externalCerts
-  --set tls.externalCertsOptions.secretName=downstream-tls-certificate
+  --set tls.type=external
+  --set tls.externalOptions.secretName=downstream-tls-certificate
   ```
 
   **Core deployment using Lets Encrypt Certificates (Used by API Gateway)**
 
+  #First create the Issuer resource through which the Lets Encrypt certificates will be issued:
+  ```bash
+  cat <<EOF | kubectl apply -f -
+  apiVersion: cert-manager.io/v1
+  kind: Issuer
+  metadata:
+    name: letsencrypt-issuer
+    namespace: $NS
+  spec:
+    acme:
+      server: https://acme-staging-v02.api.letsencrypt.org/directory
+      privateKeySecretRef:
+        name: letsencrypt-issuer
+      skipTLSVerify: true
+      solvers:
+        - http01:
+            ingress:
+              class: nginx
+  EOF
+  ```
   helm install lamassu . --create-namespace -n $NS \
   --set domain=dev.lamassu.io \
   --set storageClassName=local-path \
   --set debugMode=true
   --set tls.type=letsEncrypt
-  --set tls.letsEncryptOptions.issuer=true
   ```
 
   **Core deployment + Simulation tools**
@@ -180,11 +199,11 @@ In order to remove all the provisioned resources, run this commands:
 | `debugMode`                                       | Deploy services with additional logs                                                                                                                                 | `false`                  |
 | `domain`                                          | Domain to use in ingress controller and other services                                                                                                               | `"dev.lamassu.io"`       |
 | `storageClassName`                                | Storage class to use while provisioning PersistenVolumes                                                                                                             | `""`                     |<>
-| `tls.type`                                        | The type of certificate used for downstream connections by the API-Gateway, selfSigned, letsEncrypt or externalCerts.                                                | `selfSigned`             |
+| `tls.type`                                        | The type of certificate used for downstream connections by the API-Gateway, selfSigned, letsEncrypt or external.                                                | `selfSigned`             |
 | `tls.selfSignedOptions.duration`                  | If `tls.type` is `selfSigned`, duration of self-signed certificates.                                                                                                 | `2160h`                  | 
 | `tls.letsEncryptOptions.clusterIssuer`            | If `tls.type` is `letsEncrypt` and `tls.letsEncryptOptions.clusterIssuer` is true, cert manager resource is available for the entire kubernetes cluster.             | `true`                   |
 | `tls.letsEncryptOptions.issuer`                   | If `tls.type` is `letsEncrypt` and `tls.letsEncryptOptions.issuer` is true, cert manager resource is only available in the configured kubernetes namespace.          | `true`                   |
-| `tls.externalCertsOptions.secretName`                | If `tls.type` is `externalCerts`, name of the secret containing the imported certificates.                                                                           | `downstream-cert`        |
+| `tls.externalOptions.secretName`                | If `tls.type` is `external`, name of the secret containing the imported certificates.                                                                           | `downstream-cert`        |
 | `services.ca.aboutToExpire`                       | Number of days until a Certificate or CA is labeled as `About To expire`                                                                                             | `90`                     |
 | `services.ca.periodicScan.enabled`                | Activate the Periodic Scan system                                                                                                                                    | `true`                   |
 | `services.ca.periodicScan.cron`                   | Cron expression at which the Periodic Scan is launched                                                                                                               | `0 * * * *`              |

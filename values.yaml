@@ -4,14 +4,14 @@ storageClassName: &STORAGE_CLASS_NAE "" # <----  Default Value
 
 #Downstream TLS
 tls:
-  # type: selfSigned | letsEncrypt | externalCerts
+  # type: selfSigned | letsEncrypt | external
   type: selfSigned
   selfSignedOptions:
     duration: "2160h"
   letsEncryptOptions:
     clusterIssuer: true
     issuer: false
-  externalCertsOptions:
+  externalOptions:
     secretName: ""
 
 auth: 

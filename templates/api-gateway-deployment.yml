@@ -58,13 +58,13 @@ spec:
             - containerPort: 443
             - containerPort: 9900
       restartPolicy: Always
-      {{if eq .Values.tls.type "externalCerts" -}}
+      {{if eq .Values.tls.type "external" -}}
       volumes:
         - name: downstream-tls-certificate
           secret:
-            secretName:  {{ .Values.tls.externalCertsOptions.secretName . }}
+            secretName:  {{ .Values.tls.externalOptions.secretName . }}
       {{- end -}}
-      {{- if ne .Values.tls.type "externalCerts" -}}
+      {{- if ne .Values.tls.type "external" -}}
       volumes:
         - name: downstream-tls-certificate
           secret:
