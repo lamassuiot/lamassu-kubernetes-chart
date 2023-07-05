@@ -24,7 +24,9 @@ spec:
           tty: true          
           env:
             - name: LAMASSU_DEVICE_MANAGER_ADDRESS
-              value: device-manager:8085
+              value: https://device-manager:8085
+            - name: LAMASSU_DEVICE_MANAGER_CERT_FILE
+              value: /certs/internal-ca.crt
             - name: SERVICE_NAME
               value: dmsManager
             - name: DEBUG_MODE

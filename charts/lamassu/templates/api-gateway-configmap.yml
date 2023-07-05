@@ -209,6 +209,8 @@ data:
                             - match:
                                 prefix: "/api/devmanager/.well-known/est"
                             - match:
+                                prefix: "/api/dmsmanager/.well-known/est"
+                            - match:
                                 prefix: "/api/"
                               requires:
                                 provider_name: "lamassu_oidc_provider"

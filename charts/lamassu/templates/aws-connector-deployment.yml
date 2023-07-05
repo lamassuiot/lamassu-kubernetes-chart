@@ -54,10 +54,23 @@ spec:
               value: "5671"
             - name: AMQP_SERVER_CA_CERT
               value: /certs/internal-ca.crt
-
             - name: LAMASSU_CA_ADDRESS
               value: https://ca:8085
+            - name: LAMASSU_CA_INSECURE_SKIP_VERIFY
+              value: "false"
             - name: LAMASSU_CA_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: LAMASSU_DMS_ADDRESS
+              value: https://dms-manager:8085
+            - name: LAMASSU_DMS_INSECURE_SKIP_VERIFY
+              value: "false"
+            - name: LAMASSU_DMS_CERT_FILE
+              value: /certs/internal-ca.crt
+            - name: LAMASSU_DEVICE_MANAGER_ADDRESS
+              value: https://device-manager:8085
+            - name: LAMASSU_DEVICE_MANAGER_INSECURE_SKIP_VERIFY
+              value: "false"
+            - name: LAMASSU_DEVICE_MANAGER_CERT_FILE
               value: /certs/internal-ca.crt
             - name: CONNECTOR_TYPE
               value: aws
@@ -73,6 +86,8 @@ spec:
               value: "8501"
             - name: CONSUL_CA
               value: /certs/internal-ca.crt
+            - name: CONSUL_INSECURE_SKIP_VERIFY
+              value: "false"
             - name: AWS_ACCESS_KEY_ID
               value: "{{.Values.services.awsConnector.aws.accessKeyId}}"
             - name: AWS_SECRET_ACCESS_KEY
