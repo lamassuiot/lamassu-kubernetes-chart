@@ -6,19 +6,6 @@
   {{- end -}}
 {{- end -}}
 
-{{- define "postgres.hostname" -}}
-  {{- print (ternary "postgresql-pgpool" .Values.externalPostgres.hostname .Values.integratedPostgres.enabled) -}}
-{{- end -}}
-{{- define "postgres.port" -}}
-  {{- print (ternary "5432" .Values.externalPostgres.port .Values.integratedPostgres.enabled) -}}
-{{- end -}}
-{{- define "postgres.username" -}}
-  {{- print (ternary .Values.integratedPostgres.global.postgresql.username .Values.externalPostgres.username .Values.integratedPostgres.enabled) -}}
-{{- end -}}
-{{- define "postgres.password" -}}
-  {{- print (ternary .Values.integratedPostgres.global.postgresql.password .Values.externalPostgres.password .Values.integratedPostgres.enabled) -}}
-{{- end -}}
-
 {{- define "apiGateway.upstreamJwksCluster.url" -}}
   {{- $url := .Values.auth.oidc.apiGateway.jwksUrl -}}
   {{- $parsedUrl := (split "/" $url) -}}

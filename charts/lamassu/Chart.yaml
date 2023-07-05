@@ -35,13 +35,6 @@ dependencies:
     repository: https://helm.releases.hashicorp.com
     condition: vault.global.enabled
 
-  #https://artifacthub.io/packages/helm/bitnami/postgresqlha
-  - name: postgresql-ha
-    alias: integratedPostgres
-    version: 10.0.3
-    repository: https://charts.bitnami.com/bitnami
-    condition: integratedPostgres.enabled
-
   - name: rabbitmq
     version: 11.1.5
     repository: https://charts.bitnami.com/bitnami

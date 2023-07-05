@@ -8,6 +8,12 @@ tls:
   secretName: ""
   duration: "2160h" #2160h == 90days
 
+postgres:
+  hostname: ""
+  port: 5432
+  username: ""
+  password: ""
+
 auth: 
   oidc:
     frontend:
@@ -110,30 +116,6 @@ rabbitmq:
     tls:
       enabled: true
       existingSecret: rabbitmq-upstream-cert
-
-externalPostgres:
-  hostname: ""
-  port: 5432
-  username: ""
-  password: ""
-# https://github.com/bitnami/charts/tree/main/bitnami/postgresqlha
-integratedPostgres:
-  enabled: true
-  fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
-  global:
-    storageClass: *STORAGE_CLASS_NAE
-    postgresql:
-      username: "admin"
-      password: "admin"
-      # database: ""
-      repmgrUsername: "admin"
-      repmgrPassword: "admin"
-      # repmgrDatabase: ""
-      existingSecret: ""
-  postgresql:
-    replicaCount: 3
-    initdbScriptsCM: postgres-ha-init
-    syncReplication: true
 
 #https://developer.hashicorp.com/consul/docs/k8s/helm
 consul:

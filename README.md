@@ -46,97 +46,25 @@ It is also mandatory to have the following plugins enabled on the kubernetes clu
 
 
 
-## Usage
+## Pre Requisites
 
-Steps to install this chart:
-
-1. Clone the repo:
+### Database
 
 ```bash
-git clone https://github.com/lamassuiot/lamassu-kubernetes-chart
-cd lamassu-kubernetes-chart
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install postgres bitnami/postgresql-ha -n lamassu-dev  -f postgres-values.yaml
 ```
 
-2. Choose the namespace to use:
+### Queues
 
 ```bash
-export NS=lamassu
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install rabbitmq bitnami/rabbitmq -n lamassu-dev  -f rabbitmq-values.yaml
 ```
 
-3. Install the helm chart. There are many ways to deploy Lamassu using this charts depending which subsystems are needed. Choose one of the following deployment modes
+### (Optional) Vault & Consul 
 
-  **Core deployment**
-
-  Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained running `kubectl get sc`)
-
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true
-  ```
-
-  **Core deployment using external Certificates (Used by API Gateway)**
-
-  Make sure to point to the actual paths to the `.cert` file and the .key `file`
-  ```bash
-  #First, create secret using files with certificate and key to use:
-  kubectl create secret tls external-downstream-cert -n $NS \
-  --cert=path/to/cert/file \
-  --key=path/to/key/file
-
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true
-  --set tls.selfSigned=false
-  --set tls.secretName=external-downstream-cert
-  ```
-
-  **Core deployment + Simulation tools**
-
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true \
-  --set simulationTools.enabled=true
-  ```
-
-  **Core deployment + Alerts with email/SMTP**
-
-  The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables section for more information on how to configure this service
-
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true \
-  --set services.alerts.smtp.from="lamassu-alerts@lamassu.io" \
-  --set services.alerts.smtp.username="lamassu-alerts@lamassu.io"
-  ```
-
-  **Core deployment + AWS Connector**
-
-  The AWS connector can also be deployed using the following command. Please note that it is required to provision the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
-
-  Once all AWS services have been deployed via de CDK, then deploy your Lamassu instance. Make sure to change the `services.awsConnector.aws.accessKeyId`, `services.awsConnector.aws.secretAccessKey` and `services.awsConnector.aws.defaultRegion` to the appropriate values:
-
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true \
-  --set services.awsConnector.enabled=true \
-  --set services.awsConnector.name="My AWS Account" \
-  --set services.awsConnector.aws.accessKeyId="**************" \
-  --set services.awsConnector.aws.secretAccessKey="************" \
-  --set services.awsConnector.aws.defaultRegion="eu-west-1" \
-  --set services.awsConnector.aws.sqs.inboundQueueName="lamassuResponse"
-  ```
-## Configuration
-
-### Core deployment
+## Core deployment
 
 ```yaml
 domain: dev.lamassu.io 

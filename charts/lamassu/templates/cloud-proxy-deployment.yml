@@ -55,15 +55,15 @@ spec:
               value: /certs/internal-ca.crt
 
             - name: POSTGRES_HOSTNAME
-              value: {{ include "postgres.hostname" . }}
+              value: {{ .Values.postgres.hostname }}
             - name: POSTGRES_PORT
-              value: "{{ include "postgres.port" . }}"
+              value: "{{ .Values.postgres.port }}"
             - name: POSTGRES_DATABASE
               value: cloudproxy
             - name: POSTGRES_USERNAME
-              value: {{ include "postgres.username" . }}
+              value: {{ .Values.postgres.username }}
             - name: POSTGRES_PASSWORD
-              value: {{ include "postgres.password" . }}
+              value: {{ .Values.postgres.password }}
             - name: CONSUL_PROTOCOL
               value: https
             - name: CONSUL_HOST

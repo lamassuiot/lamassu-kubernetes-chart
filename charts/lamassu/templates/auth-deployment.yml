@@ -34,11 +34,11 @@ spec:
             - name: KC_DB
               value: postgres
             - name: KC_DB_URL
-              value: jdbc:postgresql://{{ include "postgres.hostname" . }}:{{ include "postgres.port" . }}/auth #Service Name for HA postgres
+              value: jdbc:postgresql://{{ .Values.postgres.hostname }}:{{ .Values.postgres.port }}/auth #Service Name for HA postgres
             - name: KC_DB_USERNAME
-              value: {{ include "postgres.username" . }}
+              value: {{ .Values.postgres.username }}
             - name: KC_DB_PASSWORD
-              value: {{ include "postgres.password" . }}
+              value: {{ .Values.postgres.password }}
             - name: KEYCLOAK_ADMIN
               value: {{.Values.services.keycloak.adminCreds.username}}
             - name: KEYCLOAK_ADMIN_PASSWORD

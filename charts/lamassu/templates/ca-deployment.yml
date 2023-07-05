@@ -54,15 +54,15 @@ spec:
             - name: AMQP_SERVER_CA_CERT
               value: /certs/internal-ca.crt
             - name: POSTGRES_HOSTNAME
-              value: {{ include "postgres.hostname" . }}
+              value: {{ .Values.postgres.hostname }}
             - name: POSTGRES_PORT
-              value: "{{ include "postgres.port" . }}"
+              value: "{{ .Values.postgres.port }}"
             - name: POSTGRES_DATABASE
               value: ca
             - name: POSTGRES_USERNAME
-              value: {{ include "postgres.username" . }}
+              value: {{ .Values.postgres.username }}
             - name: POSTGRES_PASSWORD
-              value: {{ include "postgres.password" . }}
+              value: {{ .Values.postgres.password }}
             - name: OCSP_URL
               value: https://{{.Values.domain}}/api/ocsp/
             {{ if eq .Values.services.ca.engine "vault"}}
