@@ -136,11 +136,11 @@ data:
                                 prefix_rewrite: "/"
                                 cluster: api_alerts_cluster
 
+                            {{ if .Values.simulationTools.enabled }}
                             - match:
-                                prefix: "/_internal/vault"
+                                prefix: "/simtools/vdevice"
                               route:
-                                prefix_rewrite: "/"
-                                cluster: vault_cluster
+                                cluster: vdevice_cluster
                               typed_per_filter_config:
                                 envoy.filters.http.ext_authz:
                                   "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
@@ -148,7 +148,19 @@ data:
                                 envoy.filters.http.jwt_authn:
                                   "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
                                   disabled: true
-
+                            - match:
+                                prefix: "/simtools/vdms"
+                              route:
+                                cluster: vdms_cluster
+                              typed_per_filter_config:
+                                envoy.filters.http.ext_authz:
+                                  "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                                  disabled: true
+                                envoy.filters.http.jwt_authn:
+                                  "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                                  disabled: true
+                            {{ end }}
+                            
                             - match:
                                 prefix: "/"
                               route:
@@ -196,6 +208,8 @@ data:
                           rules:
                             - match:
                                 prefix: "/api/devmanager/.well-known/est"
+                            - match:
+                                prefix: "/api/dmsmanager/.well-known/est"
                             - match:
                                 prefix: "/api/"
                               requires:
@@ -504,23 +518,29 @@ data:
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
 
-        - name: couchdb_cluster
+        {{ if .Values.simulationTools.enabled }}
+        - name: vdevice_cluster
           connect_timeout: 0.25s
           type: STRICT_DNS
           load_assignment:
-            cluster_name: couchdb_cluster
+            cluster_name: vdevice_cluster
             endpoints:
               - lb_endpoints:
                   - endpoint:
                       address:
                         socket_address:
-                          address: lamassu-couchdb
-                          port_value: 5984
-          health_checks:
-            - interval: 60s
-              timeout: 2s
-              interval_jitter: 1s
-              unhealthy_threshold: 1
-              healthy_threshold: 1
-              http_health_check:
-                path: /_up
+                          address: virtual-device
+                          port_value: 7001
+        - name: vdms_cluster
+          connect_timeout: 0.25s
+          type: STRICT_DNS
+          load_assignment:
+            cluster_name: vdms_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: virtual-dms
+                          port_value: 7002
+        {{ end }}

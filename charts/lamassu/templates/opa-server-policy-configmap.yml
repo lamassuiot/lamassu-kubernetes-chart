@@ -28,14 +28,14 @@ data:
     }
 
     action_allowed {
-      token.payload["{{.Values.auth.authorization.rolesClaim}}"][_] == "{{.Values.auth.authorization.roles.admin}}"
+      token.payload{{ include "opa.claimPath" . }}[_] == "{{.Values.auth.authorization.roles.admin}}"
     }
 
     action_allowed {
       allowed_methods := ["GET", "POST"]
       allowed_methods[_] == http_request.method 
       startswith(http_request.path, "/api/dmsmanager/")
-      token.payload["{{.Values.auth.authorization.rolesClaim}}"][_] == "{{.Values.auth.authorization.roles.operator}}"
+      token.payload{{ include  "opa.claimPath" . }}[_] == "{{.Values.auth.authorization.roles.operator}}"
     }
 
     token := {"payload": payload} {

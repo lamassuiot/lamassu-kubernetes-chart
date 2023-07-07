@@ -1,30 +1,31 @@
+{{- if .Values.services.awsConnector.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
-  name: device-manager
+  name: aws-connector
   namespace: {{.Release.Namespace}}
   annotations:
     reloader.stakater.com/auto: "true"
   labels:
-    app: device-manager
+    app: aws-connector
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: device-manager
+      app: aws-connector
   template:
     metadata:
       labels:
-        app: device-manager
+        app: aws-connector
     spec:     
       containers:
-        - name: device-manager
-          image: {{.Values.services.deviceManager.image}}
+        - name: aws-connector
+          image: {{.Values.services.awsConnector.image}}
           imagePullPolicy: Always
           tty: true          
           env:
             - name: SERVICE_NAME
-              value: deviceManager
+              value: aws-connector
             - name: DEBUG_MODE
               value: "{{.Values.debugMode}}"
             - name: PORT
@@ -53,30 +54,53 @@ spec:
               value: "5671"
             - name: AMQP_SERVER_CA_CERT
               value: /certs/internal-ca.crt
-
-            - name: POSTGRES_HOSTNAME
-              value: postgresql-pgpool
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: POSTGRES_DATABASE
-              value: devicemanager
-            - name: POSTGRES_USERNAME
-              value: {{.Values.postgresqlha.global.postgresql.username}}
-            - name: POSTGRES_PASSWORD
-              value: {{.Values.postgresqlha.global.postgresql.password}}  
             - name: LAMASSU_CA_ADDRESS
               value: https://ca:8085
+            - name: LAMASSU_CA_INSECURE_SKIP_VERIFY
+              value: "false"
             - name: LAMASSU_CA_CERT_FILE
               value: /certs/internal-ca.crt
-            - name: LAMASSU_DMS_MANAGER_ADDRESS
+            - name: LAMASSU_DMS_ADDRESS
               value: https://dms-manager:8085
-            - name: LAMASSU_DMS_MANAGER_CERT_FILE
+            - name: LAMASSU_DMS_INSECURE_SKIP_VERIFY
+              value: "false"
+            - name: LAMASSU_DMS_CERT_FILE
               value: /certs/internal-ca.crt
-            - name: CA_CERT_FILE
+            - name: LAMASSU_DEVICE_MANAGER_ADDRESS
+              value: https://device-manager:8085
+            - name: LAMASSU_DEVICE_MANAGER_INSECURE_SKIP_VERIFY
+              value: "false"
+            - name: LAMASSU_DEVICE_MANAGER_CERT_FILE
               value: /certs/internal-ca.crt
-            - name: MINIMUM_REENROLL_DAYS
-              value: "{{.Values.services.deviceManager.minimumReenrollmentDays}}"
+            - name: CONNECTOR_TYPE
+              value: aws
+            - name: CONNECTOR_NAME
+              value:  {{.Values.services.awsConnector.name}}
+            - name: CONNECTOR_PERSISTENCE_DIR
+              value: /id-volume
+            - name: CONSUL_PROTOCOL
+              value: https
+            - name: CONSUL_HOST
+              value: consul-server
+            - name: CONSUL_PORT
+              value: "8501"
+            - name: CONSUL_CA
+              value: /certs/internal-ca.crt
+            - name: CONSUL_INSECURE_SKIP_VERIFY
+              value: "false"
+            - name: AWS_ACCESS_KEY_ID
+              value: "{{.Values.services.awsConnector.aws.accessKeyId}}"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{.Values.services.awsConnector.aws.secretAccessKey}}
+            - name: AWS_DEFAULT_REGION
+              value: {{.Values.services.awsConnector.aws.defaultRegion}}
+            - name: AWS_SQS_INBOUND_QUEUE_NAME
+              value: {{.Values.services.awsConnector.aws.sqs.inboundQueueName}}
+            - name: AWS_SQS_OUTBOUND_QUEUE_NAME
+              value: {{.Values.services.awsConnector.aws.sqs.outboundQueueName}}
           volumeMounts:
+            - name: connector-identifier
+              mountPath: /id-volume
             - name: tls-certificates
               mountPath: /certs/tls.crt
               subPath: tls.crt
@@ -92,4 +116,8 @@ spec:
       volumes:
         - name: tls-certificates
           secret:
-            secretName: device-manager-upstream-cert
+            secretName: aws-connector-upstream-cert
+        - name: connector-identifier
+          persistentVolumeClaim:
+            claimName: aws-connector-identifier
+{{- end -}}

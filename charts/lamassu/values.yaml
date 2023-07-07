@@ -14,11 +14,20 @@ tls:
   externalOptions:
     secretName: ""
 
+postgres:
+  hostname: ""
+  port: 5432
+  username: ""
+  password: ""
+
 auth: 
   oidc:
     frontend:
       clientId: "frontend"
       authority: https://dev.lamassu.io/auth/realms/lamassu
+      awsCognito: 
+        enabled: false
+        hostedUiDomain: ""
     apiGateway:
       jwksUrl: https://auth:8443/auth/realms/lamassu/protocol/openid-connect/certs
   authorization:
@@ -87,8 +96,6 @@ services:
       sqs:
         inboundQueueName: "lamassuResponse"
         outbountQueueName: ""
-  # apiGateway:
-  #   downstreamCertType: selfSigned | letsEncrypt | localCerts
 simulationTools:
   enabled: false
   virtualDevice:
@@ -114,25 +121,6 @@ rabbitmq:
     tls:
       enabled: true
       existingSecret: rabbitmq-upstream-cert
-
-# https://github.com/bitnami/charts/tree/main/bitnami/postgresqlha
-postgresqlha:
-  enabled: true
-  fullnameOverride: "postgresql" #If not set, resources are created using Release.Name (referenced in .tpl  as "fullname"). Since it is not possilbe to use Release.Name in .Values.yml file, overwrite to avoid issues
-  global:
-    storageClass: *STORAGE_CLASS_NAE
-    postgresql:
-      username: "admin"
-      password: "admin"
-      # database: ""
-      repmgrUsername: "admin"
-      repmgrPassword: "admin"
-      # repmgrDatabase: ""
-      existingSecret: ""
-  postgresql:
-    replicaCount: 3
-    initdbScriptsCM: postgres-ha-init
-    syncReplication: true
 
 #https://developer.hashicorp.com/consul/docs/k8s/helm
 consul:

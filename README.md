@@ -4,14 +4,14 @@
 
 This is the Official Helm chart for installing and configuring Lamassu IoT on Kubernetes.
 
-### Prerequisites - Kubernetes setup
+## Prerequisites - Kubernetes setup
 
 * **Helm 3.2+**
 * **Kubernetes 1.24** (This is the earliest tested version, it may work in previous versions)
 
 It is also mandatory to have the following plugins enabled on the kubernetes cluster
 
-* **SotrageClass Provisioner** There is no particular plugin as it depends on the Kubernetes distribution used.
+* **StorageClass Provisioner** There is no particular plugin as it depends on the Kubernetes distribution used.
   * `MicroK8s`: This distribution already has a default Storage Class provisioner `microk8s.io/hostpath` named `microk8s-hostpath`
   * `k3s`: The default installation of k3s already has a Storage Class provisioner `rancher.io/local-path` named `local-path`
   * `Minikube`: The default installation of k3s already has a Storage Class provisioner `k8s.io/minikube-hostpath` named `standard`
@@ -22,61 +22,61 @@ It is also mandatory to have the following plugins enabled on the kubernetes clu
   * `Minikube`: The default installation includes this service
   * `EKS`: TODO
 * **Ingress Controller** The recommended ingress controller is provided by Nginx. Follow the official documentation to install this plugin: [https://kubernetes.github.io/ingress-nginx/](https://kubernetes.github.io/ingress-nginx/).
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable ingress`. Once the ingress controller is installed, apply this patch to allow mutual TLS connections to go through the nginx controller `microk8s kubectl -n ingress patch ds nginx-ingress-microk8s-controller --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable ingress`. Once the ingress controller is installed, apply this patch to allow mutual TLS connections to go through the nginx controller `microk8s kubectl -n ingress patch ds nginx-ingress-microk8s-controller --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--enable-ssl-passthrough"}]'`
   * `k3s`: Follow the official docs
   * `Minikube`: Run `minikube addons enable ingress`
   * `EKS`: TODO
 * **Load Balancer Provider**
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable metallb` and follow the instructions. You will have to specify the CIDR range used by MetalLB i.e. `microk8s enable metallb:192.168.1.240/24`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable metallb` and follow the instructions. You will have to specify the CIDR range used by MetalLB i.e. `microk8s enable metallb:192.168.1.240/24`
   * `k3s`: The default installation includes this service
   * `Minikube`:  Run `minikube addons enable metallb`
   * `EKS`: TODO
 * **CertManager** Follow the official docs [https://cert-manager.io/](https://cert-manager.io/)
-  * `MicroK8s`: This distribution has an eazy way of installing this plugin. Run `microk8s enable cert-manager`
+  * `MicroK8s`: This distribution has an easy way of installing this plugin. Run `microk8s enable cert-manager`
   * `k3s`: Follow the official docs
   * `Minikube`: TODO
   * `EKS`: TODO
 * **Reloader** Follow the official docs [https://github.com/stakater/Reloader](https://github.com/stakater/Reloader)
 
-### Verify
+## Verify
 
 * Make sure your ingress controller has the SSL Passthrough enabled, otherwise the Lamassu chart won't work as expected. Refer to the Prerequisites > Ingress Controller section
 
-* Depending on how the nginx ingress controller is installed, it may not pick the provisioned Ingress, and thus, no traffic will be routed through it. In those cases, run this commands and make sure your nginx ingress controller picks Lamassu's Ingress deffinitions:
+* Depending on how the nginx ingress controller is installed, it may not pick the provisioned Ingress, and thus, no traffic will be routed through it. In those cases, run this commands and make sure your nginx ingress controller picks Lamassu's Ingress definitions:
 
 
 
-### Usage
+## Pre Requisites
 
-Steps to install this chart:
-
-1. Clone the repo:
+### Database
 
 ```bash
-git clone https://github.com/lamassuiot/lamassu-kubernetes-chart
-cd lamassu-kubernetes-chart
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install postgres bitnami/postgresql-ha -n lamassu-dev  -f postgres-values.yaml
 ```
 
-2. Choose the namespace to use:
+### Queues
 
 ```bash
-export NS=lamassu
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install rabbitmq bitnami/rabbitmq -n lamassu-dev  -f rabbitmq-values.yaml
 ```
 
-3. Install the helm chart. There are many ways to deploy Lamassu using this charts depending which subsytems are needed. Choose one of the following deployment modes
+### (Optional) Vault & Consul 
 
-  **Core deployment**
+## Core deployment
 
-  Make sure to use change the `domain` variable as well as the `storageClassName` (this can be obtained runing `kubectl get sc`)
+```yaml
+domain: dev.lamassu.io 
+storageClassName: local-path
+debugMode: false
+```
 
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true
-  ```
+### External OIDC Configuration
 
-  **Core deployment using external Certificates (Used by API Gateway)**
+#### General Solution
+!!! note
+        The configuration down below, assumes that the `domain` variable is set to `dev.lamassu.io`. Change this value accordingly.
 
   Make sure to point to the actual paths to the `.cert` file and the .key `file`
   ```bash
@@ -121,50 +121,173 @@ export NS=lamassu
   --set debugMode=true
   --set tls.type=letsEncrypt
   ```
+##### Authentication 
 
-  **Core deployment + Simulation tools**
+By default the helm chart deploys keycloak as the IAM provider, but it can be disabled and use your own IAM provider based on the OIDC protocol. Start by creating the new values file named `external-oidc.yml` to use by helm while installing:
 
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true \
-  --set simulationTools.enabled=true
-  ```
+1. The first step is disabling keycloak in order to alleviate the kubernetes load:
 
-  **Core deployment + Alerts with email/STMP**
+```yaml
+services:
+   keycloak: 
+     enabled: false
+```
 
-  The alerts service is automatically deployed, but it needs some information to connect with an external SMTP server, see the Variables secction for more information on how to configure this service
 
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true \
-  --set services.alerts.smtp.from="lamassu-alerts@lamassu.io" \
-  --set services.alerts.smtp.username="lamassu-alerts@lamassu.io"
-  ```
+2. The authority endpoint is an endpoint used for authentication in order to allow access to different clients. For the purpose of defining the right values, navigate to your IAM's  authority OIDC Well Known URL. The URL should be the authority endpoint concatenated with `/.well-known/openid-configuration`. 
+ ```
+EXAMPLE
+auhtority: https://dev.lamassu.io/auth/realms/lamassu
+auhtority oidc well-known: https://dev.lamassu.io/auth/realms/lamassu/.well-known/openid-configuration
+ ```
 
-  **Core deployment + AWS Connector**
 
-  The AWS connector can also be deployed using the following command. Please note that it is required to provsion the AWS resources from [https://github.com/lamassuiot/lamassu-aws-connector]()
+3. For the `jwksUrl` yaml field, use the `jwks_uri` field from the well-known JSON.:
+```yaml
+auth:
+  oidc:
+    frontend:
+      authority: https://dev.lamassu.io/auth/realms/lamassu
+    apiGateway:
+      jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
+```
 
-  Once all AWS services have been deployed via de CDK, then deploy your Lamassu instance. Make sure to change the `services.awsConnector.aws.accessKeyId`, `services.awsConnector.aws.secretAccessKey` and `services.awsConnector.aws.defaultRegion` to the appropriate values:
+4. Create a new Client in your OIDC provider to be used by the UI. Configure your OIDC frontend client with the following options:
+	`redirect_uri` (may be referred also as  `callback URLs`):  https://dev.lamassu.io
+	`logout_uri` (may be referred also as  `sign out URLs`):  https://dev.lamassu.io/loggedout
+	
+5. Provide the Client ID to be used by the frontend in the `auth.oidc.frontend.clientId` variable.
 
-  ```bash
-  helm install lamassu . --create-namespace -n $NS \
-  --set domain=dev.lamassu.io \
-  --set storageClassName=local-path \
-  --set debugMode=true \
-  --set services.awsConnector.enabled=true \
-  --set services.awsConnector.name="My AWS Account" \
-  --set services.awsConnector.aws.accessKeyId="**************" \
-  --set services.awsConnector.aws.secretAccessKey="************" \
-  --set services.awsConnector.aws.defaultRegion="eu-west-1" \
-  --set services.awsConnector.aws.sqs.inboundQueueName="lamassuResponse"
-  ```
+6. The content of the `external-oidc.yml` values file should be:
+```yaml
+services: 
+   keycloack:
+      enabled: false
+autn:
+  oidc:
+     frontend:
+       clientId: frontend
+       authority: https://dev.lamassu.io/auth/realms/lamassu
+    apiGateway:
+      jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
+```
 
-### Clean uninstall
+##### Authorisation
+
+Make sure that the OIDC provider generates JWT with some claim including the user's roles or groups. We will be mapping those values to Lamssu's authorisation service by mapping the appropriate token claim.
+
+This example assumes that the token has a clame named `user_roles` witch lists the roles the user has. This claim might include the `administrator` role or/and `viewer` role. To configure Lamssu to use this information add the following section to your `external-oidc.yml`:
+
+```yaml
+auth:
+  authorization:
+    rolesClaim: "user_roles"
+    roles:
+      admin: administrator
+      operator: viewer
+```
+
+##### Authentication and Authorisation
+
+The final version of the `external-oidc.yml`  values file should look similar to this one:
+
+```yaml
+services: 
+  keycloack:
+    enabled: false
+autn:
+  oidc:
+     frontend:
+       clientId: frontend
+       authority: https://dev.lamassu.io/auth/realms/lamassu
+    apiGateway:
+      jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
+  authorization:
+    rolesClaim: "user_roles"
+    roles:
+      admin: administrator
+      operator: viewer
+```
+
+
+#### Using AWS Cognito
+
+In the case we will be using AWS Cognito as the external OIDC provider. It is assumed that you already have a provisioned cognito user pool (refer to https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html).
+
+##### Authentication
+
+Go to the already created User pool
+
+1. In the selected App Integration > Create App Client:
+	- Select `Public client`
+	- App client name: `lamassu` 
+	- Allowed callback URLs: `https://dev.lamassu.io` 
+	- Allowed sign-out URLs: `https://dev.lamassu.io/loggedout` 
+	
+2. Go to App Integration > Domain > Actions > Create Cognito Domain. Provide a unique value in the popup window (this value must be unique in the entire AWS Region). 
+
+3. Create the Helm values file named `aws-cognito-oidc.yml`  and replace the  `COGNIT_AWS_REGION`, `COGNITO_USER_POOL_ID` and `COGNITO_HOSTED_UI` accordingly.
+
+```yaml
+services:
+  keycloack:
+    enabled: false
+auth:
+  oidc:
+    frontend: 
+      clientId: lamassu
+      authority: https://cognito-idp.<COGNIT_AWS_REGION>.amazonaws.com/<COGNITO_USER_POOL_ID>
+      awsCognito: 
+        enabled: true
+        hostedUiDomain: "<COGNITO_HOSTED_UI>"
+  apiGateway:
+    jwksUrl: https://cognito-idp.<COGNIT_AWS_REGION>.amazonaws.com/<COGNITO_USER_POOL_ID>/.well-known/jwks.json 
+```
+
+##### Authorisation
+
+Cognito doesn't have a dedicated roles section. The authorisation mechanism can be achieves using cognito's groups system. 
+
+1. Create two groups, one named `pki-admin` and another one called `pki-operator` and assign your users into those groups.
+2. Edit the previous values file as follows:
+
+```yaml
+auth:
+  authorization:
+    rolesClaim: "cognito:groups"
+    roles:
+      admin: pki-admin
+      operator: pki-operator
+```
+
+##### Authentication and Authorisation 
+
+The final version of the `aws-cognito-oidc.yml` values file should look similar to this one:
+
+```yaml
+services:
+  keycloack:
+    enabled: false
+auth:
+  oidc:
+    frontend: 
+      authority: https://cognito-idp.<COGNIT_AWS_REGION>.amazonaws.com/<COGNITO_USER_POOL_ID>
+      clientId: lamassu
+      awsCognito: 
+        enabled: true
+        hostedUiDomain: "<COGNITO_HOSTED_UI>"
+  apiGateway:
+    jwksUrl: https://cognito-idp.<COGNIT_AWS_REGION>.amazonaws.com/<COGNITO_USER_POOL_ID>/.well-known/jwks.json
+  authorization:
+    rolesClaim: "cognito:groups"
+    roles:
+      admin: pki-admin
+      operator: pki-operator  
+```
+
+### External Postgres Configuration
+
+## Clean uninstall
 
 In order to remove all the provisioned resources, run this commands:
 
@@ -191,80 +314,3 @@ In order to remove all the provisioned resources, run this commands:
   ```bash
   kubectl delete pvc -n $NS --all
   ```
-
-### Variables
-
-| Name                                              | Description                                                                                                                                                          | Value                    |
-|---------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| `debugMode`                                       | Deploy services with additional logs                                                                                                                                 | `false`                  |
-| `domain`                                          | Domain to use in ingress controller and other services                                                                                                               | `"dev.lamassu.io"`       |
-| `storageClassName`                                | Storage class to use while provisioning PersistenVolumes                                                                                                             | `""`                     |<>
-| `tls.type`                                        | The type of certificate used for downstream connections by the API-Gateway, selfSigned, letsEncrypt or external.                                                | `selfSigned`             |
-| `tls.selfSignedOptions.duration`                  | If `tls.type` is `selfSigned`, duration of self-signed certificates.                                                                                                 | `2160h`                  | 
-| `tls.letsEncryptOptions.clusterIssuer`            | If `tls.type` is `letsEncrypt` and `tls.letsEncryptOptions.clusterIssuer` is true, cert manager resource is available for the entire kubernetes cluster.             | `true`                   |
-| `tls.letsEncryptOptions.issuer`                   | If `tls.type` is `letsEncrypt` and `tls.letsEncryptOptions.issuer` is true, cert manager resource is only available in the configured kubernetes namespace.          | `true`                   |
-| `tls.externalOptions.secretName`                | If `tls.type` is `external`, name of the secret containing the imported certificates.                                                                           | `downstream-cert`        |
-| `services.ca.aboutToExpire`                       | Number of days until a Certificate or CA is labeled as `About To expire`                                                                                             | `90`                     |
-| `services.ca.periodicScan.enabled`                | Activate the Periodic Scan system                                                                                                                                    | `true`                   |
-| `services.ca.periodicScan.cron`                   | Cron expression at which the Periodic Scan is launched                                                                                                               | `0 * * * *`              |
-| `services.deviceManager.minimumReenrollmentDays`  | Minimum Reenrollment Days                                                                                                                                            | `100`                    |
-| `services.database.username`                      | Databes Username                                                                                                                                                     | `admin`                  |
-| `services.database.password`                      | Databes Password                                                                                                                                                     | `admin`                  |
-| `services.alerts.smtp.from`                       | Display name for sender email address                                                                                                                                | `""`                     |
-| `services.alerts.smtp.insecure`                   | Skip certificate validation for SMTP server                                                                                                                          | `false`                  |
-| `services.alerts.smtp.enable_ssl`                 | Enable SSL connection for SMTP server                                                                                                                                | `true`                   |
-| `services.alerts.smtp.username`                   | Username for accessing the SMTP server                                                                                                                               | `""`                     |
-| `services.alerts.smtp.password`                   | Password for accessing for SMTP server                                                                                                                               | `""`                     |
-| `services.alerts.smtp.host`                       | Hostname for the SMTP server                                                                                                                                         | `""`                     |
-| `services.alerts.smtp.port`                       | Port for the SMTP server                                                                                                                                             | `25`                     |
-| `services.awsConnector.enabled`                   | Enable the AWS Connector Deployment                                                                                                                                  | `false`                  |
-| `services.awsConnector.name`                      | Display name of the connector                                                                                                                                        | `"AWS default connector"`|
-| `services.awsConnector.aws.accessKeyId`           | Access key ID to access AWS via SDK                                                                                                                                  | `""`                     |
-| `services.awsConnector.aws.secretAccessKey`       | Secret access key to access AWS via SDK                                                                                                                              | `""`                     |
-| `services.awsConnector.aws.defaultRegion`         | Default region for for accessing AWS via SDK                                                                                                                         | `""`                     |
-| `services.awsConnector.aws.sqs.inboundQueueName`  | SQS Queue to listen events from AWS                                                                                                                                  | `"lamassuResponse"`      |
-| `services.awsConnector.aws.sqs.outbountQueueName` | SQS Queue to publish all cloud events                                                                                                                                | `""`                     |
-| `simulationTools.enabled`                         | Enable simulation tools                                                                                                                                              | `false`                  |
-
-### External OIDC Configuration
-
-By default the helm chart deploys keycloak as the IAM provider, but it can be disabled and use your own IAM provider based on the OIDC protoco. Start by creating the new values file named `external-oidc.yml` to use by helm while installing:
-
-1. The first step is disabling keycloak in order to aliviate the kubernete load:
-
-  ```yaml
-  services:
-    keycloak:
-      enabled: false
-  ```
-
-2. Navigate to your IAM's OIDC Well Known URL /.well-known/openid-configuration. For the `jwksUrl` yaml field, use the `jwks_uri` field from the well-known. Also for the `authorizationEndpoint` obtain the `authorization_endpoint` value by your ODIC Provider:
-
-  ```yaml
-  auth: 
-    oidc:
-      frontend:
-        authorizationEndpoint: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/auth
-      apiGateway:
-        jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
-  ```
-
-3. Create a new Client in yout OIDC provider to be used by the UI. Bare in mind that the UI should be redirected to the **DOMAIN** variable. Your OIDC must allow such redirect for the frontend client.
-
-4. Provide de Client ID to be used by the frontend in the `auth.oidc.frontend.clientId` variable.
-
-5. The content of the `external-oidc.yml` values file should be:
-  ```yaml
-  services:
-    keycloak:
-      enabled: false
-  auth: 
-    oidc:
-      frontend:
-        clientId: frontend
-        authorizationEndpoint: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/auth
-      apiGateway:
-        jwksUrl: https://dev.lamassu.io/auth/realms/lamassu/protocol/openid-connect/certs
-  ```
-
-### External Postgres Configuration
