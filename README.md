@@ -78,6 +78,49 @@ debugMode: false
 !!! note
         The configuration down below, assumes that the `domain` variable is set to `dev.lamassu.io`. Change this value accordingly.
 
+  Make sure to point to the actual paths to the `.cert` file and the .key `file`
+  ```bash
+  #First, create secret using files with certificate and key to use:
+  kubectl create secret tls downstream-tls-certificate -n $NS \
+  --cert=path/to/cert/file \
+  --key=path/to/key/file
+
+  helm install lamassu . --create-namespace -n $NS \
+  --set domain=dev.lamassu.io \
+  --set storageClassName=local-path \
+  --set debugMode=true
+  --set tls.type=external
+  --set tls.externalOptions.secretName=downstream-tls-certificate
+  ```
+
+  **Core deployment using Lets Encrypt Certificates (Used by API Gateway)**
+
+  #First create the Issuer resource through which the Lets Encrypt certificates will be issued:
+  ```bash
+  cat <<EOF | kubectl apply -f -
+  apiVersion: cert-manager.io/v1
+  kind: Issuer
+  metadata:
+    name: letsencrypt-issuer
+    namespace: $NS
+  spec:
+    acme:
+      server: https://acme-staging-v02.api.letsencrypt.org/directory
+      privateKeySecretRef:
+        name: letsencrypt-issuer
+      skipTLSVerify: true
+      solvers:
+        - http01:
+            ingress:
+              class: nginx
+  EOF
+  ```
+  helm install lamassu . --create-namespace -n $NS \
+  --set domain=dev.lamassu.io \
+  --set storageClassName=local-path \
+  --set debugMode=true
+  --set tls.type=letsEncrypt
+  ```
 ##### Authentication 
 
 By default the helm chart deploys keycloak as the IAM provider, but it can be disabled and use your own IAM provider based on the OIDC protocol. Start by creating the new values file named `external-oidc.yml` to use by helm while installing:

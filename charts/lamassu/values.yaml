@@ -4,9 +4,15 @@ storageClassName: &STORAGE_CLASS_NAE "" # <----  Default Value
 
 #Downstream TLS
 tls:
-  selfSigned: true
-  secretName: ""
-  duration: "2160h" #2160h == 90days
+  # type: selfSigned | letsEncrypt | external
+  type: selfSigned
+  selfSignedOptions:
+    duration: "2160h"
+  letsEncryptOptions:
+    clusterIssuer: true
+    issuer: false
+  externalOptions:
+    secretName: ""
 
 postgres:
   hostname: ""
@@ -89,8 +95,7 @@ services:
       defaultRegion: ""
       sqs:
         inboundQueueName: "lamassuResponse"
-        outboundQueueName: ""
-
+        outbountQueueName: ""
 simulationTools:
   enabled: false
   virtualDevice:
