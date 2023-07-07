@@ -96,15 +96,7 @@ spec:
         - name: tls-certificates
           secret:
             secretName: dms-manager-upstream-cert
-      {{-if eq .Values.tls.type "external" -}}
       volumes:
         - name: downstream-tls-certificate
           secret:
-            secretName:  {{ .Values.tls.externalOptions.secretName }}
-      {{- end -}}
-      {{- if ne .Values.tls.type "external" -}}
-      volumes:
-        - name: downstream-tls-certificate
-          secret:
-            secretName:  downstream-cert
-      {{- end -}}
+            secretName:  {{ ternary .Values.tls.externalOptions.secretName  "downstream-cert" (eq .Values.tls.type "external") }}
