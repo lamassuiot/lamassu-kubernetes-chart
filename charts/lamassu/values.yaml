@@ -86,7 +86,7 @@ services:
       host: ""
       port: 25
   awsConnector:
-    image: lamassuiot/lamassu-aws-connector:2.1.0
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.1.0
     enabled: false
     name: "AWS default connector"
     aws:
