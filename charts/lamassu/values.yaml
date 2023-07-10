@@ -33,12 +33,12 @@ auth:
   authorization:
     rolesClaim: realm_access.roles
     roles:
-      admin: admin
+      admin: pki-admin
       operator: operator
 services:
   keycloak:
     enabled: true
-    image: ghcr.io/lamassuiot/keycloak:dev
+    image: ghcr.io/lamassuiot/keycloak:2.1.0
     adminCreds:
       username: "admin"
       password: "admin"
@@ -50,11 +50,11 @@ services:
       - username: "operator"
         password: "operator"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:dev
+    image: ghcr.io/lamassuiot/lamassu-ui:2.1.0
   ocsp:
-    image: ghcr.io/lamassuiot/lamassu-ocsp:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-ocsp:2.1.0
   ca:
-    image: ghcr.io/lamassuiot/lamassu-ca:dev
+    image: ghcr.io/lamassuiot/lamassu-ca:2.1.0
     engine: "vault"
     aws:
       region: ""
@@ -65,18 +65,18 @@ services:
       enabled: true
       cron: "0 * * * *"
   deviceManager:
-    image: ghcr.io/lamassuiot/lamassu-devmanager:dev
+    image: ghcr.io/lamassuiot/lamassu-devmanager:2.1.0
     minimumReenrollmentDays: 100
   dmsManager:
-    image: ghcr.io/lamassuiot/lamassu-dmsmanager:dev
+    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.1.0
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
     remLogger:
-      image: ghcr.io/lamassuiot/opa-rem-logger:dev
+      image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
   cloudProxy:
-    image: ghcr.io/lamassuiot/lamassu-cloudproxy:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-cloudproxy:2.1.0
   alerts:
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.0.0
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.1.0
     smtp:
       from: ""
       insecure: false
@@ -86,7 +86,7 @@ services:
       host: ""
       port: 25
   awsConnector:
-    image: lamassuiot/lamassu-aws-connector:2.0.0
+    image: lamassuiot/lamassu-aws-connector:2.1.0
     enabled: false
     name: "AWS default connector"
     aws:
