@@ -96,7 +96,6 @@ spec:
         - name: tls-certificates
           secret:
             secretName: dms-manager-upstream-cert
-      volumes:
-        - name: downstream-tls-certificate
+        - name: downstream-tls-certificates
           secret:
             secretName:  {{ ternary .Values.tls.externalOptions.secretName  "downstream-cert" (eq .Values.tls.type "external") }}
