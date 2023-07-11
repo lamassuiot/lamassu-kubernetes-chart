@@ -3,6 +3,33 @@ entries:
   lamassu:
   - apiVersion: v2
     appVersion: 2.1.0
+    created: "2023-07-11T05:20:27.172007299Z"
+    dependencies:
+    - condition: consul.global.enabled
+      name: consul
+      repository: https://helm.releases.hashicorp.com
+      version: 0.49.0
+    - condition: vault.global.enabled
+      name: vault
+      repository: https://helm.releases.hashicorp.com
+      version: 0.22.0
+    - condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 11.1.5
+    description: PKI for Industrial IoT for Kubernetes
+    digest: 5b9cb7d4520928a459b672cc5182319c7111864e9839e49fabe5296fca363a8a
+    icon: https://avatars.githubusercontent.com/u/27340420?s=200&v=4
+    name: lamassu
+    sources:
+    - https://github.com/lamassuiot
+    - https://github.com/lamassuiot/lamassu-kubernetes-chart
+    type: application
+    urls:
+    - https://github.com/lamassuiot/lamassu-helm/releases/download/lamassu-0.1.3/lamassu-0.1.3.tgz
+    version: 0.1.3
+  - apiVersion: v2
+    appVersion: 2.1.0
     created: "2023-07-10T13:02:30.379875812Z"
     dependencies:
     - condition: consul.global.enabled
@@ -276,4 +303,4 @@ entries:
     urls:
     - https://github.com/lamassuiot/lamassu-helm/releases/download/lamassu-0.0.2/lamassu-0.0.2.tgz
     version: 0.0.2
-generated: "2023-07-10T13:02:30.380058315Z"
+generated: "2023-07-11T05:20:27.172046199Z"
