@@ -20,6 +20,10 @@ postgres:
   username: ""
   password: ""
 
+ingress:
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+
 auth: 
   oidc:
     frontend:

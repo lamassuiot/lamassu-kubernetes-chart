@@ -4,17 +4,17 @@ metadata:
   name: api-gateway-ingress-https
   namespace: {{.Release.Namespace}}
   annotations: 
-    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.class: {{ .Values.ingress.annotations.kubernetes.io/ingress.class }}
     nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    {{- if eq .Values.tls.type "letsEncrypt"}}
-    acme.cert-manager.io/http01-edit-in-place: "true"
-    {{- end}}
-    {{- if eq .Values.tls.type "external"}}
-    nginx.ingress.kubernetes.io/proxy-ssl-secret: {{.Release.Namespace}}/downstream-cert
-    {{- end}}
     #Routed Service recives HTTPS connections
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    {{- if eq .Values.tls.type "letsEncrypt" -}}
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    {{- end -}}
+    {{- if eq .Values.tls.type "external" -}}
+    nginx.ingress.kubernetes.io/proxy-ssl-secret: {{.Release.Namespace}}/downstream-cert
+    {{- end -}}
 spec:
   tls:
     - hosts:
