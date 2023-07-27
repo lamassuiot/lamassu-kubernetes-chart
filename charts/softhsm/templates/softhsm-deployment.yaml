@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: {{ include "soft.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "soft.fullname" . }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ include "soft.fullname" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image }}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5657
+        env:
+        - name: PKCS11_DAEMON_SOCKET
+          value: tls://0.0.0.0:5657
+        - name: PKCS11_PROXY_TLS_PSK_FILE
+          value: /tls-key.psk
+        volumeMounts:
+        - name: pkcs11-tls-psk
+          mountPath: tls-key.psk
+          subPath: key.psk
+      restartPolicy: Always
+      volumes:
+        - name: pkcs11-tls-psk
+          secret:
+            secretName: "{{ include "soft.fullname" . }}-psk"
