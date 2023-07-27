@@ -2,6 +2,33 @@ apiVersion: v1
 entries:
   lamassu:
   - apiVersion: v2
+    appVersion: 2.2.0
+    created: "2023-07-27T14:16:56.453074703Z"
+    dependencies:
+    - condition: consul.global.enabled
+      name: consul
+      repository: https://helm.releases.hashicorp.com
+      version: 0.49.0
+    - condition: vault.global.enabled
+      name: vault
+      repository: https://helm.releases.hashicorp.com
+      version: 0.22.0
+    - condition: rabbitmq.enabled
+      name: rabbitmq
+      repository: https://charts.bitnami.com/bitnami
+      version: 11.1.5
+    description: PKI for Industrial IoT for Kubernetes
+    digest: 471ec4432bd68387d3ff0d8ff3b62bdc435073a638b676c721c7e8e290238bed
+    icon: https://avatars.githubusercontent.com/u/27340420?s=200&v=4
+    name: lamassu
+    sources:
+    - https://github.com/lamassuiot
+    - https://github.com/lamassuiot/lamassu-kubernetes-chart
+    type: application
+    urls:
+    - https://github.com/lamassuiot/lamassu-helm/releases/download/lamassu-2.2.0/lamassu-2.2.0.tgz
+    version: 2.2.0
+  - apiVersion: v2
     appVersion: 2.1.0
     created: "2023-07-17T10:23:24.556711414Z"
     dependencies:
@@ -357,4 +384,15 @@ entries:
     urls:
     - https://github.com/lamassuiot/lamassu-helm/releases/download/lamassu-0.0.2/lamassu-0.0.2.tgz
     version: 0.0.2
-generated: "2023-07-17T10:23:24.556783216Z"
+  softhsm:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2023-07-27T14:16:56.642857502Z"
+    description: SoftHSM with TCP and TLS proxy
+    digest: c2469484aed2ff29b866473b7e677e95071d4677718314d5e67f525884a65897
+    name: softhsm
+    type: application
+    urls:
+    - https://github.com/lamassuiot/lamassu-helm/releases/download/softhsm-0.1.0/softhsm-0.1.0.tgz
+    version: 0.1.0
+generated: "2023-07-27T14:16:56.643229224Z"
