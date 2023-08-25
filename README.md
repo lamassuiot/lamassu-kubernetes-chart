@@ -42,6 +42,7 @@ Specify the namespace to install the components (i.e. lamassu-dev):
 
 ```bash
 export NS=lamassu-dev
+kubectl create ns $NS
 ```
 
 ### Database
@@ -50,7 +51,8 @@ export NS=lamassu-dev
 
 ```bash
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install postgres bitnami/postgresql -n $NS  -f https://raw.githubusercontent.com/lamassuiot/lamassu-helm/main/oss-helm-values/postgres.yaml
+helm repo update
+helm install postgres bitnami/postgresql -n $NS -f https://raw.githubusercontent.com/lamassuiot/lamassu-helm/main/oss-helm-values/postgres.yaml
 ```
 
 ## Installing Lamassu
@@ -78,8 +80,9 @@ ingress:
 Finally instal Lamassu:
 
 ```bash
-helm repo add lamassu http://www.lamassu.io/lamassu-helm
-helm install lamassu/lamassuiot lamassu -n $NS -f lamassu-values.yaml
+helm repo add lamassuiot http://www.lamassu.io/lamassu-helm
+helm repo update
+helm install lamassu lamassuiot/lamassu -n $NS -f lamassu-values.yaml
 ```
 
 Once all is installed, you should be able to access the UI using a browser in your domain endpoint i.e.:

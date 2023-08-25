@@ -42,7 +42,7 @@ auth:
 services:
   keycloak:
     enabled: true
-    image: ghcr.io/lamassuiot/keycloak:2.2.0
+    image: ghcr.io/lamassuiot/keycloak:2.1.0
     adminCreds:
       username: "admin"
       password: "admin"
