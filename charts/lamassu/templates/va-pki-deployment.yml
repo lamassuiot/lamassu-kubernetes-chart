@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: va-pki
+  namespace: {{.Release.Namespace}}
+  annotations:
+    reloader.stakater.com/auto: "true"
+  labels:
+    app: va-pki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: va-pki
+  template:
+    metadata:
+      labels:
+        app: va-pki
+    spec:     
+      containers:
+        - name: va-pki
+          image: {{.Values.services.va.image}}
+          imagePullPolicy: Always
+          tty: true          
+          volumeMounts:
+            - name: api-config
+              mountPath: /etc/lamassuiot/config.yml
+              subPath: config
+          ports:
+            - containerPort: 8085
+      restartPolicy: Always
+      volumes:
+        - name: api-config
+          configMap:  
+            name: va-pki-config
+

@@ -65,7 +65,7 @@ data:
                     stat_prefix: ingress_http
                     forward_client_cert_details: "APPEND_FORWARD"
                     set_current_client_cert_details: 
-                      cert: true
+                      chain: true
                     access_log:
                       - name: envoy.access_loggers.stdout
                         typed_config:
@@ -95,10 +95,10 @@ data:
                             {{ end }}
 
                             - match:
-                                prefix: "/api/ocsp/"
+                                prefix: "/api/va/"
                               route:
                                 prefix_rewrite: "/"
-                                cluster: ocsp_cluster
+                                cluster: va_cluster
                               typed_per_filter_config:
                                 envoy.filters.http.ext_authz:
                                   "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
@@ -112,6 +112,7 @@ data:
                               route:
                                 prefix_rewrite: "/"
                                 cluster: api_ca_cluster
+              
                             - match:
                                 prefix: "/api/devmanager/"
                               route:
@@ -256,18 +257,7 @@ data:
               unhealthy_threshold: 1
               healthy_threshold: 1
               http_health_check:
-                path: /v1/health
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-              # mTLS config between API_GW and UPSTREAM Service
-              common_tls_context:
-                tls_certificates:
-                  - certificate_chain:
-                      filename: /certs/upstream.crt
-                    private_key:
-                      filename: /certs/upstream.key
+                path: /health
 
         - name: api_device_manager_cluster
           connect_timeout: 0.25s
@@ -467,56 +457,18 @@ data:
                     filename: /etc/ssl/certs/ca-certificates.crt
         {{ end }}
 
-        - name: ocsp_cluster
+        - name: va_cluster
           connect_timeout: 0.25s
           type: STRICT_DNS
           load_assignment:
-            cluster_name: ocsp_cluster
+            cluster_name: va_cluster
             endpoints:
               - lb_endpoints:
                   - endpoint:
                       address:
                         socket_address:
-                          address: ocsp
+                          address: va-pki
                           port_value: 8085
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-
-        - name: vault_cluster
-          connect_timeout: 0.25s
-          type: STRICT_DNS
-          load_assignment:
-            cluster_name: vault_cluster
-            endpoints:
-              - lb_endpoints:
-                  - endpoint:
-                      address:
-                        socket_address:
-                          address: vault-active
-                          port_value: 8201
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-
-        - name: consul_cluster
-          connect_timeout: 0.25s
-          type: STRICT_DNS
-          load_assignment:
-            cluster_name: consul_cluster
-            endpoints:
-              - lb_endpoints:
-                  - endpoint:
-                      address:
-                        socket_address:
-                          address: consul_cluster
-                          port_value: 8501
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
 
         {{ if .Values.simulationTools.enabled }}
         - name: vdevice_cluster

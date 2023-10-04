@@ -20,6 +20,4 @@ spec:
             name: "api-gateway"
             port:
               number: 443
-    {{- if not .Values.ingress.default  }}
     host: {{ .Values.domain }}
-    {{- end }}

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:  
+  name: ca
+  namespace: {{.Release.Namespace}}
+  annotations:
+    reloader.stakater.com/auto: "true"
+  labels:
+    app: ca
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ca
+  template:
+    metadata:
+      labels:
+        app: ca
+    spec:
+      containers:
+        - name: ca
+          image: ghcr.io/lamassuiot/lamassu-ca:dev-v3
+          imagePullPolicy: Always
+          tty: true         
+          volumeMounts:
+            - name: api-config
+              mountPath: /etc/lamassuiot/config.yml
+              subPath: config
+          ports:
+            - containerPort: 8085
+      restartPolicy: Always
+      volumes:
+        - name: api-config
+          configMap:  
+            name: ca-config
+

@@ -1,4 +1,3 @@
-{{- if eq .Values.tls.type "selfSigned" -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -7,7 +6,7 @@ metadata:
 spec:
   isCA: false
   commonName: {{.Values.domain}}
-  duration: {{.Values.tls.duration}}
+  duration: {{.Values.tls.letsEncryptOptions.selfSignedOptions.duration}}
   dnsNames:
     - "{{.Values.domain}}"
   secretName: downstream-cert
@@ -15,29 +14,11 @@ spec:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: downstream-ca-issuer
+    {{ if ne .Values.tls.letsEncryptOptions.clusterIssuer "" }}
+    kind: ClusterIssuer
+    name: {{ .Values.tls.letsEncryptOptions.clusterIssuer }}
+    {{ else }}
     kind: Issuer
+    name:  {{ ternary .Values.tls.letsEncryptOptions.issuer "downstream-ca-selfsigned-issuer" (ne .Values.tls.letsEncryptOptions.issuer "") }} 
+    {{ end }}
     group: cert-manager.io
-{{- end -}}
-{{- if eq .Values.tls.type "letsEncrypt" -}}
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: downstream-tls-certificate
-  namespace: {{.Release.Namespace}}
-spec:
-  isCA: false
-  commonName: {{.Values.domain}}
-  duration: {{.Values.tls.duration}}
-  dnsNames:
-    - "{{.Values.domain}}"
-    - "*.{{.Values.domain}}"
-  secretName: downstream-cert
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  issuerRef:
-    name: letsencrypt-issuer
-    kind: Issuer
-    group: cert-manager.io
-{{- end -}}

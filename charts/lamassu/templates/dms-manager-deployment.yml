@@ -46,15 +46,15 @@ spec:
             - name: AMQP_SERVER_USE_BASIC_AUTH
               value: "true"
             - name: AMQP_SERVER_USERNAME
-              value: "{{.Values.rabbitmq.auth.username}}"
+              value: "{{.Values.amqp.username}}"
             - name: AMQP_SERVER_PASSWORD
-              value: "{{.Values.rabbitmq.auth.password}}"
+              value: "{{.Values.amqp.password}}"
             - name: AMQP_SERVER_ENABLE_TLS
-              value: "true"
+              value: "{{.Values.amqp.tls}}"
             - name: AMQP_SERVER_HOST
-              value: rabbitmq
+              value: {{.Values.amqp.hostname}}
             - name: AMQP_SERVER_PORT
-              value: "5671"
+              value: "{{.Values.amqp.port}}"
             - name: AMQP_SERVER_CA_CERT
               value: /certs/internal-ca.crt
 

@@ -1,0 +1,23 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: va-pki-config
+  namespace: {{.Release.Namespace}}
+data:
+  config: |
+    logs:
+      level: "info" #info | debug | trace | none
+      subsystems: 
+        service: "info"
+        http: "info"
+    server:
+        listen_address: "0.0.0.0"
+        port: 8085
+        protocol: "http" #http | https
+    ca_client:
+        log_level: debug
+        auth_mode: "noauth"
+        protocol: "http"
+        hostname: "ca"
+        port: 8085
+        insecure_skip_verify: true

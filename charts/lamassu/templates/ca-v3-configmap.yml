@@ -1,0 +1,58 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ca-config
+  namespace: {{.Release.Namespace}}
+data:
+  config: |
+    logs:
+      level: "info"
+      subsystems: 
+        service: "info"
+        crypto_engine: "info"
+        storage_engine: "info"
+        http: "info"
+        messaging_engine: "info"
+    server:
+      listen_address: "0.0.0.0"
+      port: 8085
+      protocol: "http" #http | https
+    amqp_event_publisher:
+      enabled: true
+      protocol: amqp #amqp | amqps
+      hostname: {{ .Values.amqp.hostname }}
+      port: {{ .Values.amqp.port }}
+      basic_auth:
+        enabled: true
+        username: {{ .Values.amqp.username }}
+        password: {{ .Values.amqp.password }}
+    storage:
+      provider: "postgres" #couch_db | postgres | dynamo_db
+      postgres: 
+        hostname: {{ .Values.postgres.hostname }}
+        port: {{ .Values.postgres.port }}
+        username: {{ .Values.postgres.username }}
+        password: {{ .Values.postgres.password }}
+    crypto_engines:
+      default_id: {{ .Values.services.ca.engines.defaultEngineID }}
+      golang:
+        {{ .Values.services.ca.engines.golang | toYaml | indent 4 | nindent 4  | trim  }}
+      pkcs11:
+        {{ .Values.services.ca.engines.pkcs11 | toYaml | indent 4 | nindent 4  | trim  }}
+      hashicorp_vault:
+        {{ .Values.services.ca.engines.hashicorpVault | toYaml | indent 4 | nindent 4  | trim  }}
+      aws_kms:
+        {{ .Values.services.ca.engines.awsKms | toYaml | indent 4 | nindent 4  | trim  }}
+      aws_secrets_manager:
+        {{ .Values.services.ca.engines.awsSecretsManager | toYaml | indent 4 | nindent 4  | trim  }}
+    crypto_monitoring:
+      enabled: true
+      frequency: "* * * * *"
+      status_machine_deltas:
+        near_expiration: "90d"
+        critical_expiration: "30d"
+      automatic_ca_rotation:
+        enabled: false
+        renewal_delta: "1d"
+    ocsp_server_url: https://{{ .Values.domain }}/api/va/ocsp
+    crl_server_url: https://{{ .Values.domain }}/api/va/crl
