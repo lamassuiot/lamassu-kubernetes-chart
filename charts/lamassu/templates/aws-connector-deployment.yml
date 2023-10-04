@@ -55,7 +55,7 @@ spec:
             - name: AMQP_SERVER_CA_CERT
               value: /certs/internal-ca.crt
             - name: LAMASSU_CA_ADDRESS
-              value: https://ca:8085
+              value: http://ca:8085
             - name: LAMASSU_CA_INSECURE_SKIP_VERIFY
               value: "false"
             - name: LAMASSU_CA_CERT_FILE
