@@ -96,6 +96,7 @@ services:
     image: ghcr.io/lamassuiot/lamassu-aws-connector:2.3.1
     enabled: false
     name: "AWS default connector"
+    jitpRoleName: "JITPRole"
     aws:
       accessKeyId: ""
       secretAccessKey: ""

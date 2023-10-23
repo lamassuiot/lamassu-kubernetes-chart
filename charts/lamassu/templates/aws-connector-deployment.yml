@@ -98,6 +98,8 @@ spec:
               value: {{.Values.services.awsConnector.aws.sqs.inboundQueueName}}
             - name: AWS_SQS_OUTBOUND_QUEUE_NAME
               value: {{.Values.services.awsConnector.aws.sqs.outboundQueueName}}
+            - name: AWS_JITP_ROLE_NAME
+              value: {{.Values.services.awsConnector.aws.jitpRoleName}}
           volumeMounts:
             - name: connector-identifier
               mountPath: /id-volume
