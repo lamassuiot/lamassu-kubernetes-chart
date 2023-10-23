@@ -55,7 +55,7 @@ services:
       username: "admin"
       password: "admin"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:2.3.0
+    image: ghcr.io/lamassuiot/lamassu-ui:2.3.1
   va:
     image: ghcr.io/lamassuiot/lamassu-va:2.3.0
   ca:
@@ -93,7 +93,7 @@ services:
       host: ""
       port: 25
   awsConnector:
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.1.0
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.3.1
     enabled: false
     name: "AWS default connector"
     aws:
