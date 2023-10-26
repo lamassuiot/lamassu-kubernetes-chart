@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: ca
-          image: ghcr.io/lamassuiot/lamassu-ca:dev-v3
+          image: {{ .Values.services.ca.image }}
           imagePullPolicy: Always
           tty: true         
           volumeMounts:
