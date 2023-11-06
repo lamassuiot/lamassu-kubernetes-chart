@@ -42,8 +42,9 @@ function main() {
     install_postgresql
     echo -e "\n${BLUE}5) Install RabitMQ${NOCOLOR}"
     install_rabbitmq
-    echo -e "\n${BLUE}6) Install Lamassu IoT${NOCOLOR}"
+    echo -e "\n${BLUE}6) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
     install_lamassu
+    echo -e "\n${BLUE}7) Patch ingress for Lamassu IoT${NOCOLOR}"
     if [ $dist == "microk8s" ]; then
         microk8s_patch_lamassu
     fi
@@ -116,7 +117,7 @@ EOF
     sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i lamassu.yaml
 
     $kube $helm repo add lamassuiot http://www.lamassu.io/lamassu-helm/
-    $kube $helm install -n $NAMESPACE lamassu lamassuiot/lamassu -f lamassu.yaml
+    $kube $helm install -n $NAMESPACE lamassu lamassuiot/lamassu -f lamassu.yaml --wait
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Lamassu IoT installed${NOCOLOR}"
     else
@@ -160,7 +161,7 @@ EOF
     sed 's/env.user/'"$POSTGRES_USER"'/;s/env.password/'"$POSTGRES_PWD"'/' -i postgres.yaml
 
     $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
-    $kube $helm install postgres bitnami/postgresql -n $NAMESPACE -f postgres.yaml
+    $kube $helm install postgres bitnami/postgresql -n $NAMESPACE -f postgres.yaml --wait
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}PostgreSQL installed${NOCOLOR}"
     else
