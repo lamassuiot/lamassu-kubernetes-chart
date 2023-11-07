@@ -111,6 +111,16 @@ services:
       password: "env.keycloak.password"
 EOF
 
+if [ $DOMAIN != "dev.lamassu.io" ]; 
+then 
+    cat >>lamassu.yaml <<"EOF"
+auth: 
+ oidc:
+   frontend:
+     authority: https://env.lamassu.domain/auth/realms/lamassu
+EOF
+fi
+
     sed 's/env.lamassu.domain/'"$DOMAIN"'/' -i lamassu.yaml
     sed 's/env.postgre.user/'"$POSTGRES_USER"'/;s/env.postgre.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
     sed 's/env.rabbitmq.user/'"$RABBIT_USER"'/;s/env.rabbitmq.password/'"$RABBIT_PWD"'/' -i lamassu.yaml
@@ -248,7 +258,7 @@ function request_keycloak_pwd() {
 }
 
 function request_namespace() {
-    echo -n "Keycloak admin password ($NAMESPACE): "
+    echo -n "Kubernetes namespace ($NAMESPACE): "
     read req
     if [ "$req" != "" ]; then
         NAMESPACE=$req
