@@ -6,18 +6,17 @@ metadata:
 data:
   config: |
     logs:
-      level: "info"
-      subsystems: 
-        service: "info"
-        crypto_engine: "info"
-        storage_engine: "info"
-        http: "info"
-        messaging_engine: "info"
+      level: "debug"
+
     server:
+      log_level: "debug"
+      health_check: false
       listen_address: "0.0.0.0"
       port: 8085
       protocol: "http" #http | https
-    amqp_event_publisher:
+
+    amqp:
+      log_level: "debug"
       enabled: true
       protocol: amqp #amqp | amqps
       hostname: {{ .Values.amqp.hostname }}
@@ -26,14 +25,18 @@ data:
         enabled: true
         username: {{ .Values.amqp.username }}
         password: {{ .Values.amqp.password }}
+
     storage:
+      log_level: "info"
       provider: "postgres" #couch_db | postgres | dynamo_db
       postgres: 
         hostname: {{ .Values.postgres.hostname }}
         port: {{ .Values.postgres.port }}
         username: {{ .Values.postgres.username }}
         password: {{ .Values.postgres.password }}
+
     crypto_engines:
+      log_level: "info"
       default_id: {{ .Values.services.ca.engines.defaultEngineID }}
       golang:
         {{ .Values.services.ca.engines.golang | toYaml | indent 4 | nindent 4  | trim  }}
@@ -47,10 +50,7 @@ data:
         {{ .Values.services.ca.engines.awsSecretsManager | toYaml | indent 4 | nindent 4  | trim  }}
     crypto_monitoring:
       enabled: true
-      frequency: "* * * * *"
-      status_machine_deltas:
-        near_expiration: "90d"
-        critical_expiration: "30d"
+      frequency: "{{ .Values.services.ca.monitoring.frequency }}"
       automatic_ca_rotation:
         enabled: false
         renewal_delta: "1d"

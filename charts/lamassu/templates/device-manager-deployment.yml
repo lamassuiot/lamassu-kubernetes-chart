@@ -16,80 +16,21 @@ spec:
     metadata:
       labels:
         app: device-manager
-    spec:     
+    spec:
       containers:
         - name: device-manager
-          image: {{.Values.services.deviceManager.image}}
+          image: {{ .Values.services.deviceManager.image }}
           imagePullPolicy: Always
-          tty: true          
-          env:
-            - name: SERVICE_NAME
-              value: deviceManager
-            - name: DEBUG_MODE
-              value: "{{.Values.debugMode}}"
-            - name: PORT
-              value: "8085"
-            - name: PROTOCOL
-              value: https
-            - name: CERT_FILE
-              value: /certs/tls.crt
-            - name: KEY_FILE
-              value: /certs/tls.key
-            - name: MUTUAL_TLS_ENABLED
-              value: "true"
-            - name: MUTUAL_TLS_CLIENT_CA
-              value: /certs/internal-ca.crt
-            - name: AMQP_SERVER_USE_BASIC_AUTH
-              value: "true"
-            - name: AMQP_SERVER_USERNAME
-              value: "{{.Values.amqp.username}}"
-            - name: AMQP_SERVER_PASSWORD
-              value: "{{.Values.amqp.password}}"
-            - name: AMQP_SERVER_ENABLE_TLS
-              value: "{{.Values.amqp.tls}}"
-            - name: AMQP_SERVER_HOST
-              value: {{.Values.amqp.hostname}}
-            - name: AMQP_SERVER_PORT
-              value: "{{.Values.amqp.port}}"
-            - name: AMQP_SERVER_CA_CERT
-              value: /certs/internal-ca.crt
-
-            - name: POSTGRES_HOSTNAME
-              value: {{ .Values.postgres.hostname }}
-            - name: POSTGRES_PORT
-              value: "{{ .Values.postgres.port }}"
-            - name: POSTGRES_DATABASE
-              value: devicemanager
-            - name: POSTGRES_USERNAME
-              value: {{ .Values.postgres.username }}
-            - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgres.password }}  
-            - name: LAMASSU_CA_ADDRESS
-              value: http://ca:8085
-            - name: LAMASSU_CA_CERT_FILE
-              value: /certs/internal-ca.crt
-            - name: LAMASSU_DMS_MANAGER_ADDRESS
-              value: https://dms-manager:8085
-            - name: LAMASSU_DMS_MANAGER_CERT_FILE
-              value: /certs/internal-ca.crt
-            - name: CA_CERT_FILE
-              value: /certs/internal-ca.crt
-            - name: MINIMUM_REENROLL_DAYS
-              value: "{{.Values.services.deviceManager.minimumReenrollmentDays}}"
+          tty: true         
           volumeMounts:
-            - name: tls-certificates
-              mountPath: /certs/tls.crt
-              subPath: tls.crt
-            - name: tls-certificates
-              mountPath: /certs/tls.key
-              subPath: tls.key
-            - name: tls-certificates
-              mountPath: /certs/internal-ca.crt
-              subPath: ca.crt
+            - name: api-config
+              mountPath: /etc/lamassuiot/config.yml
+              subPath: config
           ports:
             - containerPort: 8085
       restartPolicy: Always
       volumes:
-        - name: tls-certificates
-          secret:
-            secretName: device-manager-upstream-cert
+        - name: api-config
+          configMap:  
+            name: device-manager-config
+

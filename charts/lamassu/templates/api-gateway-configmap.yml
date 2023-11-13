@@ -126,12 +126,6 @@ data:
                                 cluster: api_dms_manager_cluster
 
                             - match:
-                                prefix: "/api/cloudproxy/"
-                              route:
-                                prefix_rewrite: "/"
-                                cluster: api_cloud_proxy_cluster
-
-                            - match:
                                 prefix: "/api/alerts/"
                               route:
                                 prefix_rewrite: "/"
@@ -279,18 +273,7 @@ data:
               unhealthy_threshold: 1
               healthy_threshold: 1
               http_health_check:
-                path: /v1/health
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-              # mTLS config between API_GW and UPSTREAM Service
-              common_tls_context:
-                tls_certificates:
-                  - certificate_chain:
-                      filename: /certs/upstream.crt
-                    private_key:
-                      filename: /certs/upstream.key
+                path: /health
               
         - name: api_dms_manager_cluster
           connect_timeout: 0.25s
@@ -312,51 +295,7 @@ data:
               unhealthy_threshold: 1
               healthy_threshold: 1
               http_health_check:
-                path: /v1/health
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-              # mTLS config between API_GW and UPSTREAM Service
-              common_tls_context:
-                tls_certificates:
-                  - certificate_chain:
-                      filename: /certs/upstream.crt
-                    private_key:
-                      filename: /certs/upstream.key
-
-        - name: api_cloud_proxy_cluster
-          connect_timeout: 0.25s
-          type: STRICT_DNS
-          lb_policy: ROUND_ROBIN
-          load_assignment:
-            cluster_name: cloud_connector
-            endpoints:
-              - lb_endpoints:
-                  - endpoint:
-                      address:
-                        socket_address:
-                          address: cloud-proxy
-                          port_value: 8085
-          health_checks:
-            - interval: 60s
-              timeout: 2s
-              interval_jitter: 1s
-              unhealthy_threshold: 1
-              healthy_threshold: 1
-              http_health_check:
-                path: /v1/health
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-              # mTLS config between API_GW and UPSTREAM Service
-              common_tls_context:
-                tls_certificates:
-                  - certificate_chain:
-                      filename: /certs/upstream.crt
-                    private_key:
-                      filename: /certs/upstream.key
+                path: /health
 
         - name: api_alerts_cluster
           connect_timeout: 0.25s
@@ -378,18 +317,7 @@ data:
               unhealthy_threshold: 1
               healthy_threshold: 1
               http_health_check:
-                path: /v1/health
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
-              # mTLS config between API_GW and UPSTREAM Service
-              common_tls_context:
-                tls_certificates:
-                  - certificate_chain:
-                      filename: /certs/upstream.crt
-                    private_key:
-                      filename: /certs/upstream.key
+                path: /health
               
         - name: ui_cluster
           connect_timeout: 0.25s
@@ -402,11 +330,7 @@ data:
                       address:
                         socket_address:
                           address: ui
-                          port_value: 443
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+                          port_value: 8080
 
         {{ if .Values.services.keycloak.enabled }}
         - name: auth_cluster
@@ -420,7 +344,7 @@ data:
                       address:
                         socket_address:
                           address: auth
-                          port_value: 8443
+                          port_value: 8080
           health_checks:
             - interval: 60s
               timeout: 2s
@@ -429,10 +353,7 @@ data:
               healthy_threshold: 1
               http_health_check:
                 path: /auth/health
-          transport_socket:
-            name: envoy.transport_sockets.tls
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+
         {{ else }}
         - name: jwks_cluster
           connect_timeout: 5s
@@ -467,8 +388,16 @@ data:
                   - endpoint:
                       address:
                         socket_address:
-                          address: va-pki
+                          address: va
                           port_value: 8085
+          health_checks:
+            - interval: 60s
+              timeout: 2s
+              interval_jitter: 1s
+              unhealthy_threshold: 1
+              healthy_threshold: 1
+              http_health_check:
+                path: /health
 
         {{ if .Values.simulationTools.enabled }}
         - name: vdevice_cluster

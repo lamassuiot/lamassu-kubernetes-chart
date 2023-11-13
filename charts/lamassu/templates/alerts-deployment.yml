@@ -16,87 +16,21 @@ spec:
     metadata:
       labels:
         app: alerts
-    spec:     
+    spec:
       containers:
         - name: alerts
-          image: {{.Values.services.alerts.image}}
+          image: {{ .Values.services.alerts.image }}
           imagePullPolicy: Always
-          tty: true
-          env:
-            - name: SERVICE_NAME
-              value: alerts
-            - name: DEBUG_MODE
-              value: "{{.Values.debugMode}}"
-            - name: PORT
-              value: "8085"
-            - name: PROTOCOL
-              value: https
-            - name: CERT_FILE
-              value: /certs/tls.crt
-            - name: KEY_FILE
-              value: /certs/tls.key
-            - name: MUTUAL_TLS_ENABLED
-              value: "true"
-            - name: MUTUAL_TLS_CLIENT_CA
-              value: /certs/internal-ca.crt
-            - name: AMQP_SERVER_USE_BASIC_AUTH
-              value: "true"
-            - name: AMQP_SERVER_USERNAME
-              value: "{{.Values.amqp.username}}"
-            - name: AMQP_SERVER_PASSWORD
-              value: "{{.Values.amqp.password}}"
-            - name: AMQP_SERVER_ENABLE_TLS
-              value: "{{.Values.amqp.tls}}"
-            - name: AMQP_SERVER_HOST
-              value: {{.Values.amqp.hostname}}
-            - name: AMQP_SERVER_PORT
-              value: "{{.Values.amqp.port}}"
-            - name: AMQP_SERVER_CA_CERT
-              value: /certs/internal-ca.crt
-            - name: POSTGRES_HOSTNAME
-              value: {{ .Values.postgres.hostname }}
-            - name: POSTGRES_PORT
-              value: "{{ .Values.postgres.port }}"
-            - name: POSTGRES_DATABASE
-              value: alerts
-            - name: POSTGRES_USERNAME
-              value: {{ .Values.postgres.username }}
-            - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgres.password }}
-
-            - name: SMTP_FROM
-              value: {{.Values.services.alerts.smtp.from}}
-            - name: SMTP_INSECURE
-              value: "{{.Values.services.alerts.smtp.insecure}}"
-            - name: SMTP_ENABLE_SSL
-              value: "{{.Values.services.alerts.smtp.enable_ssl}}"
-            - name: SMTP_USERNAME
-              value: {{.Values.services.alerts.smtp.username}}
-            - name: SMTP_PASSWORD
-              value: {{.Values.services.alerts.smtp.password}}
-            - name: SMTP_HOST
-              value: {{.Values.services.alerts.smtp.host}}
-            - name: SMTP_PORT
-              value: "{{.Values.services.alerts.smtp.port}}"
-            - name: TEMPLATE_HTML
-              value: /app/templates/email.html
-            - name: TEMPLATE_JSON
-              value: /app/templates/config.json
-
+          tty: true         
           volumeMounts:
-            - name: tls-certificates
-              mountPath: /certs/tls.crt
-              subPath: tls.crt
-            - name: tls-certificates
-              mountPath: /certs/tls.key
-              subPath: tls.key
-            - name: tls-certificates
-              mountPath: /certs/internal-ca.crt
-              subPath: ca.crt
+            - name: api-config
+              mountPath: /etc/lamassuiot/config.yml
+              subPath: config
           ports:
             - containerPort: 8085
       restartPolicy: Always
       volumes:
-        - name: tls-certificates
-          secret:
-            secretName: alerts-upstream-cert
+        - name: api-config
+          configMap:  
+            name: alerts-config
+

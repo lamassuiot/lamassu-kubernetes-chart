@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
-  name: va-pki
+  name: va
   namespace: {{.Release.Namespace}}
   annotations:
     reloader.stakater.com/auto: "true"
   labels:
-    app: va-pki
+    app: va
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: va-pki
+      app: va
   template:
     metadata:
       labels:
-        app: va-pki
+        app: va
     spec:     
       containers:
-        - name: va-pki
+        - name: va
           image: {{.Values.services.va.image}}
           imagePullPolicy: Always
           tty: true          
@@ -32,5 +32,5 @@ spec:
       volumes:
         - name: api-config
           configMap:  
-            name: va-pki-config
+            name: va-config
 

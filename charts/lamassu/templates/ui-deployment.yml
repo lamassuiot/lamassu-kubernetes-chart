@@ -32,17 +32,8 @@ spec:
               value: "{{.Values.auth.oidc.frontend.awsCognito.enabled}}"
             - name: COGNITO_HOSTED_UI_DOMAIN
               value: {{.Values.auth.oidc.frontend.awsCognito.hostedUiDomain}}
-          volumeMounts:
-            - name: ui-tls-certificates
-              mountPath: /certs/tls.crt
-              subPath: tls.crt
-            - name: ui-tls-certificates
-              mountPath: /certs/tls.key
-              subPath: tls.key
+            - name: CLOUD_CONNECTORS
+              value: "[ \"{{.Values.services.awsConnector.connectorID }}\" ]"
           ports:
-            - containerPort: 443
+            - containerPort: 8080
       restartPolicy: Always
-      volumes:
-        - name: ui-tls-certificates
-          secret:
-            secretName: ui-upstream-cert

@@ -1,0 +1,50 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: dms-manager-config
+  namespace: {{.Release.Namespace}}
+data:
+  config: |
+    logs:
+      level: "debug"
+
+    server:
+      log_level: "debug"
+      health_check: false
+      listen_address: "0.0.0.0"
+      port: 8085
+      protocol: "http" #http | https
+
+    amqp:
+      log_level: debug
+      enabled: true
+      protocol: amqp #amqp | amqps
+      hostname: {{ .Values.amqp.hostname }}
+      port: {{ .Values.amqp.port }}
+      basic_auth:
+        enabled: true
+        username: {{ .Values.amqp.username }}
+        password: {{ .Values.amqp.password }}
+
+    storage:
+      log_level: info
+      provider: "postgres" #couch_db | postgres | dynamo_db
+      postgres: 
+        hostname: {{ .Values.postgres.hostname }}
+        port: {{ .Values.postgres.port }}
+        username: {{ .Values.postgres.username }}
+        password: {{ .Values.postgres.password }}
+    
+    device_manager_client:
+      log_level: debug
+      auth_mode: noauth
+      prtotocol: http
+      hostname: device-manager
+      port: 8085
+    
+    ca_client:
+      log_level: debug
+      auth_mode: noauth
+      prtotocol: http
+      hostname: ca
+      port: 8085

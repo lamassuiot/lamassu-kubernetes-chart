@@ -9,7 +9,7 @@ spec:
     app: virtual-dms
   type: ClusterIP
   ports:
-  - name: https
+  - name: http
     port: 7002
     targetPort: 7002
     protocol: TCP

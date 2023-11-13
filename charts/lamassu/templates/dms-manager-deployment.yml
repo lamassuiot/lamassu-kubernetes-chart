@@ -16,86 +16,21 @@ spec:
     metadata:
       labels:
         app: dms-manager
-    spec:     
+    spec:
       containers:
         - name: dms-manager
-          image: {{.Values.services.dmsManager.image}}
+          image: {{ .Values.services.dmsManager.image }}
           imagePullPolicy: Always
-          tty: true          
-          env:
-            - name: LAMASSU_DEVICE_MANAGER_ADDRESS
-              value: https://device-manager:8085
-            - name: LAMASSU_DEVICE_MANAGER_CERT_FILE
-              value: /certs/internal-ca.crt
-            - name: SERVICE_NAME
-              value: dmsManager
-            - name: DEBUG_MODE
-              value: "{{.Values.debugMode}}"
-            - name: PORT
-              value: "8085"
-            - name: PROTOCOL
-              value: https
-            - name: CERT_FILE
-              value: /certs/tls.crt
-            - name: KEY_FILE
-              value: /certs/tls.key
-            - name: MUTUAL_TLS_ENABLED
-              value: "true"
-            - name: MUTUAL_TLS_CLIENT_CA
-              value: /certs/internal-ca.crt
-            - name: AMQP_SERVER_USE_BASIC_AUTH
-              value: "true"
-            - name: AMQP_SERVER_USERNAME
-              value: "{{.Values.amqp.username}}"
-            - name: AMQP_SERVER_PASSWORD
-              value: "{{.Values.amqp.password}}"
-            - name: AMQP_SERVER_ENABLE_TLS
-              value: "{{.Values.amqp.tls}}"
-            - name: AMQP_SERVER_HOST
-              value: {{.Values.amqp.hostname}}
-            - name: AMQP_SERVER_PORT
-              value: "{{.Values.amqp.port}}"
-            - name: AMQP_SERVER_CA_CERT
-              value: /certs/internal-ca.crt
-
-            - name: POSTGRES_HOSTNAME
-              value: {{ .Values.postgres.hostname }}
-            - name: POSTGRES_PORT
-              value: "{{ .Values.postgres.port }}"
-            - name: POSTGRES_DATABASE
-              value: dmsmanager
-            - name: POSTGRES_USERNAME
-              value: {{ .Values.postgres.username }}
-            - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgres.password }}  
-            - name: LAMASSU_CA_ADDRESS
-              value: http://ca:8085
-            - name: LAMASSU_CA_CERT_FILE
-              value: /certs/internal-ca.crt
-            - name: DOWNSTREAM_CERT
-              value: /certs/downstream.crt
-            - name: DOWNSTREAM_CA_CERT
-              value: /certs/downstream.crt
+          tty: true         
           volumeMounts:
-            - name: tls-certificates
-              mountPath: /certs/tls.crt
-              subPath: tls.crt
-            - name: tls-certificates
-              mountPath: /certs/tls.key
-              subPath: tls.key
-            - name: tls-certificates
-              mountPath: /certs/internal-ca.crt
-              subPath: ca.crt
-            - name: downstream-tls-certificates
-              mountPath: /certs/downstream.crt
-              subPath: tls.crt
+            - name: api-config
+              mountPath: /etc/lamassuiot/config.yml
+              subPath: config
           ports:
             - containerPort: 8085
       restartPolicy: Always
       volumes:
-        - name: tls-certificates
-          secret:
-            secretName: dms-manager-upstream-cert
-        - name: downstream-tls-certificates
-          secret:
-            secretName:  {{ ternary .Values.tls.externalOptions.secretName  "downstream-cert" (eq .Values.tls.type "external") }}
+        - name: api-config
+          configMap:  
+            name: dms-manager-config
+

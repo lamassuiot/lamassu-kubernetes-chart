@@ -1,0 +1,20 @@
+domain: lab.lamassu.io
+
+postgres:
+  hostname: "postgresql"
+  port: 5432
+  username: admin
+  password: admin
+
+amqp:
+  hostname: "rabbitmq"
+  port: 5672
+  username: admin
+  password: admin
+  tls: false
+
+auth: 
+  oidc:
+    frontend:
+      clientId: "frontend"
+      authority: https://lab.lamassu.io/auth/realms/lamassu

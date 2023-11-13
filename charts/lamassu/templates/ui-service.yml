@@ -8,7 +8,7 @@ spec:
     app: ui
   type: ClusterIP
   ports:
-  - name: https
-    port: 443
-    targetPort: 443
+  - name: http
+    port: 8080
+    targetPort: 8080
     protocol: TCP

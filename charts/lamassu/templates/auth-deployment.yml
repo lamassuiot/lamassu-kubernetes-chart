@@ -20,13 +20,6 @@ spec:
         - name: auth
           image: {{.Values.services.keycloak.image}}
           imagePullPolicy: Always
-          volumeMounts:          
-            - name: auth-tls-certificates
-              mountPath: /etc/x509/https/tls.crt
-              subPath: tls.crt
-            - name: auth-tls-certificates
-              mountPath: /etc/x509/https/tls.key
-              subPath: tls.key
           ports:
             - containerPort: 8080
             - containerPort: 8443
@@ -59,10 +52,5 @@ spec:
               value: "true"
             # - name: QUARKUS_HTTP_ACCESS_LOG_PATTERN
             #   value: "%r\n%{ALL_REQUEST_HEADERS}"
-
       restartPolicy: Always
-      volumes:
-        - name: auth-tls-certificates
-          secret:
-            secretName: auth-upstream-cert
 {{- end -}}

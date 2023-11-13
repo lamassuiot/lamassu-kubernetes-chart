@@ -9,7 +9,7 @@ spec:
     app: aws-connector
   type: ClusterIP
   ports:
-  - name: https
+  - name: http
     port: 8085
     targetPort: 8085
     protocol: TCP

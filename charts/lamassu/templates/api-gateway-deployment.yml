@@ -44,15 +44,6 @@ spec:
             - name: downstream-tls-certificate
               mountPath: /certs/downstream-ca.crt
               subPath: tls.crt
-            - name: upstream-certificate
-              mountPath: /certs/internal-ca.crt
-              subPath: ca.crt
-            - name: upstream-certificate
-              mountPath: /certs/upstream.crt
-              subPath: tls.crt
-            - name: upstream-certificate
-              mountPath: /certs/upstream.key
-              subPath: tls.key
           ports:
             - containerPort: 80
             - containerPort: 443
@@ -62,9 +53,6 @@ spec:
         - name: downstream-tls-certificate
           secret:
             secretName:  {{ ternary .Values.tls.externalOptions.secretName  "downstream-cert" (eq .Values.tls.type "external") }}
-        - name: upstream-certificate
-          secret:
-            secretName: api-gateway-upstream-cert
         - name: envoy-config
           configMap:  
             name: api-gateway-config

@@ -9,7 +9,7 @@ spec:
     app: virtual-device
   type: ClusterIP
   ports:
-  - name: https
+  - name: http
     port: 7001
     targetPort: 7001
     protocol: TCP

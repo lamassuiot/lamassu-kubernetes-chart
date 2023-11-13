@@ -14,7 +14,6 @@ tls:
     secretName: ""
 
 ingress:
-  default: false
   annotations: |
     
 postgres: 
@@ -24,7 +23,7 @@ postgres:
   password: ""
 
 amqp:
-  hostname: "rabbitmq"
+  hostname: ""
   port: 5672
   username: ""
   password: ""
@@ -54,11 +53,13 @@ services:
       username: "admin"
       password: "admin"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:2.3.1
+    image: ghcr.io/lamassuiot/lamassu-ui:2.4.0
   va:
-    image: ghcr.io/lamassuiot/lamassu-va:2.3.0
+    image: ghcr.io/lamassuiot/lamassu-va:2.4.0
   ca:
-    image: ghcr.io/lamassuiot/lamassu-ca:2.3.1
+    image: ghcr.io/lamassuiot/lamassu-ca:2.4.0
+    monitoring:
+      frequency: "* * * * *"
     engines:
       defaultEngineID: "golang-1"
       golang: 
@@ -71,19 +72,17 @@ services:
       pkcs11:
       hashicorpVault:
   deviceManager:
-    image: ghcr.io/lamassuiot/lamassu-devmanager:2.3.0
+    image: ghcr.io/lamassuiot/lamassu-devmanager:2.4.0
     minimumReenrollmentDays: 100
   dmsManager:
-    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.3.0
+    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.4.0
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
     remLogger:
       image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
-  cloudProxy:
-    image: ghcr.io/lamassuiot/lamassu-cloudproxy:2.3.0
   alerts:
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.3.0
-    smtp:
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.4.0
+    smtp_server:
       from: ""
       insecure: false
       enable_ssl: true
@@ -92,16 +91,13 @@ services:
       host: ""
       port: 25
   awsConnector:
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.3.1
     enabled: false
-    name: "AWS default connector"
-    jitpRoleName: "JITPRole"
-    aws:
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.4.0
+    connectorID: "aws.XXXXXXXXX"
+    credentials:
       accessKeyId: ""
       secretAccessKey: ""
       defaultRegion: ""
-      sqs:
-        inboundQueueName: "lamassuResponse"
 
 simulationTools:
   enabled: false
