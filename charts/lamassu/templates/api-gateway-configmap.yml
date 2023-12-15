@@ -223,6 +223,9 @@ data:
                 typed_config:
                   "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
                   common_tls_context:
+                    tls_params:
+                      tls_minimum_protocol_version: "TLSv1_2"
+                      tls_maximum_protocol_version: "TLSv1_2"
                     tls_certificates:
                       - certificate_chain: { filename: "/certs/downstream.crt" }
                         private_key: { filename: "/certs/downstream.key" }
@@ -232,6 +235,7 @@ data:
 
       clusters:
         - name: api_ca_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           lb_policy: ROUND_ROBIN
@@ -254,6 +258,7 @@ data:
                 path: /health
 
         - name: api_device_manager_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           lb_policy: ROUND_ROBIN
@@ -276,6 +281,7 @@ data:
                 path: /health
               
         - name: api_dms_manager_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           lb_policy: ROUND_ROBIN
@@ -298,6 +304,7 @@ data:
                 path: /health
 
         - name: api_alerts_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           lb_policy: ROUND_ROBIN
@@ -320,6 +327,7 @@ data:
                 path: /health
               
         - name: ui_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           load_assignment:
@@ -379,6 +387,7 @@ data:
         {{ end }}
 
         - name: va_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           load_assignment:
@@ -401,6 +410,7 @@ data:
 
         {{ if .Values.simulationTools.enabled }}
         - name: vdevice_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           load_assignment:
@@ -413,6 +423,7 @@ data:
                           address: virtual-device
                           port_value: 7001
         - name: vdms_cluster
+          dns_lookup_family: V4_ONLY
           connect_timeout: 0.25s
           type: STRICT_DNS
           load_assignment:

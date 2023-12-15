@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:  
   name: ca
   namespace: {{.Release.Namespace}}
@@ -9,6 +9,7 @@ metadata:
     app: ca
 spec:
   replicas: 1
+  serviceName: "ca"
   selector:
     matchLabels:
       app: ca
@@ -26,6 +27,10 @@ spec:
             - name: api-config
               mountPath: /etc/lamassuiot/config.yml
               subPath: config
+            {{ if gt (len .Values.services.ca.engines.golang) 0 }}
+            - name: golang-engine-storage
+              mountPath: /data
+            {{ end }}
           ports:
             - containerPort: 8085
       restartPolicy: Always
@@ -33,4 +38,14 @@ spec:
         - name: api-config
           configMap:  
             name: ca-config
-
+  volumeClaimTemplates:
+  {{ if gt (len .Values.services.ca.engines.golang) 0 }}
+  - metadata:
+      name: golang-engine-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: null
+      resources:
+        requests:
+          storage: 1Gi
+  {{end}}

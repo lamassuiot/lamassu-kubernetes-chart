@@ -19,14 +19,16 @@ spec:
         ports:
         - containerPort: 5657
         env:
-        - name: PKCS11_DAEMON_SOCKET
-          value: tls://0.0.0.0:5657
-        - name: PKCS11_PROXY_TLS_PSK_FILE
-          value: /tls-key.psk
-        volumeMounts:
-        - name: pkcs11-tls-psk
-          mountPath: tls-key.psk
-          subPath: key.psk
+        - name: SLOT
+          value: "0"
+        - name: LABEL
+          value: "lamassuHSM"
+        - name: PIN
+          value: "1234"
+        - name: SO_PIN
+          value: "5432"
+        - name: CONNECTION_PROTOCOL
+          value: "tcp"
       restartPolicy: Always
       volumes:
         - name: pkcs11-tls-psk

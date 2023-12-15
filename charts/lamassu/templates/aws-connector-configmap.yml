@@ -22,21 +22,21 @@ data:
     dms_manager_client:
       log_level: debug
       auth_mode: noauth
-      prtotocol: http
+      protocol: http
       hostname: dms-manager
       port: 8085
     
     device_manager_client:
       log_level: debug
       auth_mode: noauth
-      prtotocol: http
+      protocol: http
       hostname: device-manager
       port: 8085
     
     ca_client:
       log_level: debug
       auth_mode: noauth
-      prtotocol: http
+      protocol: http
       hostname: ca
       port: 8085
     

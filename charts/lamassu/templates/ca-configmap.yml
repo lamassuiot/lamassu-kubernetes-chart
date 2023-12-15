@@ -54,5 +54,4 @@ data:
       automatic_ca_rotation:
         enabled: false
         renewal_delta: "1d"
-    ocsp_server_url: https://{{ .Values.domain }}/api/va/ocsp
-    crl_server_url: https://{{ .Values.domain }}/api/va/crl
+    va_server_domain: {{ .Values.domain }}
