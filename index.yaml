@@ -485,6 +485,16 @@ entries:
   softhsm:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2023-12-16T07:12:25.674210181Z"
+    description: SoftHSM with TCP and TLS proxy
+    digest: 75ebbd752b1f3473b9270e3779aff04e32b9f83472b4411a7b298b0021745e27
+    name: softhsm
+    type: application
+    urls:
+    - https://github.com/lamassuiot/lamassu-helm/releases/download/softhsm-1.0.0/softhsm-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2023-07-27T14:16:56.642857502Z"
     description: SoftHSM with TCP and TLS proxy
     digest: c2469484aed2ff29b866473b7e677e95071d4677718314d5e67f525884a65897
@@ -493,4 +503,4 @@ entries:
     urls:
     - https://github.com/lamassuiot/lamassu-helm/releases/download/softhsm-0.1.0/softhsm-0.1.0.tgz
     version: 0.1.0
-generated: "2023-10-31T14:15:38.747187502Z"
+generated: "2023-12-16T07:12:25.67426861Z"
