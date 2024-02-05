@@ -138,7 +138,8 @@ fi
 
 function install_rabbitmq() {
     $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
-    $kube $helm install rabbitmq bitnami/rabbitmq -n $NAMESPACE --set fullnameOverride=rabbitmq --set auth.username=$RABBIT_USER --set auth.password=$RABBIT_PWD
+    $kube $helm repo update
+    $kube $helm install rabbitmq bitnami/rabbitmq --version 12.6.0 -n $NAMESPACE --set fullnameOverride=rabbitmq --set auth.username=$RABBIT_USER --set auth.password=$RABBIT_PWD
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}RabbitMQ installed${NOCOLOR}"
     else
