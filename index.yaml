@@ -3,6 +3,20 @@ entries:
   lamassu:
   - apiVersion: v2
     appVersion: 2.4.4
+    created: "2024-02-09T13:14:15.996603016Z"
+    description: PKI for Industrial IoT for Kubernetes
+    digest: dd571aef7deb5831a5e6fff76c113138eb5ed5c8297d85bc249dcd4e101338f7
+    icon: https://avatars.githubusercontent.com/u/27340420?s=200&v=4
+    name: lamassu
+    sources:
+    - https://github.com/lamassuiot
+    - https://github.com/lamassuiot/lamassu-kubernetes-chart
+    type: application
+    urls:
+    - https://github.com/lamassuiot/lamassu-helm/releases/download/lamassu-2.4.5/lamassu-2.4.5.tgz
+    version: 2.4.5
+  - apiVersion: v2
+    appVersion: 2.4.4
     created: "2024-02-05T15:41:03.188340489Z"
     description: PKI for Industrial IoT for Kubernetes
     digest: 0cd41994eae74f41207b4596a30213aee2f3905518966fcdc306c786ca5a1c1a
@@ -569,4 +583,4 @@ entries:
     urls:
     - https://github.com/lamassuiot/lamassu-helm/releases/download/softhsm-0.1.0/softhsm-0.1.0.tgz
     version: 0.1.0
-generated: "2024-02-05T15:41:03.188514514Z"
+generated: "2024-02-09T13:14:15.996760669Z"
