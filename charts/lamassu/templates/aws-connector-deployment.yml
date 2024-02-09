@@ -1,3 +1,4 @@
+{{- if .Values.services.awsConnector.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:  
@@ -33,4 +34,5 @@ spec:
         - name: config
           configMap:  
             name: aws-connector-config
+{{- end -}}
 
