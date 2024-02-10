@@ -53,11 +53,11 @@ services:
       username: "admin"
       password: "admin"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:2.4.2
+    image: ghcr.io/lamassuiot/lamassu-ui:2.4.5
   va:
-    image: ghcr.io/lamassuiot/lamassu-va:2.4.4
+    image: ghcr.io/lamassuiot/lamassu-va:2.4.5
   ca:
-    image: ghcr.io/lamassuiot/lamassu-ca:2.4.4
+    image: ghcr.io/lamassuiot/lamassu-ca:2.4.5
     monitoring:
       frequency: "* * * * *"
     engines:
@@ -72,16 +72,16 @@ services:
       pkcs11:
       hashicorpVault:
   deviceManager:
-    image: ghcr.io/lamassuiot/lamassu-devmanager:2.4.4
+    image: ghcr.io/lamassuiot/lamassu-devmanager:2.4.5
     minimumReenrollmentDays: 100
   dmsManager:
-    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.4.4
+    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.4.5
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
     remLogger:
       image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
   alerts:
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.4.4
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.4.5
     smtp_server:
       from: ""
       insecure: false
@@ -92,7 +92,7 @@ services:
       port: 25
   awsConnector:
     enabled: false
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.4.4
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.4.5
     connectorID: "aws.XXXXXXXXX"
     credentials:
       accessKeyId: ""
