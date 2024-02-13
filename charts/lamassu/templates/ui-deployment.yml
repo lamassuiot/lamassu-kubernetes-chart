@@ -22,6 +22,10 @@ spec:
           image: {{.Values.services.ui.image}}
           imagePullPolicy: Always
           env:
+            - name: CHART_VERSION
+              value: {{.Chart.Version}}
+            - name: HELM_REVISION
+              value: "{{.Release.Revision}}"
             - name: DOMAIN
               value: {{.Values.domain}}
             - name: OIDC_AUTHORITY
