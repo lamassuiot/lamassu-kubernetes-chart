@@ -33,7 +33,7 @@ auth:
   oidc:
     frontend:
       clientId: "frontend"
-      authority: https://dev.lamassu.io/auth/realms/lamassu
+      authority: https://${window.location.hostname}/auth/realms/lamassu
       awsCognito: 
         enabled: false
         hostedUiDomain: ""
@@ -53,7 +53,7 @@ services:
       username: "admin"
       password: "admin"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:2.4.6
+    image: ghcr.io/lamassuiot/lamassu-ui:2.5.0
   va:
     image: ghcr.io/lamassuiot/lamassu-va:2.4.6
   ca:

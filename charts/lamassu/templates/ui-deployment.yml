@@ -27,7 +27,7 @@ spec:
             - name: HELM_REVISION
               value: "{{.Release.Revision}}"
             - name: DOMAIN
-              value: {{.Values.domain}}
+              value: "${window.location.hostname}"
             - name: OIDC_AUTHORITY
               value: {{.Values.auth.oidc.frontend.authority}}
             - name: OIDC_CLIENT_ID
