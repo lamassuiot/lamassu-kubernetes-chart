@@ -6,6 +6,9 @@ kubectl="kubectl"
 helm="helm"
 
 DOMAIN=dev.lamassu.io
+NAMESPACE=lamassu-dev
+NON_INTERACTIVE=false
+
 POSTGRES_USER=admin
 POSTGRES_PWD=$(
     cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 10
@@ -23,10 +26,12 @@ KEYCLOAK_PWD=$(
     echo
 )
 
-NAMESPACE=lamassu-dev
 
 function main() {
     init
+
+    process_flags "$@"
+
     detect_distribution
     if [ $dist == "microk8s" ]; then
         kube="microk8s"
@@ -52,7 +57,67 @@ function main() {
         k3s_patch_lamassu
     fi
     final_instructions
+}
 
+function usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo "Options:"
+    echo " -h, --help              Display this help message"
+    echo " -n, --non-interactive   Enable non-interactive mode. Credentials for Keycloak, Postgres and RabbitMQ will be auto generated"
+    echo " -ns, --namespace        Kubernetes Namespace where LAMASSU will be deployed"
+    echo " -d, --domain            Domain to be set while deploying LAMASSU"
+}
+
+function has_argument() {
+    [[ ("$1" == *=* && -n ${1#*=}) || ( ! -z "$2" && "$2" != -*)  ]];
+}
+
+function extract_argument() {
+  echo "${2:-${1#*=}}"
+}
+
+
+function process_flags() {
+    while [ $# -gt 0 ]; do
+        case $1 in
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        -n | --non-interactive)
+            NON_INTERACTIVE=true
+            ;;
+        -d | --domain*)
+            if ! has_argument $@; then
+                echo "Domain not specified." >&2
+                usage
+                exit 1
+            fi
+
+            DOMAIN=$(extract_argument $@)
+
+            shift
+            ;;
+            
+        -ns | --namespace*)
+            if ! has_argument $@; then
+                echo "Domain not specified." >&2
+                usage
+                exit 1
+            fi
+
+            NAMESPACE=$(extract_argument $@)
+
+            shift
+            ;;
+        *)
+            echo "Invalid option: $1" >&2
+            usage
+            exit 1
+            ;;
+        esac
+        shift
+    done
 }
 
 function final_instructions() {
@@ -192,14 +257,16 @@ function create_kubernetes_namespace() {
 }
 
 function request_config_data() {
-    request_domain
-    request_postgres_user
-    request_postgres_pwd
-    request_rabbit_user
-    request_rabbit_pwd
-    request_keycloak_user
-    request_keycloak_pwd
-    request_namespace
+    if [ "$NON_INTERACTIVE" = false ]; then
+        request_domain
+        request_postgres_user
+        request_postgres_pwd
+        request_rabbit_user
+        request_rabbit_pwd
+        request_keycloak_user
+        request_keycloak_pwd
+        request_namespace
+    fi
 }
 
 function request_domain() {
@@ -351,4 +418,4 @@ function is_microk8s_addon_enabled() {
     fi
 }
 
-main
+main "$@"
