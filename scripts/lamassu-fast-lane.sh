@@ -6,23 +6,25 @@ kubectl="kubectl"
 helm="helm"
 
 DOMAIN=dev.lamassu.io
+DOMAIN_OVERRIDE=false
 NAMESPACE=lamassu-dev
+NAMESPACE_OVERRIDE=false
 NON_INTERACTIVE=false
 
 POSTGRES_USER=admin
 POSTGRES_PWD=$(
-    cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 10
+    shuf -er -n30  {A..Z} {a..z} {0..9} {.,@,$} | tr -d '\n'
     echo
 )
 RABBIT_USER=admin
 RABBIT_PWD=$(
-    cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 10
+    shuf -er -n30  {A..Z} {a..z} {0..9} {.,@,$} | tr -d '\n'
     echo
 )
 
 KEYCLOAK_USER=admin
 KEYCLOAK_PWD=$(
-    cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 10
+    shuf -er -n30  {A..Z} {a..z} {0..9} {.,@,$} | tr -d '\n'
     echo
 )
 
@@ -45,7 +47,7 @@ function main() {
     create_kubernetes_namespace
     echo -e "\n${BLUE}4) Install PostgreSQL${NOCOLOR}"
     install_postgresql
-    echo -e "\n${BLUE}5) Install RabitMQ${NOCOLOR}"
+    echo -e "\n${BLUE}5) Install RabbitMQ${NOCOLOR}"
     install_rabbitmq
     echo -e "\n${BLUE}6) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
     install_lamassu
@@ -93,7 +95,7 @@ function process_flags() {
                 usage
                 exit 1
             fi
-
+            DOMAIN_OVERRIDE=true
             DOMAIN=$(extract_argument $@)
 
             shift
@@ -105,7 +107,7 @@ function process_flags() {
                 usage
                 exit 1
             fi
-
+            NAMESPACE_OVERRIDE=true
             NAMESPACE=$(extract_argument $@)
 
             shift
@@ -266,6 +268,14 @@ function request_config_data() {
         request_keycloak_user
         request_keycloak_pwd
         request_namespace
+    else
+        echo -e "${ORANGE}Non-interactive mode enabled. Credentials will be auto generated${NOCOLOR}" 
+        if [ "$DOMAIN_OVERRIDE" = false ]; then
+            echo -e "${ORANGE}Domain not provied. Default will be used: $DOMAIN${NOCOLOR}"
+        fi
+        if [ "$NAMESPACE_OVERRIDE" = false ]; then
+            echo -e "${ORANGE}Namespace not provied. Default will be used: $NAMESPACE${NOCOLOR}"
+        fi        
     fi
 }
 
