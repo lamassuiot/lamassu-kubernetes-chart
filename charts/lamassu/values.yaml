@@ -1,22 +1,22 @@
 domain: &DOMAIN dev.lamassu.io
-logLevel: 0 # 0 -> INFO, 1 -> DEBUG, 2 -> TRACE
+logLevel: 0  # 0 -> INFO, 1 -> DEBUG, 2 -> TRACE
 debugMode: true
 
-#Downstream TLS
+# Downstream TLS
 tls:
   type: letsEncrypt | external
   letsEncryptOptions:
     clusterIssuer: ""
     issuer: ""
     selfSignedOptions:
-      duration: "2160h" # 2160h == 90days
+      duration: "2160h"  # 2160h == 90days
   externalOptions:
     secretName: ""
 
 ingress:
   annotations: |
-    
-postgres: 
+
+postgres:
   hostname: ""
   port: 5432
   username: ""
@@ -29,12 +29,12 @@ amqp:
   password: ""
   tls: false
 
-auth: 
+auth:
   oidc:
     frontend:
       clientId: "frontend"
       authority: https://${window.location.hostname}/auth/realms/lamassu
-      awsCognito: 
+      awsCognito:
         enabled: false
         hostedUiDomain: ""
     apiGateway:
@@ -62,12 +62,12 @@ services:
       frequency: "* * * * *"
     engines:
       defaultEngineID: "golang-1"
-      golang: 
+      golang:
         - id: "golang-1"
           storage_directory: "/data"
           metadata:
             prod-ready: "false"
-      awsKms: 
+      awsKms:
       awsSecretsManager:
       pkcs11:
       hashicorpVault:
