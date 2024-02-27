@@ -356,6 +356,12 @@ function detect_distribution() {
         echo -e "${GREEN}K3s detected${NOCOLOR}"
         return 0
     fi
+    is_command_installed "kind"
+    if [ $? -eq 0 ]; then
+        dist="kind"
+        echo -e "${GREEN}Kind detected - USE IT ONLY FOR TESTING${NOCOLOR}"
+        return 0
+    fi
     echo -e "${RED}No kubernetes distribution found${NOCOLOR}"
     exit 1
 }
