@@ -1,0 +1,59 @@
+name: Lint and Test Charts
+
+on: 
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.0.0
+        with:
+          version: v3.12.1
+
+      - uses: actions/setup-python@v5.0.0
+        with:
+          python-version: '3.9'
+          check-latest: true
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --excluded-charts softhsm --target-branch main )
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+     
+      - name: Run chart-testing (lint)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct lint --charts charts/lamassu --github-groups --target-branch main
+      
+      - name: Create kind cluster
+        if: steps.list-changed.outputs.changed == 'true'
+        uses: helm/kind-action@v1.9.0
+
+      - name: Prepare kind cluster
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.yaml
+          kubectl create namespace lamassu-test
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          helm install rabbitmq bitnami/rabbitmq --version 12.6.0 -n lamassu-test --set fullnameOverride=rabbitmq --set auth.username=admin --set auth.password=admin
+          helm install postgres bitnami/postgresql -n lamassu-test -f .github/ci/postgres.yaml --wait
+
+      - name: Run chart-testing (install)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct install --config .github/ci/ct.yaml --github-groups --target-branch main

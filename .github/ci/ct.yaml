@@ -1,0 +1,9 @@
+# See https://github.com/helm/chart-testing#configuration
+remote: origin
+target-branch: main
+charts:
+  - charts/lamassu
+chart-dirs:
+  - charts
+namespace: lamassu-test
+helm-extra-args: --timeout=500s
