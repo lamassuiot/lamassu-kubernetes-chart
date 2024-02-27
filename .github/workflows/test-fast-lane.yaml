@@ -10,6 +10,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Add hosts to /etc/hosts
+        run: |
+          sudo echo "127.0.0.1 ci.lamassu.io" | sudo tee -a /etc/hosts
       - uses: azure/setup-kubectl@v3
       - name: Set up Helm
         uses: azure/setup-helm@v4.0.0
@@ -19,9 +22,12 @@ jobs:
         uses: helm/kind-action@v1.9.0
         with:
           name: lamassu-ci-cluster
+          config: .github/ci/kind.yaml
       - name: Prepare kind cluster
         run: |
           kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.3/cert-manager.yaml
+          kubectl apply --filename https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
+          kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
       - name: run fast lane
         run: |
           ./scripts/lamassu-fast-lane.sh -n -ns lamassu-ci -d ci.lamassu.io
@@ -30,3 +36,6 @@ jobs:
           kubectl get pods -n lamassu-ci
           kubectl get svc -n lamassu-ci
           kubectl get ingress -n lamassu-ci
+      - name: Check if the app is running
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" -k https://ci.lamassu.io:10443
