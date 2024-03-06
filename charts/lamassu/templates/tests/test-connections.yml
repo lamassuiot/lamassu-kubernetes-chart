@@ -29,23 +29,48 @@ metadata:
 data:
   init.sh: |
     #!/bin/bash
-    function curl_and_analyze_json() {
-        response=$(curl -m 10 -sS --fail-early http://$1:8085/health)
+    function curl_or_exit() {
+        response=$(curl -k -m 10 -sS --fail-early $1)
         if [ $? -ne 0 ]; then
             echo "curl failed for $1: exiting 1"
             exit 1
         fi
-            
+
+        echo "$response"
+    }
+    
+    function curl_and_analyze_json() {
+        response=$(curl_or_exit $1)
+
         # Check if response is valid JSON
         if ! jq empty <<< "$response" &>/dev/null; then
             echo "NO valid JSON found in the response for $1 serivce. exiting 1"
             exit 1
         fi
 
-        echo "sucessfully validated $1 service"
+        echo "sucessfully validated $1"
+    }
+ 
+ 
+    function curl_and_analyze_ui() {
+        ui_response=$(curl_or_exit $1)
+        keyword="<title>Lamassu IoT</title>"
+        if echo "$ui_response" | grep -q "$keyword"; then
+            echo "sucessfully validated $1"
+        else
+            echo "NO valid response for $1. exiting 1"
+            exit 1
+        fi
+
     }
     
-    curl_and_analyze_json ca
-    curl_and_analyze_json dms-manager
-    curl_and_analyze_json device-manager
-    curl_and_analyze_json va
+    curl_and_analyze_json http://ca:8085/health
+    curl_and_analyze_json http://dms-manager:8085/health
+    curl_and_analyze_json http://device-manager:8085/health
+    curl_and_analyze_json http://va:8085/health
+
+    #UI Health Check
+    curl_and_analyze_ui http://ui:8080
+
+    #API-GW Health Check (try getting the UI for instance)
+    curl_and_analyze_ui https://api-gateway:443
