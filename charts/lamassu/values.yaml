@@ -53,7 +53,7 @@ services:
       username: "admin"
       password: "admin"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:2.5.0
+    image: ghcr.io/lamassuiot/lamassu-ui:2.5.1
   va:
     image: ghcr.io/lamassuiot/lamassu-va:2.5.0
   ca:
