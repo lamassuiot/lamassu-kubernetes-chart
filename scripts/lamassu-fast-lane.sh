@@ -9,6 +9,7 @@ DOMAIN=dev.lamassu.io
 DOMAIN_OVERRIDE=false
 NAMESPACE=lamassu-dev
 NAMESPACE_OVERRIDE=false
+OFFLINE=false
 NON_INTERACTIVE=false
 
 POSTGRES_USER=admin
@@ -28,6 +29,10 @@ KEYCLOAK_PWD=$(
     echo
 )
 
+OFFLINE_HELMCHART_LAMASSU=""
+OFFLINE_HELMCHART_RABBITMQ=""
+OFFLINE_HELMCHART_POSTGRES=""
+
 
 function main() {
     init
@@ -38,6 +43,26 @@ function main() {
     if [ $dist == "microk8s" ]; then
         kube="microk8s"
     fi
+
+    if [ "$OFFLINE" = true ]; then
+        echo -e "${ORANGE}Offline mode enabled. Images must be already imported${NOCOLOR}" 
+
+        if [ "$OFFLINE_HELMCHART_LAMASSU" = "" ]; then
+            echo -e "\n${RED}Lamassu helm chart path is empty${NOCOLOR}"
+            exit 1
+        fi
+        if [ "$OFFLINE_HELMCHART_RABBITMQ" = "" ]; then
+            echo -e "\n${RED}RabbitMQ helm chart path is empty${NOCOLOR}"
+            exit 1
+        fi
+        if [ "$OFFLINE_HELMCHART_POSTGRES" = "" ]; then
+            echo -e "\n${RED}Postgres helm chart path is empty${NOCOLOR}"
+            exit 1
+        fi
+    else
+        echo -e "${ORANGE}ONLINE MODE ENABLED${NOCOLOR}" 
+    fi
+
     echo -e "${BLUE}=== Installing Lamassu IoT using Fast Lane ===${NOCOLOR}"
     echo -e "\n${BLUE}1) Dependencies checking${NOCOLOR}"
     check_dependencies
@@ -68,6 +93,10 @@ function usage() {
     echo " -n, --non-interactive   Enable non-interactive mode. Credentials for Keycloak, Postgres and RabbitMQ will be auto generated"
     echo " -ns, --namespace        Kubernetes Namespace where LAMASSU will be deployed"
     echo " -d, --domain            Domain to be set while deploying LAMASSU"
+    echo " --offline               Offline mode enabled. Use local helm charts (--helm-chart-rabbitmq, --helm-chart-postgres and --helm-chart-lamassu flags will be required)"
+    echo " --helm-chart-lamassu    (Only needed while using --offline) Path to the Lamassu helm chart (.tgz format)"
+    echo " --helm-chart-postgres   (Only needed while using --offline) Path to the Posgtres helm chart (.tgz format)"
+    echo " --helm-chart-rabbitmq   (Only needed while using --offline) Path to the RabbitMQ helm chart (.tgz format)"
 }
 
 function has_argument() {
@@ -86,12 +115,45 @@ function process_flags() {
             usage
             exit 0
             ;;
+        --offline)
+            OFFLINE=true
+            ;;
+         --helm-chart-lamassu)
+              if ! has_argument $@; then
+                echo -e "\n${RED}Lamassu Helm Chart not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            OFFLINE_HELMCHART_LAMASSU=$(extract_argument $@)
+
+            shift
+            ;;
+         --helm-chart-postgres)
+              if ! has_argument $@; then
+                echo -e "\n${RED}Postgres Helm Chart not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            OFFLINE_HELMCHART_POSTGRES=$(extract_argument $@)
+
+            shift
+            ;;
+         --helm-chart-rabbitmq)
+              if ! has_argument $@; then
+                echo -e "\n${RED}Rabbitmq Helm Chart not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            OFFLINE_HELMCHART_RABBITMQ=$(extract_argument $@)
+
+            shift
+            ;;
         -n | --non-interactive)
             NON_INTERACTIVE=true
             ;;
         -d | --domain*)
             if ! has_argument $@; then
-                echo "Domain not specified." >&2
+                  echo -e "\n${RED}Domain not specified.${NOCOLOR}" >&2
                 usage
                 exit 1
             fi
@@ -103,7 +165,7 @@ function process_flags() {
             
         -ns | --namespace*)
             if ! has_argument $@; then
-                echo "Domain not specified." >&2
+            echo -e "\n${RED}Namespace not specified.${NOCOLOR}" >&2
                 usage
                 exit 1
             fi
@@ -113,7 +175,7 @@ function process_flags() {
             shift
             ;;
         *)
-            echo "Invalid option: $1" >&2
+            echo -e "\n${RED}Invalid option: $1${NOCOLOR}" >&2
             usage
             exit 1
             ;;
@@ -183,8 +245,15 @@ EOF
     sed 's/env.rabbitmq.user/'"$RABBIT_USER"'/;s/env.rabbitmq.password/'"$RABBIT_PWD"'/' -i lamassu.yaml
     sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i lamassu.yaml
 
-    $kube $helm repo add lamassuiot http://www.lamassu.io/lamassu-helm/
-    $kube $helm install -n $NAMESPACE lamassu lamassuiot/lamassu -f lamassu.yaml --wait
+    helm_path=lamassuiot/lamassu
+    if [ "$OFFLINE" = false ]; then
+        $kube $helm repo add lamassuiot http://www.lamassu.io/lamassu-helm/
+    else 
+        helm_path=$OFFLINE_HELMCHART_LAMASSU
+    fi
+
+    $kube $helm install -n $NAMESPACE lamassu $helm_path -f lamassu.yaml --wait
+
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Lamassu IoT installed${NOCOLOR}"
     else
@@ -194,9 +263,15 @@ EOF
 }
 
 function install_rabbitmq() {
-    $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
+    helm_path=bitnami/rabbitmq
+    if [ "$OFFLINE" = false ]; then
+        $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
+    else 
+        helm_path=$OFFLINE_HELMCHART_RABBITMQ
+    fi
+
     $kube $helm repo update
-    $kube $helm install rabbitmq bitnami/rabbitmq --version 12.6.0 -n $NAMESPACE --set fullnameOverride=rabbitmq --set auth.username=$RABBIT_USER --set auth.password=$RABBIT_PWD
+    $kube $helm install rabbitmq $helm_path --version 12.6.0 -n $NAMESPACE --set fullnameOverride=rabbitmq --set auth.username=$RABBIT_USER --set auth.password=$RABBIT_PWD
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}RabbitMQ installed${NOCOLOR}"
     else
@@ -228,8 +303,16 @@ EOF
 
     sed 's/env.user/'"$POSTGRES_USER"'/;s/env.password/'"$POSTGRES_PWD"'/' -i postgres.yaml
 
-    $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
-    $kube $helm install postgres bitnami/postgresql -n $NAMESPACE -f postgres.yaml --wait
+    helm_path=bitnami/postgresql
+    if [ "$OFFLINE" = false ]; then
+        $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
+    else 
+        helm_path=$OFFLINE_HELMCHART_POSTGRES
+    fi
+
+    echo $helm_path
+
+    $kube $helm install postgres $helm_path -n $NAMESPACE -f postgres.yaml --wait
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}PostgreSQL installed${NOCOLOR}"
     else
