@@ -20,7 +20,7 @@ spec:
       containers:
         - name: device-manager
           image: {{ .Values.services.deviceManager.image }}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           tty: true         
           volumeMounts:
             - name: api-config

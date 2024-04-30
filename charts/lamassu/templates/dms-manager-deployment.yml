@@ -20,7 +20,7 @@ spec:
       containers:
         - name: dms-manager
           image: {{ .Values.services.dmsManager.image }}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           tty: true         
           volumeMounts:
             - name: api-config

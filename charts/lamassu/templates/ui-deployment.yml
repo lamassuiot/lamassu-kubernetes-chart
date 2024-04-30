@@ -20,7 +20,7 @@ spec:
       containers:
         - name: ui
           image: {{.Values.services.ui.image}}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           env:
             - name: CHART_VERSION
               value: {{.Chart.Version}}

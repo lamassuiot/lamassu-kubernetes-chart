@@ -20,7 +20,7 @@ spec:
       containers:
         - name: api-gateway
           image: envoyproxy/envoy:v1.25-latest
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           tty: true          
           env:
             - name: DEBUG_MODE

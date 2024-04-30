@@ -18,7 +18,7 @@ spec:
       containers:
         - name: opa-server
           image: {{.Values.services.openPolicyAgent.image}}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           tty: true
           volumeMounts:
             - name: opa-server-policy-config
@@ -38,7 +38,7 @@ spec:
             - /opa/policy.rego
         - name: rem-logger
           image: {{.Values.services.openPolicyAgent.remLogger.image}}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           tty: true          
           ports:
             - containerPort: 8080

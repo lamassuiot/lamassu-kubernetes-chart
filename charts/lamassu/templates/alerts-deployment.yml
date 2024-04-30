@@ -20,7 +20,7 @@ spec:
       containers:
         - name: alerts
           image: {{ .Values.services.alerts.image }}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           tty: true         
           volumeMounts:
             - name: api-config

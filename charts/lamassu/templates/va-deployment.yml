@@ -20,7 +20,7 @@ spec:
       containers:
         - name: va
           image: {{.Values.services.va.image}}
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
           tty: true          
           volumeMounts:
             - name: api-config
