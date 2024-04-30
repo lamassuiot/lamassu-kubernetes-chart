@@ -3,11 +3,10 @@ gloabl:
   ##
   imagePullPolicy: Always
 
-domain: &DOMAIN dev.lamassu.io
 logLevel: 0  # 0 -> INFO, 1 -> DEBUG, 2 -> TRACE
 debugMode: true
 
-# Downstream TLS
+# Downstream TLS (API Gateway)
 tls:
   type: letsEncrypt | external
   letsEncryptOptions:
@@ -19,7 +18,22 @@ tls:
     secretName: ""
 
 ingress:
+  enabled: true
+  hostname: dev.lamassu.io
   annotations: |
+
+
+service:
+  type: ClusterIP
+  ports:
+    apiGatewayTls: 443
+    apiGateway: 80
+  nodePorts:
+    apiGatewayTls: 
+    apiGateway: 
+  portNames:
+    apiGatewayTls: "api-gateway-https"
+    apiGateway: "api-gateway-http"
 
 postgres:
   hostname: ""
@@ -63,6 +77,7 @@ services:
   va:
     image: ghcr.io/lamassuiot/lamassu-va:2.5.0
   ca:
+    domain: dev.lamassu.io
     image: ghcr.io/lamassuiot/lamassu-ca:2.5.0
     monitoring:
       frequency: "* * * * *"

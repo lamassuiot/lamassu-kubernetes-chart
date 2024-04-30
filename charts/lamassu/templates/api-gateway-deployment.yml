@@ -45,9 +45,9 @@ spec:
               mountPath: /certs/downstream-ca.crt
               subPath: tls.crt
           ports:
-            - containerPort: 80
-            - containerPort: 443
-            - containerPort: 9900
+            - containerPort: api-gateway-http
+            - containerPort: api-gateway-https
+            - containerPort: api-gateway-stats
       restartPolicy: Always
       volumes:
         - name: downstream-tls-certificate
