@@ -20,7 +20,7 @@ spec:
       containers:
         - name: api-gateway
           image: envoyproxy/envoy:v1.25-latest
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           tty: true          
           env:
             - name: DEBUG_MODE
@@ -45,9 +45,12 @@ spec:
               mountPath: /certs/downstream-ca.crt
               subPath: tls.crt
           ports:
-            - containerPort: api-gateway-http
-            - containerPort: api-gateway-https
-            - containerPort: api-gateway-stats
+            - name: http
+              containerPort: 80
+            - name: https
+              containerPort: 443
+            - name: stats
+              containerPort: 9900
       restartPolicy: Always
       volumes:
         - name: downstream-tls-certificate

@@ -1,4 +1,4 @@
-gloabl:
+global:
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
   imagePullPolicy: Always
@@ -22,18 +22,14 @@ ingress:
   hostname: dev.lamassu.io
   annotations: |
 
-
 service:
   type: ClusterIP
-  ports:
-    apiGatewayTls: 443
-    apiGateway: 80
   nodePorts:
     apiGatewayTls: 
     apiGateway: 
   portNames:
-    apiGatewayTls: "api-gateway-https"
-    apiGateway: "api-gateway-http"
+    apiGatewayTls: "https"
+    apiGateway: "http"
 
 postgres:
   hostname: ""
@@ -52,7 +48,7 @@ auth:
   oidc:
     frontend:
       clientId: "frontend"
-      authority: https://${window.location.hostname}/auth/realms/lamassu
+      authority: https://${window.location.host}/auth/realms/lamassu
       awsCognito:
         enabled: false
         hostedUiDomain: ""
@@ -64,7 +60,6 @@ auth:
       admin: pki-admin
       operator: operator
 
-
 services:
   keycloak:
     enabled: true
@@ -73,7 +68,7 @@ services:
       username: "admin"
       password: "admin"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:2.5.1
+    image: ghcr.io/lamassuiot/lamassu-ui:2.5.2
   va:
     image: ghcr.io/lamassuiot/lamassu-va:2.5.0
   ca:

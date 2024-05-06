@@ -74,6 +74,10 @@ data:
                       accept_http_10: true
                     route_config:
                       name: local_route
+                      request_headers_to_add:
+                      - header:
+                          key: "x-forwarded-port"
+                          value: "30443"
                       virtual_hosts:
                         - name: apis_and_uis
                           domains:

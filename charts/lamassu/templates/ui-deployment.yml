@@ -20,14 +20,14 @@ spec:
       containers:
         - name: ui
           image: {{.Values.services.ui.image}}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           env:
             - name: CHART_VERSION
               value: {{.Chart.Version}}
             - name: HELM_REVISION
               value: "{{.Release.Revision}}"
             - name: DOMAIN
-              value: "${window.location.hostname}"
+              value: "${window.location.host}"
             - name: OIDC_AUTHORITY
               value: {{.Values.auth.oidc.frontend.authority}}
             - name: OIDC_CLIENT_ID
