@@ -15,7 +15,20 @@ data:
       port: 8085
       protocol: "http" #http | https
 
-    event_bus:
+    publisher_event_bus:
+      log_level: "debug"
+      provider: amqp
+      enabled: true
+      amqp:
+        protocol: amqp #amqp | amqps
+        hostname: {{ .Values.amqp.hostname }}
+        port: {{ .Values.amqp.port }}
+        basic_auth:
+          enabled: true
+          username: {{ .Values.amqp.username }}
+          password: {{ .Values.amqp.password }}
+   
+    subscriber_event_bus:
       log_level: "debug"
       provider: amqp
       enabled: true

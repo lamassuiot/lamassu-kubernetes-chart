@@ -15,7 +15,7 @@ data:
       port: 8085
       protocol: "http" #http | https
 
-    event_bus:
+    subscriber_event_bus:
       log_level: "debug"
       provider: amqp
       enabled: true
