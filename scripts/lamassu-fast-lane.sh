@@ -240,8 +240,12 @@ EOF
 }
 
 function install_lamassu() {
+DOMAIN_PORT=$DOMAIN
+if [ "$MAIN_PORT" -ne 443 ]; then
+    DOMAIN_PORT="$DOMAIN:$MAIN_PORT"
+fi
+
     cat >lamassu.yaml <<"EOF"
-domain: env.lamassu.domain
 postgres:
   hostname: "postgresql"
   port: 5432
@@ -255,18 +259,23 @@ amqp:
   password: "env.rabbitmq.password"
   tls: false
 services:
+  ca:
+    domain: $DOMAIN_PORT
   keycloak:
     enabled: true
     image: ghcr.io/lamassuiot/keycloak:2.1.0
     adminCreds:
       username: "env.keycloak.user"
       password: "env.keycloak.password"
+
+ingress:
+  hostname: $DOMAIN
 EOF
 
-
+sed 's/$DOMAIN/'"$DOMAIN"'/' -i lamassu.yaml
+sed 's/$DOMAIN_PORT/'"$DOMAIN_PORT"'/' -i lamassu.yaml
 
 if [ "$MAIN_PORT" -ne 443 ]; then
-
     cat >service.yaml <<"EOF"
 ingress:
   enabled: false
