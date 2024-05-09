@@ -11,6 +11,7 @@ NAMESPACE=lamassu-dev
 NAMESPACE_OVERRIDE=false
 OFFLINE=false
 NON_INTERACTIVE=false
+MAIN_PORT=443
 
 POSTGRES_USER=admin
 POSTGRES_PWD=$(
@@ -38,6 +39,12 @@ function main() {
     init
 
     process_flags "$@"
+
+    if [ "$MAIN_PORT" -eq 443 ]; then
+        echo -e "${ORANGE}Deploying Lamassu with Ingress (and standard https port on 443)${NOCOLOR}" 
+    else
+        echo -e "${ORANGE}Deploying Lamassu with Ingress disabled and using NodePort on port $MAIN_PORT ${NOCOLOR}" 
+    fi
 
     detect_distribution
     if [ $dist == "microk8s" ]; then
@@ -77,6 +84,7 @@ function main() {
     echo -e "\n${BLUE}6) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
     install_lamassu
     echo -e "\n${BLUE}7) Patch ingress for Lamassu IoT${NOCOLOR}"
+    
     if [ $dist == "microk8s" ]; then
         microk8s_patch_lamassu
     fi
@@ -163,6 +171,17 @@ function process_flags() {
             shift
             ;;
             
+        -p | --port)
+            if ! has_argument $@; then
+                  echo -e "\n${RED}Port not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            MAIN_PORT=$(extract_argument $@)
+
+            shift
+            ;;
+            
         -ns | --namespace*)
             if ! has_argument $@; then
             echo -e "\n${RED}Namespace not specified.${NOCOLOR}" >&2
@@ -202,12 +221,16 @@ function k3s_patch_lamassu() {
 }
 
 function microk8s_patch_lamassu() {
-    cat >>lamassu.yaml <<"EOF"
+    $kube $helm upgrade -n $NAMESPACE lamassu lamassuiot/lamassu -f lamassu.yaml
+    cat >ing.yaml <<"EOF"
 ingress:
   annotations: |
     kubernetes.io/ingress.class: "public"
 EOF
-    $kube $helm upgrade -n $NAMESPACE lamassu lamassuiot/lamassu -f lamassu.yaml
+
+    yq eval-all '. as $item ireduce ({}; . * $item )' lamassu.yaml ing.yaml -i
+    rm ing.yaml
+
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Lamassu IoT successfully patched${NOCOLOR}"
     else
@@ -239,6 +262,24 @@ services:
       username: "env.keycloak.user"
       password: "env.keycloak.password"
 EOF
+
+
+
+if [ "$MAIN_PORT" -ne 443 ]; then
+
+    cat >service.yaml <<"EOF"
+ingress:
+  enabled: false
+service: 
+  type: NodePort
+  nodePorts:
+    apiGatewayTls: $MAIN_PORT
+EOF
+
+    sed 's/$MAIN_PORT/'"$MAIN_PORT"'/' -i service.yaml
+    yq eval-all '. as $item ireduce ({}; . * $item )' lamassu.yaml service.yaml -i
+    rm service.yaml
+fi
 
     sed 's/env.lamassu.domain/'"$DOMAIN"'/' -i lamassu.yaml
     sed 's/env.postgre.user/'"$POSTGRES_USER"'/;s/env.postgre.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
@@ -281,7 +322,6 @@ function install_rabbitmq() {
 }
 
 function install_postgresql() {
-
     cat >postgres.yaml <<"EOF"
 fullnameOverride: "postgresql"
 global:
@@ -309,8 +349,6 @@ EOF
     else 
         helm_path=$OFFLINE_HELMCHART_POSTGRES
     fi
-
-    echo $helm_path
 
     $kube $helm install postgres $helm_path -n $NAMESPACE -f postgres.yaml --wait
     if [ $? -eq 0 ]; then
@@ -440,6 +478,7 @@ function detect_distribution() {
 }
 
 function check_dependencies() {
+    exit_if_command_not_installed yq
     exit_if_command_not_installed $dist
     if [ $dist == "k3s" ]; then
         exit_if_command_not_installed $kubectl
@@ -498,7 +537,6 @@ function exit_if_command_not_installed() {
 }
 
 function is_microk8s_addon_enabled() {
-
     if [ $(microk8s status --a $1) == "enabled" ]; then
         echo "✅ $1 addon enabled"
     else
