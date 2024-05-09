@@ -25,8 +25,8 @@ ingress:
 service:
   type: ClusterIP
   nodePorts:
-    apiGatewayTls: 
-    apiGateway: 
+    apiGatewayTls:
+    apiGateway:
   portNames:
     apiGatewayTls: "https"
     apiGateway: "http"
