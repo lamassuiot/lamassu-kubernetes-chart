@@ -272,8 +272,8 @@ ingress:
   hostname: $DOMAIN
 EOF
 
-sed 's/$DOMAIN/'"$DOMAIN"'/' -i lamassu.yaml
 sed 's/$DOMAIN_PORT/'"$DOMAIN_PORT"'/' -i lamassu.yaml
+sed 's/$DOMAIN/'"$DOMAIN"'/' -i lamassu.yaml
 
 if [ "$MAIN_PORT" -ne 443 ]; then
     cat >service.yaml <<"EOF"
@@ -321,7 +321,7 @@ function install_rabbitmq() {
     fi
 
     $kube $helm repo update
-    $kube $helm install rabbitmq $helm_path --version 12.6.0 -n $NAMESPACE --set fullnameOverride=rabbitmq --set auth.username=$RABBIT_USER --set auth.password=$RABBIT_PWD
+    $kube $helm install rabbitmq $helm_path --version 12.6.0 -n $NAMESPACE --set fullnameOverride=rabbitmq --set auth.username=$RABBIT_USER --set auth.password=$RABBIT_PWD  --wait
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}RabbitMQ installed${NOCOLOR}"
     else
@@ -369,12 +369,19 @@ EOF
 }
 
 function create_kubernetes_namespace() {
-    $kube $kubectl create ns $NAMESPACE
-    if [ $? -eq 0 ]; then
-        echo -e "\n${GREEN}Namespace $NAMESPACE created${NOCOLOR}"
+    # Check if the namespace exists
+    if $kube $kubectl get ns "$NAMESPACE" &> /dev/null; then
+        echo -e "\n${GREEN}Namespace $NAMESPACE already exists${NOCOLOR}"
     else
-        echo -e "\n${RED}Error creating namespace $NAMESPACE${NOCOLOR}"
-        exit 1
+        # If the namespace doesn't exist, create it
+        $kube $kubectl create ns $NAMESPACE
+        echo "Namespace $NAMESPACE created."
+        if [ $? -eq 0 ]; then
+            echo -e "\n${GREEN}Namespace $NAMESPACE created${NOCOLOR}"
+        else
+            echo -e "\n${RED}Error creating namespace $NAMESPACE${NOCOLOR}"
+            exit 1
+        fi
     fi
 }
 
