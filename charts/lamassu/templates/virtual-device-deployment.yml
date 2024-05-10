@@ -19,7 +19,7 @@ spec:
       containers:
         - name: virtual-device
           image: {{.Values.simulationTools.virtualDevice.image}}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           tty: true      
           env:
             - name: VDMS_ADDRESS

@@ -74,6 +74,12 @@ data:
                       accept_http_10: true
                     route_config:
                       name: local_route
+                      request_headers_to_add:
+                      {{- if (eq .Values.service.type "NodePort") }}
+                      - header:
+                          key: "x-forwarded-port"
+                          value: "{{ .Values.service.nodePorts.apiGatewayTls }}"
+                      {{- end }}
                       virtual_hosts:
                         - name: apis_and_uis
                           domains:

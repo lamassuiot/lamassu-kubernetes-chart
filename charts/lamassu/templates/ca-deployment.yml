@@ -21,7 +21,7 @@ spec:
       containers:
         - name: ca
           image: {{ .Values.services.ca.image }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           tty: true         
           volumeMounts:
             - name: api-config

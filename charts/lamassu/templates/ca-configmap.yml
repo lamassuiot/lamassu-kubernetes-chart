@@ -14,7 +14,8 @@ data:
       listen_address: "0.0.0.0"
       port: 8085
       protocol: "http" #http | https
-    event_bus:
+    
+    publisher_event_bus:
       log_level: "debug"
       provider: amqp
       enabled: true
@@ -55,4 +56,4 @@ data:
       automatic_ca_rotation:
         enabled: false
         renewal_delta: "1d"
-    va_server_domain: {{ .Values.domain }}
+    va_server_domain: {{ .Values.services.ca.domain }}

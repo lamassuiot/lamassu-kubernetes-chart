@@ -21,7 +21,7 @@ spec:
       containers:
         - name: aws-connector
           image: {{ .Values.services.awsConnector.image }}
-          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}: Always
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           tty: true         
           volumeMounts:
             - name: config

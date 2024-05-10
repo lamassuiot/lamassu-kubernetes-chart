@@ -1,13 +1,12 @@
-gloabl:
+global:
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
   imagePullPolicy: Always
 
-domain: &DOMAIN dev.lamassu.io
 logLevel: 0  # 0 -> INFO, 1 -> DEBUG, 2 -> TRACE
 debugMode: true
 
-# Downstream TLS
+# Downstream TLS (API Gateway)
 tls:
   type: letsEncrypt | external
   letsEncryptOptions:
@@ -19,7 +18,18 @@ tls:
     secretName: ""
 
 ingress:
+  enabled: true
+  hostname: dev.lamassu.io
   annotations: |
+
+service:
+  type: ClusterIP
+  nodePorts:
+    apiGatewayTls:
+    apiGateway:
+  portNames:
+    apiGatewayTls: "https"
+    apiGateway: "http"
 
 postgres:
   hostname: ""
@@ -38,7 +48,7 @@ auth:
   oidc:
     frontend:
       clientId: "frontend"
-      authority: https://${window.location.hostname}/auth/realms/lamassu
+      authority: https://${window.location.host}/auth/realms/lamassu
       awsCognito:
         enabled: false
         hostedUiDomain: ""
@@ -50,7 +60,6 @@ auth:
       admin: pki-admin
       operator: operator
 
-
 services:
   keycloak:
     enabled: true
@@ -59,11 +68,12 @@ services:
       username: "admin"
       password: "admin"
   ui:
-    image: ghcr.io/lamassuiot/lamassu-ui:2.5.1
+    image: ghcr.io/lamassuiot/lamassu-ui:2.5.2
   va:
-    image: ghcr.io/lamassuiot/lamassu-va:2.5.0
+    image: ghcr.io/lamassuiot/lamassu-va:2.5.1
   ca:
-    image: ghcr.io/lamassuiot/lamassu-ca:2.5.0
+    domain: dev.lamassu.io
+    image: ghcr.io/lamassuiot/lamassu-ca:2.5.1
     monitoring:
       frequency: "* * * * *"
     engines:
@@ -78,16 +88,16 @@ services:
       pkcs11:
       hashicorpVault:
   deviceManager:
-    image: ghcr.io/lamassuiot/lamassu-devmanager:2.5.0
+    image: ghcr.io/lamassuiot/lamassu-devmanager:2.5.1
     minimumReenrollmentDays: 100
   dmsManager:
-    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.5.0
+    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.5.1
   openPolicyAgent:
     image: openpolicyagent/opa:0.37.1-envoy
     remLogger:
       image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
   alerts:
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.0
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.1
     smtp_server:
       from: ""
       insecure: false
@@ -98,7 +108,7 @@ services:
       port: 25
   awsConnector:
     enabled: false
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.5.0
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.5.1
     connectorID: "aws.XXXXXXXXX"
     credentials:
       accessKeyId: ""

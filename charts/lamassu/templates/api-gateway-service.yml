@@ -6,17 +6,27 @@ metadata:
 spec:
   selector:
     app: api-gateway
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   ports:
-  - name: http
+  - name: {{ .Values.service.portNames.apiGateway }}
     port: 80
-    targetPort: 80
+    targetPort: http
     protocol: TCP
-  - name: https
+    {{- if (eq .Values.service.type "ClusterIP") }}
+    nodePort: null
+    {{- else if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.apiGateway)) }}
+    nodePort: {{ .Values.service.nodePorts.apiGateway }}
+    {{- end }}
+  - name: {{ .Values.service.portNames.apiGatewayTls }}
     port: 443
-    targetPort: 443
+    targetPort: https
     protocol: TCP
-  - name: api-gateway
+    {{- if (eq .Values.service.type "ClusterIP") }}
+    nodePort: null
+    {{- else if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.apiGatewayTls)) }}
+    nodePort: {{ .Values.service.nodePorts.apiGatewayTls }}
+    {{- end }}
+  - name: stats
     port: 9900
-    targetPort: 9900
+    targetPort: stats
     protocol: TCP
