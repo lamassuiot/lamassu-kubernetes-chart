@@ -13,6 +13,9 @@ OFFLINE=false
 NON_INTERACTIVE=false
 MAIN_PORT=443
 
+TLS_CRT=
+TLS_KEY=
+
 POSTGRES_USER=admin
 POSTGRES_PWD=$(
     shuf -er -n30  {A..Z} {a..z} {0..9} {.,@,$} | tr -d '\n'
@@ -83,14 +86,19 @@ function main() {
     install_rabbitmq
     echo -e "\n${BLUE}6) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
     install_lamassu
-    echo -e "\n${BLUE}7) Patch ingress for Lamassu IoT${NOCOLOR}"
-    
-    if [ $dist == "microk8s" ]; then
-        microk8s_patch_lamassu
+
+    if [ "$MAIN_PORT" -eq 443 ]; then
+        echo -e "\n${BLUE}7) Patch ingress for Lamassu IoT${NOCOLOR}"
+        
+        if [ $dist == "microk8s" ]; then
+            microk8s_patch_lamassu
+        fi
+
+        if [ $dist == "k3s" ]; then
+            k3s_patch_lamassu
+        fi
     fi
-    if [ $dist == "k3s" ]; then
-        k3s_patch_lamassu
-    fi
+
     final_instructions
 }
 
@@ -102,6 +110,8 @@ function usage() {
     echo " -ns, --namespace        Kubernetes Namespace where LAMASSU will be deployed"
     echo " -d, --domain            Domain to be set while deploying LAMASSU"
     echo " --offline               Offline mode enabled. Use local helm charts (--helm-chart-rabbitmq, --helm-chart-postgres and --helm-chart-lamassu flags will be required)"
+    echo " --tls-crt               Path to the PEM encoded certificate used for downstream communications"
+    echo " --tls-key               Path to the PEM encoded key used for downstream communications"
     echo " --helm-chart-lamassu    (Only needed while using --offline) Path to the Lamassu helm chart (.tgz format)"
     echo " --helm-chart-postgres   (Only needed while using --offline) Path to the Posgtres helm chart (.tgz format)"
     echo " --helm-chart-rabbitmq   (Only needed while using --offline) Path to the RabbitMQ helm chart (.tgz format)"
@@ -115,7 +125,6 @@ function extract_argument() {
   echo "${2:-${1#*=}}"
 }
 
-
 function process_flags() {
     while [ $# -gt 0 ]; do
         case $1 in
@@ -125,6 +134,26 @@ function process_flags() {
             ;;
         --offline)
             OFFLINE=true
+            ;;
+         --tls-crt)
+              if ! has_argument $@; then
+                echo -e "\n${RED}TLS Certificate not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            TLS_CRT=$(extract_argument $@)
+
+            shift
+            ;;
+         --tls-key)
+              if ! has_argument $@; then
+                echo -e "\n${RED}TLS Key not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            TLS_KEY=$(extract_argument $@)
+
+            shift
             ;;
          --helm-chart-lamassu)
               if ! has_argument $@; then
@@ -288,6 +317,25 @@ EOF
     sed 's/$MAIN_PORT/'"$MAIN_PORT"'/' -i service.yaml
     yq eval-all '. as $item ireduce ({}; . * $item )' lamassu.yaml service.yaml -i
     rm service.yaml
+fi
+
+# Check if TLS_CRT and TLS_KEY are not empty
+if [[ -n "$TLS_CRT" && -n "$TLS_KEY" ]]; then
+    echo -e "${ORANGE}Deploying Lamassu with EXTERNAL TLS Certificates${NOCOLOR}" 
+
+    $kube creaete secret tls downstream-provided-crt --cert=$TLS_CRT --key=$TLS_KEY -n $NAMESPACE 
+
+    cat >tls.yaml <<"EOF"
+tls:
+  type: external
+  externalOptions:
+    secretName: downstream-provided-crt
+EOF
+
+    yq eval-all '. as $item ireduce ({}; . * $item )' lamassu.yaml tls.yaml -i
+    rm tls.yaml
+else
+    echo -e "${ORANGE}Deploying Lamassu with SelfSigned TLS Certificates${NOCOLOR}" 
 fi
 
     sed 's/env.lamassu.domain/'"$DOMAIN"'/' -i lamassu.yaml
