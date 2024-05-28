@@ -323,7 +323,7 @@ fi
 if [[ -n "$TLS_CRT" && -n "$TLS_KEY" ]]; then
     echo -e "${ORANGE}Deploying Lamassu with EXTERNAL TLS Certificates${NOCOLOR}" 
 
-    $kube creaete secret tls downstream-provided-crt --cert=$TLS_CRT --key=$TLS_KEY -n $NAMESPACE 
+    $kube $kubectl create secret tls downstream-provided-crt --cert=$TLS_CRT --key=$TLS_KEY -n $NAMESPACE 
 
     cat >tls.yaml <<"EOF"
 tls:
@@ -347,6 +347,12 @@ fi
     if [ "$OFFLINE" = false ]; then
         $kube $helm repo add lamassuiot http://www.lamassu.io/lamassu-helm/
     else 
+        cat >offline.yaml <<"EOF"
+global:
+  imagePullPolicy: Never
+EOF
+        yq eval-all '. as $item ireduce ({}; . * $item )' lamassu.yaml offline.yaml -i
+        rm offline.yaml
         helm_path=$OFFLINE_HELMCHART_LAMASSU
     fi
 
@@ -364,11 +370,11 @@ function install_rabbitmq() {
     helm_path=bitnami/rabbitmq
     if [ "$OFFLINE" = false ]; then
         $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
+        $kube $helm repo update
     else 
         helm_path=$OFFLINE_HELMCHART_RABBITMQ
     fi
 
-    $kube $helm repo update
     $kube $helm install rabbitmq $helm_path --version 12.6.0 -n $NAMESPACE --set fullnameOverride=rabbitmq --set auth.username=$RABBIT_USER --set auth.password=$RABBIT_PWD  --wait
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}RabbitMQ installed${NOCOLOR}"
