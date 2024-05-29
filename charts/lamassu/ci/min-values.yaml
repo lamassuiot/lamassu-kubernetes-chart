@@ -1,4 +1,3 @@
-domain: ci.lamassu.io
 postgres:
   hostname: "postgresql"
   port: 5432
@@ -23,5 +22,7 @@ auth:
     frontend:
       authority: https://ci.lamassu.io/auth/realms/lamassu
 ingress:
+  enabled: true
+  domain: ci.lamassu.io
   annotations: |
     kubernetes.io/ingress.class: "public"

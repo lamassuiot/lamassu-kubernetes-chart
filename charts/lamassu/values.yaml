@@ -3,17 +3,15 @@ global:
   ##
   imagePullPolicy: Always
 
-logLevel: 0  # 0 -> INFO, 1 -> DEBUG, 2 -> TRACE
 debugMode: true
 
 # Downstream TLS (API Gateway)
 tls:
-  type: letsEncrypt | external
-  letsEncryptOptions:
+  type: certManager
+  certManagerOptions:
     clusterIssuer: ""
     issuer: ""
-    selfSignedOptions:
-      duration: "2160h"  # 2160h == 90days
+    duration: "2160h"  # 2160h == 90days
   externalOptions:
     secretName: ""
 
