@@ -7,7 +7,7 @@ debugMode: true
 
 # Downstream TLS (API Gateway)
 tls:
-  type: certManager | external
+  type: certManager
   certManagerOptions:
     clusterIssuer: ""
     issuer: ""

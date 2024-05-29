@@ -5,10 +5,10 @@ metadata:
   namespace: {{.Release.Namespace}}
 spec:
   isCA: false
-  commonName: {{.Values.ingress.domain}}
+  commonName: {{.Values.ingress.hostname}}
   duration: {{.Values.tls.certManagerOptions.duration}}
   dnsNames:
-    - "{{.Values.ingress.domain}}"
+    - {{.Values.ingress.hostname}}
   secretName: downstream-cert
   privateKey:
     algorithm: ECDSA
@@ -19,6 +19,6 @@ spec:
     name: {{ .Values.tls.certManagerOptions.clusterIssuer }}
     {{ else }}
     kind: Issuer
-    name:  {{ ternary .Values.tls.certManagerOptions.issuer "downstream-ca-selfsigned-issuer" (ne .Values.tls.certManagerOptions.issuer "") }} 
+    name:  {{ ternary .Values.tls.certManagerOptions.issuer "downstream-ca-selfsigned-issuer" (ne .Values.tls.certManagerOptions.issuer "") }}
     {{ end }}
     group: cert-manager.io
