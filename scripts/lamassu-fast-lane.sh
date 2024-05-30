@@ -390,8 +390,8 @@ fullnameOverride: "postgresql"
 global:
   postgresql:
     auth:
-      username: env.user
-      password: env.password
+      username: "env.user"
+      password: "env.password"
 primary:
   initdb:
     scripts:
