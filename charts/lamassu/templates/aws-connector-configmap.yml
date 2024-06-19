@@ -44,8 +44,6 @@ data:
       port: 8085
     
     connector_id:  {{ .Values.services.awsConnector.connectorID }}
-    aws_config: 
-      access_key_id: {{ .Values.services.awsConnector.credentials.accessKeyId }}
-      secret_access_key:  {{ .Values.services.awsConnector.credentials.secretAccessKey }}
-      region:  {{ .Values.services.awsConnector.credentials.region }}
+    aws_config:
+      {{ .Values.services.awsConnector.credentials | toYaml | indent 4 | nindent 4  | trim  }}
 {{- end -}}

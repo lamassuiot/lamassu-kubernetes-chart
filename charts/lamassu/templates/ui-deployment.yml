@@ -21,6 +21,12 @@ spec:
         - name: ui
           image: {{.Values.services.ui.image}}
           imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 3
           env:
             - name: CHART_VERSION
               value: {{.Chart.Version}}

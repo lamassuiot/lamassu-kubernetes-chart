@@ -132,6 +132,12 @@ data:
                                 cluster: api_dms_manager_cluster
 
                             - match:
+                                prefix: "/.well-known/est/"
+                              route:
+                                prefix_rewrite: "/"
+                                cluster: api_dms_manager_cluster
+
+                            - match:
                                 prefix: "/api/alerts/"
                               route:
                                 prefix_rewrite: "/"
