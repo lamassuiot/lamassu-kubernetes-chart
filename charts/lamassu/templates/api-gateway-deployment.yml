@@ -28,6 +28,12 @@ spec:
           command: ["/bin/bash", "-c"]
           args: 
             - /docker-entrypoint.sh
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
           volumeMounts:
             - name: envoy-config
               mountPath: /etc/envoy.yaml
@@ -51,6 +57,7 @@ spec:
               containerPort: 443
             - name: stats
               containerPort: 9900
+        
       restartPolicy: Always
       volumes:
         - name: downstream-tls-certificate

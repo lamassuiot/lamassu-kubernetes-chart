@@ -8,7 +8,7 @@ spec:
     app: api-gateway
   type: {{ .Values.service.type }}
   ports:
-  - name: {{ .Values.service.portNames.apiGateway }}
+  - name: http
     port: 80
     targetPort: http
     protocol: TCP
@@ -17,7 +17,7 @@ spec:
     {{- else if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePorts.apiGateway)) }}
     nodePort: {{ .Values.service.nodePorts.apiGateway }}
     {{- end }}
-  - name: {{ .Values.service.portNames.apiGatewayTls }}
+  - name: https
     port: 443
     targetPort: https
     protocol: TCP

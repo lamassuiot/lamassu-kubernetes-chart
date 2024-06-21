@@ -132,36 +132,17 @@ data:
                                 cluster: api_dms_manager_cluster
 
                             - match:
+                                prefix: "/.well-known/est/"
+                              route:
+                                prefix_rewrite: "/"
+                                cluster: api_dms_manager_cluster
+
+                            - match:
                                 prefix: "/api/alerts/"
                               route:
                                 prefix_rewrite: "/"
                                 cluster: api_alerts_cluster
 
-                            {{ if .Values.simulationTools.enabled }}
-                            - match:
-                                prefix: "/simtools/vdevice"
-                              route:
-                                cluster: vdevice_cluster
-                              typed_per_filter_config:
-                                envoy.filters.http.ext_authz:
-                                  "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
-                                  disabled: true
-                                envoy.filters.http.jwt_authn:
-                                  "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
-                                  disabled: true
-                            - match:
-                                prefix: "/simtools/vdms"
-                              route:
-                                cluster: vdms_cluster
-                              typed_per_filter_config:
-                                envoy.filters.http.ext_authz:
-                                  "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
-                                  disabled: true
-                                envoy.filters.http.jwt_authn:
-                                  "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
-                                  disabled: true
-                            {{ end }}
-                            
                             - match:
                                 prefix: "/"
                               route:
@@ -413,32 +394,3 @@ data:
               healthy_threshold: 1
               http_health_check:
                 path: /health
-
-        {{ if .Values.simulationTools.enabled }}
-        - name: vdevice_cluster
-          dns_lookup_family: V4_ONLY
-          connect_timeout: 0.25s
-          type: STRICT_DNS
-          load_assignment:
-            cluster_name: vdevice_cluster
-            endpoints:
-              - lb_endpoints:
-                  - endpoint:
-                      address:
-                        socket_address:
-                          address: virtual-device
-                          port_value: 7001
-        - name: vdms_cluster
-          dns_lookup_family: V4_ONLY
-          connect_timeout: 0.25s
-          type: STRICT_DNS
-          load_assignment:
-            cluster_name: vdms_cluster
-            endpoints:
-              - lb_endpoints:
-                  - endpoint:
-                      address:
-                        socket_address:
-                          address: virtual-dms
-                          port_value: 7002
-        {{ end }}

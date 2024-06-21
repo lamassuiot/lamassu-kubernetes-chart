@@ -23,6 +23,12 @@ spec:
           ports:
             - containerPort: 8080
             - containerPort: 8443
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 3
           env:
             - name: KC_DB
               value: postgres
