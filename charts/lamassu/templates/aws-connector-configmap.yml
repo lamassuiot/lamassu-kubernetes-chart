@@ -21,29 +21,29 @@ data:
           enabled: true
           username: {{ .Values.amqp.username }}
           password: {{ .Values.amqp.password }}
-          
+
     dms_manager_client:
       log_level: debug
       auth_mode: noauth
       protocol: http
       hostname: dms-manager
       port: 8085
-    
+
     device_manager_client:
       log_level: debug
       auth_mode: noauth
       protocol: http
       hostname: device-manager
       port: 8085
-    
+
     ca_client:
       log_level: debug
       auth_mode: noauth
       protocol: http
       hostname: ca
       port: 8085
-    
+
     connector_id:  {{ .Values.services.awsConnector.connectorID }}
     aws_config:
-      {{ .Values.services.awsConnector.credentials | toYaml | indent 4 | nindent 4  | trim  }}
+      {{ .Values.services.awsConnector.credentials | toYaml | indent 6 | trim  }}
 {{- end -}}
