@@ -10,7 +10,7 @@ tls:
   # -- TLS certificate provider to use for the API Gateway. Allowed values are: `certManager`, `external`
   type: certManager
   certManagerOptions:
-    # -- CertManager ClusterIssuer to use to sign the certificate for the API Gateway. 
+    # -- CertManager ClusterIssuer to use to sign the certificate for the API Gateway.
     clusterIssuer: ""
     # -- CertManager Issuer to use to sign the certificate for the API Gateway. Ignored if `clusterIssuer` is set. If left empty, a self signed certificate will be used.
     issuer: ""
