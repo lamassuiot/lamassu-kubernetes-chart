@@ -13,11 +13,7 @@ data:
     NOCOLOR='\033[0m'
 
     # The bundle certificate file
-    BUNDLE_CRT_FILE=/certs/bundle.crt
-
-    # The output root certificate file
-    ROOT_CA_CRT_FILE=/certs/root.crt
-    
+    BUNDLE_CRT_FILE=/shared/bundle.crt
     touch $BUNDLE_CRT_FILE
 
     echo -e "${BLUE}Bundling certificates...${NOCOLOR}"
@@ -35,7 +31,7 @@ data:
       echo -e "${ORANGE}downstream-ca.crt not found!${NOCOLOR}"
     fi
 
-    echo -e "${BLUE}Printing certificate bundle...${NOCOLOR}"
+    echo -e "${GREEN}Printing certificate bundle...${NOCOLOR}"
     cat $BUNDLE_CRT_FILE
   init.sh: |
     if [ $DEBUG_MODE == "true" ]; then
@@ -246,7 +242,7 @@ data:
                       tls_minimum_protocol_version: "TLSv1_2"
                       tls_maximum_protocol_version: "TLSv1_2"
                     tls_certificates:
-                      - certificate_chain: { filename: "/certs/bundle.crt" }
+                      - certificate_chain: { filename: "/shared/bundle.crt" }
                         private_key: { filename: "/certs/downstream.key" }
                     validation_context:
                       trust_chain_verification: ACCEPT_UNTRUSTED

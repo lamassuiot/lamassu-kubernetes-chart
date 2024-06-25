@@ -13,10 +13,10 @@ data:
     NOCOLOR='\033[0m'
 
     # The bundle certificate file
-    BUNDLE_CRT_FILE=/certs/bundle.crt
+    BUNDLE_CRT_FILE=/shared/bundle.crt
 
     # The output root certificate file
-    ROOT_CA_CRT_FILE=/certs/root.crt
+    ROOT_CA_CRT_FILE=/shared/root.crt
     
     touch $BUNDLE_CRT_FILE
 
@@ -50,7 +50,7 @@ data:
     echo "Root CA certificate has been extracted to $ROOT_CA_CRT_FILE"
     echo -e "${GREEN}Certificate Root extracted!${NOCOLOR}"
     cat $ROOT_CA_CRT_FILE
-    
+
   config: |
     logs:
       level: "trace"

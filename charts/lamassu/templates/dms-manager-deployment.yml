@@ -31,7 +31,9 @@ spec:
               subPath: ca.crt
             - name: api-config
               mountPath: /docker-entrypoint.sh   
-              subPath: init.sh  
+              subPath: init.sh
+            - name: shared
+              mountPath: /shared
       containers:
         - name: dms-manager
           image: {{ .Values.services.dmsManager.image }}
@@ -47,9 +49,8 @@ spec:
             - name: api-config
               mountPath: /etc/lamassuiot/config.yml
               subPath: config
-            - name: downstream-tls-certificate
-              mountPath: /certs/downstream-ca.crt
-              subPath: tls.crt
+            - name: shared
+              mountPath: /shared
           ports:
             - containerPort: 8085
       restartPolicy: Always

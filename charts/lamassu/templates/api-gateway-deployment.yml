@@ -32,6 +32,8 @@ spec:
             - name: envoy-config
               mountPath: /docker-entrypoint.sh   
               subPath: init-tls.sh  
+            - name: shared
+              mountPath: /shared
       containers:
         - name: api-gateway
           image: envoyproxy/envoy:v1.25-latest
@@ -57,14 +59,10 @@ spec:
               mountPath: /docker-entrypoint.sh
               subPath: init.sh
             - name: downstream-tls-certificate
-              mountPath: /certs/downstream.crt
-              subPath: tls.crt
-            - name: downstream-tls-certificate
               mountPath: /certs/downstream.key
               subPath: tls.key
-            - name: downstream-tls-certificate
-              mountPath: /certs/downstream-ca.crt
-              subPath: tls.crt
+            - name: shared
+              mountPath: /shared
           ports:
             - name: http
               containerPort: 80
@@ -82,3 +80,5 @@ spec:
           configMap:  
             name: api-gateway-config
             defaultMode: 480 #this value MUST be set in decimal NOT in octal
+        - name: shared
+          emptyDir: {}
