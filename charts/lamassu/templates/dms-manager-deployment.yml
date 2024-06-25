@@ -21,9 +21,7 @@ spec:
         - name: init-tls-certs
           image: ubuntu:22.04
           imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
-          command: ["/bin/bash", "-c"]
-          args: 
-            - /docker-entrypoint.sh   
+          command: ["/bin/bash", "/docker-entrypoint.sh"]
           volumeMounts:
             - name: downstream-tls-certificate
               mountPath: /certs/downstream.crt

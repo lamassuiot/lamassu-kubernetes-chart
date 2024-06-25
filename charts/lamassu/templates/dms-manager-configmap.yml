@@ -8,14 +8,31 @@ data:
     #!/bin/bash
     BLUE='\033[0;34m'
     GREEN='\033[0;32m'
+    ORANGE='\033[0;33m'
+    RED='\033[0;31m'
     NOCOLOR='\033[0m'
 
     echo -e "${BLUE}Bundling certificates...${NOCOLOR}"
-    cat /certs/downstream.crt /certs/downstream-ca.crt > /certs/bundle.pem
+    if [ ! -f /certs/downstream.crt ]; then
+      echo -e "${RED}downstream.crt not found!${NOCOLOR}"
+      exit 1
+    else
+      cat /certs/downstream.crt /certs/bundle.crt
+    fi
+
+    if [ -f /certs/downstream-ca.crt ]; then
+      echo -e "${GREEN}downstream-ca.crt found!${NOCOLOR}"
+      cat /certs/downstream-ca.crt >> /certs/bundle.crt
+    else
+      echo -e "${ORANGE}downstream-ca.crt not found!${NOCOLOR}"
+    fi
+
+    echo -e "${BLUE}Printing certificate bundle...${NOCOLOR}"
+    cat /certs/bundle.crt
 
     echo -e "${BLUE}Extracting root (lowest hierarchy cert in bundle)...${NOCOLOR}"
     awk -v cmd='openssl x509 -noout -subject' '
-    /BEGIN/{close(cmd)};{print | cmd}' < bundle.pem | tail -n 1 > /certs/root.crt
+    /BEGIN/{close(cmd)};{print | cmd}' < bundle.crt | tail -n 1 > /certs/root.crt
     
     echo -e "${GREEN}Certificate Root extracted!${NOCOLOR}"
     cat /certs/root.crt
