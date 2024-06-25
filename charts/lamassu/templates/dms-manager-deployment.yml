@@ -17,6 +17,23 @@ spec:
       labels:
         app: dms-manager
     spec:
+      initContainers:
+        - name: init-tls-certs
+          image: {{ .Values.services.dmsManager.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
+          command: ["/bin/bash", "-c"]
+          args: 
+            - /docker-entrypoint.sh   
+          volumeMounts:
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream.crt
+              subPath: tls.crt
+            - name: downstream-tls-certificate
+              mountPath: /certs/downstream-ca.crt
+              subPath: ca.crt
+            - name: api-config
+              mountPath: /docker-entrypoint.sh   
+              subPath: init.sh  
       containers:
         - name: dms-manager
           image: {{ .Values.services.dmsManager.image }}

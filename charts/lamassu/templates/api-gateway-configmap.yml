@@ -6,6 +6,15 @@ metadata:
 data:
   init.sh: |
     #!/bin/bash
+    BLUE='\033[0;34m'
+    GREEN='\033[0;32m'
+    NOCOLOR='\033[0m'
+
+    echo -e "${BLUE}Bundling certificates...${NOCOLOR}"
+    cat /certs/downstream-ca.crt >> /certs/downstream.crt
+    cat /certs/downstream.crt
+
+    echo -e "${GREEN}Starting Envoy...${NOCOLOR}"
     if [ $DEBUG_MODE == "true" ]; then
         echo "Starting Envoy in debug mode..."
         #See https://www.envoyproxy.io/docs/envoy/latest/operations/cli
