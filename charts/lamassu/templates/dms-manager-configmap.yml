@@ -12,12 +12,14 @@ data:
     RED='\033[0;31m'
     NOCOLOR='\033[0m'
 
+    touch /certs/bundle.crt
+
     echo -e "${BLUE}Bundling certificates...${NOCOLOR}"
     if [ ! -f /certs/downstream.crt ]; then
       echo -e "${RED}downstream.crt not found!${NOCOLOR}"
       exit 1
     else
-      cat /certs/downstream.crt /certs/bundle.crt
+      cat /certs/downstream.crt > /certs/bundle.crt
     fi
 
     if [ -f /certs/downstream-ca.crt ]; then
@@ -31,8 +33,10 @@ data:
     cat /certs/bundle.crt
 
     echo -e "${BLUE}Extracting root (lowest hierarchy cert in bundle)...${NOCOLOR}"
+    touch /certs/root.crt
+    
     awk -v cmd='openssl x509 -noout -subject' '
-    /BEGIN/{close(cmd)};{print | cmd}' < bundle.crt | tail -n 1 > /certs/root.crt
+    /BEGIN/{close(cmd)};{print | cmd}' <  /certs/bundle.crt | tail -n 1 > /certs/root.crt
     
     echo -e "${GREEN}Certificate Root extracted!${NOCOLOR}"
     cat /certs/root.crt
