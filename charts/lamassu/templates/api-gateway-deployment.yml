@@ -29,7 +29,7 @@ spec:
             - name: downstream-tls-certificate
               mountPath: /certs/downstream-ca.crt
               subPath: ca.crt
-            - name: api-config
+            - name: envoy-config
               mountPath: /docker-entrypoint.sh   
               subPath: init-tls.sh  
       containers:
