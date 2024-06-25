@@ -4,17 +4,40 @@ metadata:
   name: api-gateway-config
   namespace: {{.Release.Namespace}}
 data:
-  init.sh: |
+  init-tls.sh: |
     #!/bin/bash
     BLUE='\033[0;34m'
     GREEN='\033[0;32m'
+    ORANGE='\033[0;33m'
+    RED='\033[0;31m'
     NOCOLOR='\033[0m'
 
-    echo -e "${BLUE}Bundling certificates...${NOCOLOR}"
-    cat /certs/downstream-ca.crt >> /certs/downstream.crt
-    cat /certs/downstream.crt
+    # The bundle certificate file
+    BUNDLE_CRT_FILE=/certs/bundle.crt
 
-    echo -e "${GREEN}Starting Envoy...${NOCOLOR}"
+    # The output root certificate file
+    ROOT_CA_CRT_FILE=/certs/root.crt
+    
+    touch $BUNDLE_CRT_FILE
+
+    echo -e "${BLUE}Bundling certificates...${NOCOLOR}"
+    if [ ! -f /certs/downstream.crt ]; then
+      echo -e "${RED}downstream.crt not found!${NOCOLOR}"
+      exit 1
+    else
+      cat /certs/downstream.crt > $BUNDLE_CRT_FILE
+    fi
+
+    if [ -f /certs/downstream-ca.crt ]; then
+      echo -e "${GREEN}downstream-ca.crt found!${NOCOLOR}"
+      cat /certs/downstream-ca.crt >> $BUNDLE_CRT_FILE
+    else
+      echo -e "${ORANGE}downstream-ca.crt not found!${NOCOLOR}"
+    fi
+
+    echo -e "${BLUE}Printing certificate bundle...${NOCOLOR}"
+    cat $BUNDLE_CRT_FILE
+  init.sh: |
     if [ $DEBUG_MODE == "true" ]; then
         echo "Starting Envoy in debug mode..."
         #See https://www.envoyproxy.io/docs/envoy/latest/operations/cli
@@ -223,7 +246,7 @@ data:
                       tls_minimum_protocol_version: "TLSv1_2"
                       tls_maximum_protocol_version: "TLSv1_2"
                     tls_certificates:
-                      - certificate_chain: { filename: "/certs/downstream.crt" }
+                      - certificate_chain: { filename: "/certs/bundle.crt" }
                         private_key: { filename: "/certs/downstream.key" }
                     validation_context:
                       trust_chain_verification: ACCEPT_UNTRUSTED
