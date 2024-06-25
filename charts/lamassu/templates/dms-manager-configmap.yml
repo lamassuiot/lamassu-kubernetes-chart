@@ -12,34 +12,45 @@ data:
     RED='\033[0;31m'
     NOCOLOR='\033[0m'
 
-    touch /certs/bundle.crt
+    # The bundle certificate file
+    BUNDLE_CRT_FILE=/certs/bundle.crt
+
+    # The output root certificate file
+    ROOT_CA_CRT_FILE=/certs/root.crt
+    
+    touch $BUNDLE_CRT_FILE
 
     echo -e "${BLUE}Bundling certificates...${NOCOLOR}"
     if [ ! -f /certs/downstream.crt ]; then
       echo -e "${RED}downstream.crt not found!${NOCOLOR}"
       exit 1
     else
-      cat /certs/downstream.crt > /certs/bundle.crt
+      cat /certs/downstream.crt > $BUNDLE_CRT_FILE
     fi
 
     if [ -f /certs/downstream-ca.crt ]; then
       echo -e "${GREEN}downstream-ca.crt found!${NOCOLOR}"
-      cat /certs/downstream-ca.crt >> /certs/bundle.crt
+      cat /certs/downstream-ca.crt >> $BUNDLE_CRT_FILE
     else
       echo -e "${ORANGE}downstream-ca.crt not found!${NOCOLOR}"
     fi
 
     echo -e "${BLUE}Printing certificate bundle...${NOCOLOR}"
-    cat /certs/bundle.crt
+    cat $BUNDLE_CRT_FILE
 
     echo -e "${BLUE}Extracting root (lowest hierarchy cert in bundle)...${NOCOLOR}"
-    touch /certs/root.crt
-    
-    awk -v cmd='openssl x509 -noout -subject' '
-    /BEGIN/{close(cmd)};{print | cmd}' <  /certs/bundle.crt | tail -n 1 > /certs/root.crt
-    
+    touch $ROOT_CA_CRT_FILE
+  
+    # Count the number of certificates in the bundle
+    CERT_COUNT=$(grep -c 'END CERTIFICATE' $BUNDLE_CRT_FILE)
+
+    # Extract the root certificate
+    awk "BEGIN {p=0;} /BEGIN CERTIFICATE/ {p++;} p==$CERT_COUNT" $BUNDLE_CRT_FILE > $ROOT_CA_CRT_FILE
+
+    echo "Root CA certificate has been extracted to $ROOT_CA_CRT_FILE"
     echo -e "${GREEN}Certificate Root extracted!${NOCOLOR}"
-    cat /certs/root.crt
+    cat $ROOT_CA_CRT_FILE
+    
   config: |
     logs:
       level: "trace"
