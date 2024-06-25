@@ -98,4 +98,4 @@ data:
       hostname: ca
       port: 8085
     
-    downstream_cert_file: /certs/downstream-ca.crt
+    downstream_cert_file: /shared/root.crt
