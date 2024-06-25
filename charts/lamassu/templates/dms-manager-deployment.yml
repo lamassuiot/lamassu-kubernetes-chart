@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
         - name: init-tls-certs
-          image: {{ .Values.services.dmsManager.image }}
+          image: ubuntu:22.04
           imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           command: ["/bin/bash", "-c"]
           args: 
