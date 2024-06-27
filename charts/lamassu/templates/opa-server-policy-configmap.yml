@@ -16,12 +16,13 @@ data:
     }
 
     action_allowed {
-      startswith(http_request.path, "/api/devmanager/.well-known/")
+      startswith(http_request.path, "/.well-known/est/")
     }
 
     action_allowed {
-      startswith(http_request.path, "/api/dmsmanager/.well-known/")
+      startswith(http_request.path, "/api/dmsmanager/.well-known/est/")
     }
+
     action_allowed {
       allowed_methods := ["OPTIONS"]
       allowed_methods[_] == http_request.method 

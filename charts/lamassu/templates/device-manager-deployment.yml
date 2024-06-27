@@ -39,4 +39,3 @@ spec:
         - name: api-config
           configMap:  
             name: device-manager-config
-
