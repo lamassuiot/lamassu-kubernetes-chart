@@ -162,7 +162,6 @@ data:
                             - match:
                                 prefix: "/.well-known/est/"
                               route:
-                                prefix_rewrite: "/"
                                 cluster: api_dms_manager_cluster
 
                             - match:
