@@ -95,15 +95,15 @@ services:
       password: "admin"
   ui:
     # -- Docker image for the UI component
-    image: ghcr.io/lamassuiot/lamassu-ui:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-ui:2.5.3
   va:
     # -- Docker image for the VA component
-    image: ghcr.io/lamassuiot/lamassu-va:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-va:2.5.3
   ca:
     # -- Domain to be used while signing/generating new CAs and certificates
     domain: dev.lamassu.io
     # -- Docker image for the CA component
-    image: ghcr.io/lamassuiot/lamassu-ca:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-ca:2.5.3
     monitoring:
       # -- Frequency to check the CA's health status uses CRON syntax. Can also be specified at a "second" level by adding one extra term
       frequency: "* * * * *"
@@ -121,10 +121,10 @@ services:
       hashicorpVault:
   deviceManager:
     # -- Docker image for the Device Manager component
-    image: ghcr.io/lamassuiot/lamassu-devmanager:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-devmanager:2.5.3
   dmsManager:
     # -- Docker image for the DMS Manager component
-    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.5.3
   openPolicyAgent:
     # -- Docker image for the Open Policy Agent component
     image: openpolicyagent/opa:0.37.1-envoy
@@ -133,7 +133,7 @@ services:
       image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
   alerts:
     # -- Docker image for the Alerts component
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.3
     smtp_server:
       # -- email address to use as the sender of the alerts
       from: ""
@@ -153,7 +153,7 @@ services:
     # -- Enable the AWS IoT Connector
     enabled: false
     # -- Docker image for the AWS Connector component
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.5.3
     # -- AWS IoT Connector ID. It is strongly recommended to use the aws.<account_id> format
     connectorID: "aws.<account_id>"
     credentials:
