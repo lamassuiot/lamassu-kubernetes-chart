@@ -1,0 +1,41 @@
+# https://artifacthub.io/packages/helm/bitnami/keycloak
+postgres:
+  enabled: false
+
+externalDatabase:
+  host: "postgres"
+  port: 5432
+  user: admin
+  password: ""
+  database: auth
+
+extraVolumes:
+  - name: shared-keycloak-volume
+    emptyDir: {}
+  - name: theme-volume
+    configMap:
+      name: keycloak-lamassu-theme
+
+extraVolumeMounts:
+  - mountPath: /opt/bitnami/keycloak/themes/
+    name: shared-keycloak-volume
+
+initContainers:
+- name: init-customtheme
+  image: busybox:1.28
+  # command: ['sh', '-c', 'ls -lisah /CustomTheme'] 
+  command: ['sh', '-c', 'cp -rL /CustomTheme/lamassu-v2-theme.tar /shared && cd /shared/ && tar -xvf lamassu-v2-theme.tar && rm -rf lamassu-v2-theme.tar && ls -lisah /shared/']
+  volumeMounts:
+  - mountPath: /shared
+    name: shared-keycloak-volume      
+  - mountPath: /CustomTheme
+    name: theme-volume
+
+keycloakConfigCli: 
+  enabled: true
+  configuration:
+    master.json: |
+      {
+        "realm" : "master",
+        "loginTheme": "lamassu.v2"
+      }

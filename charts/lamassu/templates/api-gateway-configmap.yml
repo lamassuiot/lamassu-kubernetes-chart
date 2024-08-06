@@ -85,21 +85,6 @@ data:
                           domains:
                             - "*"
                           routes:
-
-                            {{ if .Values.services.keycloak.enabled }}
-                            - match:
-                                prefix: "/auth"
-                              route:
-                                cluster: auth_cluster
-                              typed_per_filter_config:
-                                envoy.filters.http.ext_authz:
-                                  "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
-                                  disabled: true
-                                envoy.filters.http.jwt_authn:
-                                  "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
-                                  disabled: true
-                            {{ end }}
-
                             - match:
                                 prefix: "/api/va/"
                               route:
@@ -143,6 +128,23 @@ data:
                                 prefix_rewrite: "/"
                                 cluster: api_alerts_cluster
 
+                            {{ range $index, $svc := .Values.services.apiGateway.extraReverseProxyRouting }}
+                            - match:
+                                prefix: "{{ $svc.path }}"
+                              route:
+                                {{ if $svc.prefixRewrite }}
+                                prefix_rewrite: "/"
+                                {{ end }}
+                                cluster: {{ $svc.name }}_cluster
+                              typed_per_filter_config:
+                                envoy.filters.http.ext_authz:
+                                  "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                                  disabled: true
+                                envoy.filters.http.jwt_authn:
+                                  "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.PerRouteConfig
+                                  disabled: true
+                            {{ end }}
+
                             - match:
                                 prefix: "/"
                               route:
@@ -178,12 +180,8 @@ data:
                               forward: true
                               remote_jwks:
                                 http_uri:
-                                  uri: {{ .Values.auth.oidc.apiGateway.jwksUrl }}
-                                  {{ if .Values.services.keycloak.enabled }}
-                                  cluster: auth_cluster
-                                  {{ else }}
+                                  uri: {{ .Values.auth.oidc.apiGateway.jwks.protocol }}://{{ .Values.auth.oidc.apiGateway.jwks.host }}:{{ .Values.auth.oidc.apiGateway.jwks.port }}{{ .Values.auth.oidc.apiGateway.jwks.path }}
                                   cluster: jwks_cluster
-                                  {{ end }}
                                   timeout: 10s
                                 cache_duration: 600s
                           bypass_cors_preflight: true
@@ -327,29 +325,6 @@ data:
                           address: ui
                           port_value: 8080
 
-        {{ if .Values.services.keycloak.enabled }}
-        - name: auth_cluster
-          connect_timeout: 0.25s
-          type: STRICT_DNS
-          load_assignment:
-            cluster_name: auth_cluster
-            endpoints:
-              - lb_endpoints:
-                  - endpoint:
-                      address:
-                        socket_address:
-                          address: auth
-                          port_value: 8080
-          health_checks:
-            - interval: 60s
-              timeout: 2s
-              interval_jitter: 1s
-              unhealthy_threshold: 1
-              healthy_threshold: 1
-              http_health_check:
-                path: /auth/health
-
-        {{ else }}
         - name: jwks_cluster
           connect_timeout: 5s
           type: STRICT_DNS
@@ -361,8 +336,9 @@ data:
               - endpoint:
                   address:
                     socket_address:
-                      address: {{ template "apiGateway.upstreamJwksCluster.url" . }}
-                      port_value: 443
+                      address: {{ .Values.auth.oidc.apiGateway.jwks.host }}
+                      port_value: {{ .Values.auth.oidc.apiGateway.jwks.port }}
+          {{ if eq .Values.auth.oidc.apiGateway.jwks.protocol "https" }}
           transport_socket:
             name: envoy.transport_sockets.tls
             typed_config:
@@ -371,7 +347,7 @@ data:
                 validation_context:
                   trusted_ca:
                     filename: /etc/ssl/certs/ca-certificates.crt
-        {{ end }}
+          {{ end }}
 
         - name: va_cluster
           dns_lookup_family: V4_ONLY
@@ -394,3 +370,28 @@ data:
               healthy_threshold: 1
               http_health_check:
                 path: /health
+
+        {{ range $index, $svc := .Values.services.apiGateway.extraReverseProxyRouting }}
+        - name: {{ $svc.name }}_cluster
+          dns_lookup_family: V4_ONLY
+          connect_timeout: 0.25s
+          type: STRICT_DNS
+          load_assignment:
+            cluster_name: {{ $svc.name }}_cluster
+            endpoints:
+              - lb_endpoints:
+                  - endpoint:
+                      address:
+                        socket_address:
+                          address: {{ $svc.target.host }}
+                          port_value: {{ $svc.target.port }}
+          health_checks:
+            - interval: 60s
+              timeout: 2s
+              interval_jitter: 1s
+              unhealthy_threshold: 1
+              healthy_threshold: 1
+              http_health_check:
+                path: {{ $svc.target.healthCheck.path }}
+        {{ end }}
+
