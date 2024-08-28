@@ -78,7 +78,7 @@ jobs:
           git commit -m "Update Chart.yaml, CHANGELOG and RELEASE-NOTES for chart ${chart_name} ${chart_version}"
 
           # Push changes to the main branch.          
-          git push origin "${GITHUB_REF##*/}":main
+          git push origin "${GITHUB_REF##*/}":main --force
   release-charts:
     runs-on: ubuntu-latest
     needs: generate-charts-changelog
