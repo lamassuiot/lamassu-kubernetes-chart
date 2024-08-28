@@ -2,12 +2,87 @@
 name: Release Charts
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      chart_to_release:
+        type: choice
+        description: Chart to release
+        options:
+        - lamassu
+        - softhsm
+      release_version:
+        type: string
+        description: Helm Chart version (example; 2.0.0)
+      app_version:
+        type: string
+        description: Application version. Use the backend's version (example; 2.0.0)
 
 jobs:
-  release:
+  generate-charts-changelog:
+    needs: find-charts-to-release
+    if: needs.find-charts-to-release.outputs.modified-charts-files
+    runs-on: ubuntu-latest
+    container: quay.io/git-chglog/git-chglog:0.15.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install main dependencies
+        run: |
+          apk add bash
+
+      - name: Generate charts changelog files
+        shell: bash
+        run: |
+          set -x
+          apk add git grep yq
+
+          chart_name=${{ github.event.inputs.chart_to_release }}
+          chart_version=${{ github.event.inputs.release_version }}
+          chart_tag="${chart_name}-${chart_version}"
+          chart_path="charts/${chart_name}"
+
+          #
+          # Generate chart CHANGELOG.md file.
+          git-chglog                                \
+              --output "${chart_path}/CHANGELOG.md" \
+              --tag-filter-pattern "${chart_name}"  \
+              --next-tag "${chart_tag}"             \
+              --path "${chart_path}"
+
+          #
+          # Generate RELEASE-NOTES.md file (used for Github release notes and ArtifactHub "changes" annotation).
+          git-chglog                                    \
+              --output "${chart_path}/RELEASE-NOTES.md" \
+              --tag-filter-pattern "${chart_name}"      \
+              --next-tag "${chart_tag}"                 \
+              --path "${chart_path}" "${chart_tag}"
+
+      - name: Update Chart.yaml file with the new version
+        run: |
+          yq eval ".version = \"${{ github.event.inputs.release_version }}\"" -i charts/${{ github.event.inputs.chart_to_release }}/Chart.yaml
+          yq eval ".appVersion = \"${{ github.event.inputs.app_version }}\"" -i charts/${{ github.event.inputs.chart_to_release }}/Chart.yaml
+
+      - name: Commit charts Chart.yaml, CHANGELOG.md and RELEASE-NOTES.md file 
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+          # Commit changes locally.
+          chart_name=${{ github.event.inputs.chart_to_release }}
+          chart_version=${{ github.event.inputs.release_version }}
+          chart_path="charts/${chart_name}"
+
+          git add ${chart_path}/Chart.yaml
+          git add ${chart_path}/CHANGELOG.md
+          git add ${chart_path}/RELEASE-NOTES.md
+          git commit -m "Update Chart.yaml, CHANGELOG and RELEASE-NOTES for chart ${chart_name} ${chart_version}"
+
+          # Push changes to the main branch.          
+          git push origin "${GITHUB_REF##*/}":main
+  release-charts:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,10 +95,10 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Run chart-releaser
+      - name: Run Chart Releaser
         uses: helm/chart-releaser-action@v1.6.0
         with:
           skip_existing: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
+          CR_RELEASE_NOTES_FILE: charts/${{ github.event.inputs.chart_to_release }}/RELEASE-NOTES.md
