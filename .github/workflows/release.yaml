@@ -1,4 +1,3 @@
-
 name: Release Charts
 
 on:
@@ -82,6 +81,7 @@ jobs:
           git push origin "${GITHUB_REF##*/}":main
   release-charts:
     runs-on: ubuntu-latest
+    needs: generate-charts-changelog
     steps:
       - name: Checkout
         uses: actions/checkout@v4
