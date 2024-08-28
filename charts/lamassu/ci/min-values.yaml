@@ -26,3 +26,4 @@ ingress:
   domain: ci.lamassu.io
   annotations: |
     kubernetes.io/ingress.class: "public"
+  
