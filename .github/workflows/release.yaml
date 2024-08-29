@@ -24,13 +24,13 @@ on:
         default: false
         
 run-name: >-
-  ${{ github.event.inputs.force_overwrite
+  ${{ github.event.inputs.force_overwrite == 'true'
     && format('[FORCE] Release {0} - {1} (app version: {2}, ui version: {3})', github.event.inputs.chart_to_release, github.event.inputs.release_version, github.event.inputs.app_version,  github.event.inputs.ui_version)
     || format('Release {0} - {1} (app version: {2}, ui version: {3})', github.event.inputs.chart_to_release, github.event.inputs.release_version, github.event.inputs.app_version,  github.event.inputs.ui_version) }}
 
 jobs:
   delete-release-tag:
-    if: ${{ github.event.inputs.force_overwrite }}
+    if: ${{ github.event.inputs.force_overwrite == 'true' }} 
     runs-on: ubuntu-latest
     steps:
       - name: Delete Release & Tag
