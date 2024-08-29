@@ -138,4 +138,4 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NOTES_FILE: charts/${{ github.event.inputs.chart_to_release }}/RELEASE-NOTES.md
+          CR_RELEASE_NOTES_FILE: RELEASE-NOTES.md # Relative to the chart directory
