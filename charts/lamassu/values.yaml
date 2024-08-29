@@ -87,7 +87,7 @@ services:
       password: "admin"
   ui:
     # -- Docker image for the UI component
-    image: ghcr.io/lamassuiot/lamassu-ui:2.5.2
+    image: ghcr.io/lamassuiot/lamassu-ui:2.5.3
   va:
     # -- Docker image for the VA component
     image: ghcr.io/lamassuiot/lamassu-va:2.5.3
