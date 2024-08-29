@@ -112,9 +112,10 @@ jobs:
           chart_path="charts/${chart_name}"
 
           git add ${chart_path}/Chart.yaml
+          git add ${chart_path}/values.md
           git add ${chart_path}/CHANGELOG.md
           git add ${chart_path}/RELEASE-NOTES.md
-          git commit -m "Update Chart.yaml, CHANGELOG and RELEASE-NOTES for chart ${chart_name} ${chart_version}"
+          git commit -m "Update Chart.yaml, values.yaml CHANGELOG and RELEASE-NOTES for chart ${chart_name} ${chart_version}"
 
           # Push changes to the main branch.          
           git push origin "${GITHUB_REF##*/}":main
