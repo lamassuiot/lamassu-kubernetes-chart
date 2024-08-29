@@ -17,7 +17,7 @@ on:
         description: Application version. Use the backend's version (example; 2.0.0)
         
 run-name: |
-  "Release ${{ github.event.inputs.chart_to_release }} - ${{ github.event.inputs.release_version }} (app version: ${{ github.event.inputs.app_version }})"
+  Release ${{ github.event.inputs.chart_to_release }} - ${{ github.event.inputs.release_version }} (app version: ${{ github.event.inputs.app_version }})
 
 jobs:
   generate-charts-changelog:
