@@ -14,10 +14,19 @@ on:
         description: Helm Chart version (example; 2.0.0)
       app_version:
         type: string
-        description: Application version. Use the backend's version (example; 2.0.0)
+        description: Backend version (example; 2.0.0)
+      ui_version:
+        type: string
+        description: UI docker image version
+      force_overwrite:
+        type: boolean
+        description: Overwrite existing Helm Chart version
+        default: false
         
-run-name: |
-  Release ${{ github.event.inputs.chart_to_release }} - ${{ github.event.inputs.release_version }} (app version: ${{ github.event.inputs.app_version }})
+run-name: >-
+  ${{ github.event.inputs.force_overwrite
+    && format('[FORCE] Release %{0} - ${1} (app version ${2}, ui version ${3})', github.event.inputs.chart_to_release, github.event.inputs.release_version, github.event.inputs.app_version,  github.event.inputs.ui_version)
+    || format('Release %{0} - ${1} (app version ${2}, ui version ${3})', github.event.inputs.chart_to_release, github.event.inputs.release_version, github.event.inputs.app_version,  github.event.inputs.ui_version) }}
 
 jobs:
   generate-charts-changelog:
@@ -99,7 +108,7 @@ jobs:
       - name: Run Chart Releaser
         uses: helm/chart-releaser-action@v1.6.0
         with:
-          skip_existing: true
+          skip_existing:  ${{ github.event.inputs.force_overwrite == false }}
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_RELEASE_NOTES_FILE: charts/${{ github.event.inputs.chart_to_release }}/RELEASE-NOTES.md
