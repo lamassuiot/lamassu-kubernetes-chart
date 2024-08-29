@@ -44,6 +44,10 @@ jobs:
     if: always()
     container: quay.io/git-chglog/git-chglog:0.15.0
     steps:
+      - name: fail if conditional job failed
+        if: ${{ needs.delete-release-tag.result == 'failure' }}
+        run: exit 1
+        
       - name: Checkout
         uses: actions/checkout@v2
         with:
@@ -55,16 +59,16 @@ jobs:
           
       - name: Update UI docker image version
         run: |
-          yq eval ".services.ui.image = ghcr.io/lamassuiot/lamassu-ui:${{ github.event.inputs.ui_version }}" -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
+          yq eval '.services.ui.image = "ghcr.io/lamassuiot/lamassu-ui:${{ github.event.inputs.ui_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
     
       - name: Update Backend docker image version
         run: |
-          yq eval ".services.va.image = ghcr.io/lamassuiot/lamassu-va:${{ github.event.inputs.app_version }}" -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
-          yq eval ".services.ca.image = ghcr.io/lamassuiot/lamassu-ca:${{ github.event.inputs.app_version }}" -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
-          yq eval ".services.deviceManager.image = ghcr.io/lamassuiot/lamassu-devmanager:${{ github.event.inputs.app_version }}" -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
-          yq eval ".services.dmsManager.image = ghcr.io/lamassuiot/lamassu-dmsmanager:${{ github.event.inputs.app_version }}" -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
-          yq eval ".services.alerts.image = ghcr.io/lamassuiot/lamassu-alerts:${{ github.event.inputs.app_version }}" -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
-          yq eval ".services.awsConnector.image = ghcr.io/lamassuiot/lamassu-aws-connector:${{ github.event.inputs.app_version }}" -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
+          yq eval '.services.va.image = "ghcr.io/lamassuiot/lamassu-va:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
+          yq eval '.services.ca.image = "ghcr.io/lamassuiot/lamassu-ca:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
+          yq eval '.services.deviceManager.image = "ghcr.io/lamassuiot/lamassu-devmanager:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
+          yq eval '.services.dmsManager.image = "ghcr.io/lamassuiot/lamassu-dmsmanager:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
+          yq eval '.services.alerts.image = "ghcr.io/lamassuiot/lamassu-alerts:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
+          yq eval '.services.awsConnector.image = "ghcr.io/lamassuiot/lamassu-aws-connector:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
       
       - name: Generate charts changelog files
         shell: bash
