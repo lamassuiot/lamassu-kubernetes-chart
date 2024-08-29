@@ -33,6 +33,10 @@ jobs:
     if: ${{ github.event.inputs.force_overwrite == 'true' }} 
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Delete Release & Tag
         run: gh release delete -y ${{ github.event.inputs.chart_to_release }}-${{ github.event.inputs.release_version }} --cleanup-tag 
         env:
@@ -49,7 +53,7 @@ jobs:
         run: exit 1
         
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -117,11 +121,12 @@ jobs:
           git add ${chart_path}/RELEASE-NOTES.md
           git commit -m "Update Chart.yaml, values.yaml CHANGELOG and RELEASE-NOTES for chart ${chart_name} ${chart_version}"
 
-          # Push changes to the main branch.          
-          git push origin "${GITHUB_REF##*/}":main
+          # Push changes to branch.          
+          git push origin $GITHUB_REF_NAME
   release-charts:
     runs-on: ubuntu-latest
     needs: generate-charts-changelog-update-versions
+    if: ${{ always() && !failure() && !cancelled() }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -137,4 +142,4 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NOTES_FILE: charts/${{ github.event.inputs.chart_to_release }}/RELEASE-NOTES.md
+          CR_RELEASE_NOTES_FILE: RELEASE-NOTES.md # Relative to the chart directory
