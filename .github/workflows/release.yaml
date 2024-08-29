@@ -49,7 +49,7 @@ jobs:
         run: exit 1
         
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -117,8 +117,8 @@ jobs:
           git add ${chart_path}/RELEASE-NOTES.md
           git commit -m "Update Chart.yaml, values.yaml CHANGELOG and RELEASE-NOTES for chart ${chart_name} ${chart_version}"
 
-          # Push changes to the main branch.          
-          git push origin "${GITHUB_REF##*/}":main
+          # Push changes to branch.          
+          git push origin $GITHUB_REF_NAME
   release-charts:
     runs-on: ubuntu-latest
     needs: generate-charts-changelog-update-versions
