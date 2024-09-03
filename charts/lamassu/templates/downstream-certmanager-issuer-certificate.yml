@@ -5,7 +5,7 @@ metadata:
   namespace: {{.Release.Namespace}}
 spec:
   isCA: true
-  duration: {{.Values.tls.duration}}
+  duration: {{.Values.tls.certManagerOptions.duration}}
   commonName: "downstream-selfsigned-cert"
   secretName: root-downstream-cert
   privateKey:

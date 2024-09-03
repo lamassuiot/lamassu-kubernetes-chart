@@ -2,9 +2,7 @@ global:
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
   imagePullPolicy: Always
-
 debugMode: true
-
 # Downstream TLS (API Gateway)
 tls:
   # -- TLS certificate provider to use for the API Gateway. Allowed values are: `certManager`, `external`
@@ -15,18 +13,16 @@ tls:
     # -- CertManager Issuer to use to sign the certificate for the API Gateway. Ignored if `clusterIssuer` is set. If left empty, a self signed certificate will be used.
     issuer: ""
     # -- Duration for the certificate to be valid
-    duration: "2160h"  # 2160h == 90days
+    duration: "2160h" # 2160h == 90days
   externalOptions:
     # -- Secret name for the TLS certificate to be used for the API Gateway (the secret at least must have `tls.crt` and `tls.key` keys)
     secretName: ""
-
 ingress:
   enabled: true
   # -- Hostname to be used for the Ingress resource to route all incoming traffic to the API Gateway
   hostname: dev.lamassu.io
   # -- Annotations to be added to the Ingress resource
-  annotations: |
-
+  annotations: ""
 service:
   # Type of service to use for Lamassu's API Gateway component. Allowed values are: `ClusterIP`, `NodePort`, `LoadBalancer`
   type: ClusterIP
@@ -35,7 +31,6 @@ service:
     apiGatewayTls:
     # -- (int) Node port for the HTTP port from the API Gateway service
     apiGateway:
-
 postgres:
   # -- Hostname for the PostgreSQL server
   hostname: ""
@@ -45,7 +40,6 @@ postgres:
   username: ""
   # -- Password to be used to authenticate with the PostgreSQL server
   password: ""
-
 amqp:
   # -- Hostname for the AMQP server
   hostname: ""
@@ -57,7 +51,6 @@ amqp:
   password: ""
   # -- Enable AMQP over TLS (aka AMPQS)
   tls: false
-
 auth:
   oidc:
     frontend:
@@ -89,7 +82,6 @@ auth:
       admin: pki-admin
       # -- Role association to be used to authorize the user as LAMASSU's operator
       operator: operator
-
 services:
   apiGateway:
     # -- Additional reverse proxy routing rules to be added to the API Gateway component
@@ -108,12 +100,12 @@ services:
     image: ghcr.io/lamassuiot/lamassu-ui:2.5.2
   va:
     # -- Docker image for the VA component
-    image: ghcr.io/lamassuiot/lamassu-va:2.5.3
+    image: ghcr.io/lamassuiot/lamassu-va:2.6.0
   ca:
     # -- Domain to be used while signing/generating new CAs and certificates
     domain: dev.lamassu.io
     # -- Docker image for the CA component
-    image: ghcr.io/lamassuiot/lamassu-ca:2.5.3
+    image: ghcr.io/lamassuiot/lamassu-ca:2.6.0
     monitoring:
       # -- Frequency to check the CA's health status uses CRON syntax. Can also be specified at a "second" level by adding one extra term
       frequency: "* * * * *"
@@ -131,10 +123,10 @@ services:
       hashicorpVault:
   deviceManager:
     # -- Docker image for the Device Manager component
-    image: ghcr.io/lamassuiot/lamassu-devmanager:2.5.3
+    image: ghcr.io/lamassuiot/lamassu-devmanager:2.6.0
   dmsManager:
     # -- Docker image for the DMS Manager component
-    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.5.3
+    image: ghcr.io/lamassuiot/lamassu-dmsmanager:2.6.0
   openPolicyAgent:
     # -- Docker image for the Open Policy Agent component
     image: openpolicyagent/opa:0.37.1-envoy
@@ -143,7 +135,7 @@ services:
       image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
   alerts:
     # -- Docker image for the Alerts component
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.3
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.6.0
     smtp_server:
       # -- email address to use as the sender of the alerts
       from: ""
@@ -163,7 +155,7 @@ services:
     # -- Enable the AWS IoT Connector
     enabled: false
     # -- Docker image for the AWS Connector component
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.5.3
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.6.0
     # -- AWS IoT Connector ID. It is strongly recommended to use the aws.<account_id> format
     connectorID: "aws.<account_id>"
     credentials:
