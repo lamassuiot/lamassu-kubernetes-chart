@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
         - name: init-tls-certs
-          image: ghcr.io/lamassuiot/toolbox:dev
+          image: {{ .Values.toolbox.image }}
           imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           command: ["/bin/bash", "/docker-entrypoint.sh"]
           volumeMounts:
