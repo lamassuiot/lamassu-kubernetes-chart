@@ -132,6 +132,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          
+      - run: git checkout HEAD #Checks out by default to SHA that tiggered the executin. Checkout to main to get the commit maded by the prev Job.
 
       - name: Configure Git
         run: |
