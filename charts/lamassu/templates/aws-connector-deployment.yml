@@ -1,28 +1,28 @@
-{{- if .Values.services.awsConnector.enabled }}
+{{ range $instance := .Values.services.awsConnector.instances }}
+{{ $instanceID := $instance.connectorID | replace "aws." "" }}
 apiVersion: apps/v1
 kind: Deployment
-metadata:  
-  name: aws-connector
-  namespace: {{.Release.Namespace}}
+metadata:
+  name: aws-connector-{{ $instanceID }}
+  namespace: {{ $.Release.Namespace}}
   annotations:
     reloader.stakater.com/auto: "true"
   labels:
-    app: aws-connector
+    app: aws-connector-{{ $instanceID }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: aws-connector
+      app: aws-connector-{{ $instanceID }}
   template:
     metadata:
       labels:
-        app: aws-connector
+        app: aws-connector-{{ $instanceID }}
     spec:
       containers:
         - name: aws-connector
-          image: {{ .Values.services.awsConnector.image }}
-          imagePullPolicy: Always
-          tty: true         
+          image: {{ $.Values.services.awsConnector.image }}
+          tty: true
           volumeMounts:
             - name: config
               mountPath: /etc/lamassuiot/config.yml
@@ -32,7 +32,7 @@ spec:
       restartPolicy: Always
       volumes:
         - name: config
-          configMap:  
-            name: aws-connector-config
+          configMap:
+            name: aws-connector-config-{{ $instanceID }}
+---
 {{- end -}}
-

@@ -81,7 +81,7 @@ services:
     remLogger:
       image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
   alerts:
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.0
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.0-1
     smtp_server:
       from: ""
       insecure: false
@@ -91,13 +91,13 @@ services:
       host: ""
       port: 25
   awsConnector:
-    enabled: false
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.5.0
-    connectorID: "aws.XXXXXXXXX"
-    credentials:
-      accessKeyId: ""
-      secretAccessKey: ""
-      defaultRegion: ""
+    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.5.0-1
+    instances:
+    - connectorID: "aws.XXXXXXXXX"
+      credentials:
+        accessKeyId: ""
+        secretAccessKey: ""
+        defaultRegion: ""
 
 simulationTools:
   enabled: false
