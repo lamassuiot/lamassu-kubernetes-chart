@@ -81,7 +81,7 @@ services:
     remLogger:
       image: ghcr.io/lamassuiot/opa-rem-logger:2.1.0
   alerts:
-    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.0-1
+    image: ghcr.io/lamassuiot/lamassu-alerts:2.5.0
     smtp_server:
       from: ""
       insecure: false
