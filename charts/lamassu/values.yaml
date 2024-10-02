@@ -96,7 +96,7 @@ services:
     #       path: /auth/health
   ui:
     # -- Docker image for the UI component
-    image: ghcr.io/lamassuiot/lamassu-ui:2.6.0
+    image: ghcr.io/lamassuiot/lamassu-ui:3.0.0
   va:
     # -- Docker image for the VA component
     image: ghcr.io/lamassuiot/lamassu-va:2.7.0
