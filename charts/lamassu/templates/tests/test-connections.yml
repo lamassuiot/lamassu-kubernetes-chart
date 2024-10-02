@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
     - name: hcheck
-      image: ghcr.io/lamassuiot/toolbox:dev
+      image: {{ .Values.toolbox.image }}
       command: ['bash']
       args: ["/etc/scripts/init.sh"]
       volumeMounts:

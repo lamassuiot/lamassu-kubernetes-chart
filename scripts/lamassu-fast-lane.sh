@@ -35,6 +35,7 @@ KEYCLOAK_PWD=$(
 
 OFFLINE_HELMCHART_LAMASSU=""
 OFFLINE_HELMCHART_RABBITMQ=""
+OFFLINE_HELMCHART_KEYCLOAK=""
 OFFLINE_HELMCHART_POSTGRES=""
 
 
@@ -63,6 +64,10 @@ function main() {
         fi
         if [ "$OFFLINE_HELMCHART_RABBITMQ" = "" ]; then
             echo -e "\n${RED}RabbitMQ helm chart path is empty${NOCOLOR}"
+            exit 1
+        fi
+        if [ "$OFFLINE_HELMCHART_KEYCLOAK" = "" ]; then
+            echo -e "\n${RED}Keycloak helm chart path is empty${NOCOLOR}"
             exit 1
         fi
         if [ "$OFFLINE_HELMCHART_POSTGRES" = "" ]; then
@@ -114,6 +119,7 @@ function usage() {
     echo " --tls-key               Path to the PEM encoded key used for downstream communications"
     echo " --helm-chart-lamassu    (Only needed while using --offline) Path to the Lamassu helm chart (.tgz format)"
     echo " --helm-chart-postgres   (Only needed while using --offline) Path to the Posgtres helm chart (.tgz format)"
+    echo " --helm-chart-keycloak   (Only needed while using --offline) Path to the Keycloak helm chart (.tgz format)"
     echo " --helm-chart-rabbitmq   (Only needed while using --offline) Path to the RabbitMQ helm chart (.tgz format)"
 }
 
@@ -182,6 +188,16 @@ function process_flags() {
                 exit 1
             fi
             OFFLINE_HELMCHART_RABBITMQ=$(extract_argument $@)
+
+            shift
+            ;;
+         --helm-chart-keycloak)
+              if ! has_argument $@; then
+                echo -e "\n${RED}Keycloak Helm Chart not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            OFFLINE_HELMCHART_KEYCLOAK=$(extract_argument $@)
 
             shift
             ;;
@@ -278,8 +294,8 @@ fi
 postgres:
   hostname: "postgresql"
   port: 5432
-  username: "env.postgre.user"
-  password: "env.postgre.password"
+  username: "env.postgres.user"
+  password: "env.postgres.password"
 
 amqp:
   hostname: "rabbitmq"
@@ -339,7 +355,7 @@ else
 fi
 
     sed 's/env.lamassu.domain/'"$DOMAIN"'/' -i lamassu.yaml
-    sed 's/env.postgre.user/'"$POSTGRES_USER"'/;s/env.postgre.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
+    sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
     sed 's/env.rabbitmq.user/'"$RABBIT_USER"'/;s/env.rabbitmq.password/'"$RABBIT_PWD"'/' -i lamassu.yaml
     sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i lamassu.yaml
 
@@ -380,6 +396,70 @@ function install_rabbitmq() {
         echo -e "\n${GREEN}RabbitMQ installed${NOCOLOR}"
     else
         echo -e "\n${RED}Error installing RabbitMQ${NOCOLOR}"
+        exit 1
+    fi
+}
+
+function install_keycloak() {
+    cat >keycloak.yaml <<"EOF"
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "postgresql"
+  port: 5432
+  user: env.postgres.user
+  password: env.postgres.password
+  database: auth
+
+extraVolumes:
+  - name: extensions
+    emptyDir: {}
+
+extraVolumeMounts: 
+  - name: extensions
+    mountPath: /opt/bitnami/keycloak/providers
+
+initContainers:
+- name: init-custom-theme
+  image: ubuntu:20.04
+  command: ['bash', '-c', 'file_path="/extensions/lamassu-theme.jar"; while [[ ! -f "$file_path" ]]; do echo "File does not exist, waiting for 5 seconds..."; sleep 5; done; echo "File exists."']
+  volumeMounts:  
+  - mountPath: "/extensions"
+    name: extensions
+
+httpRelativePath: /auth/
+proxy: reencrypt
+proxyHeaders: xforwarded
+
+extraEnvVars:
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  - name: KC_HEALTH_ENABLED
+    value: "true"
+  - name: HTTP_ADDRESS_FORWARDING
+    value: "true"
+  - name: QUARKUS_HTTP_ACCESS_LOG_ENABLED
+    value: "true"
+  - name: QUARKUS_HTTP_ACCESS_LOG_PATTERN
+    value: "%r\n%{ALL_REQUEST_HEADERS}"
+EOF
+
+    sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i keycloak.yaml
+
+    helm_path=bitnami/keycloak
+    if [ "$OFFLINE" = false ]; then
+        $kube $helm repo add bitnami https://charts.bitnami.com/bitnami
+        $kube $helm repo update
+    else 
+        helm_path=$OFFLINE_HELMCHART_KEYCLOAK
+    fi
+
+    $kube $helm install keycloak $helm_path --version 22.1.1 -n $NAMESPACE --wait
+    if [ $? -eq 0 ]; then
+        echo -e "\n${GREEN}Keycloak installed${NOCOLOR}"
+    else
+        echo -e "\n${RED}Error installing Keycloak${NOCOLOR}"
         exit 1
     fi
 }
