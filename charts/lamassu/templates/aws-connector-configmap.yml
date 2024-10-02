@@ -1,9 +1,10 @@
-{{- if .Values.services.awsConnector.enabled }}
+{{ range $instance := $.Values.services.awsConnector.instances }}
+{{ $instanceID := $instance.connectorID | replace "aws." "" }}
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: aws-connector-config
-  namespace: {{.Release.Namespace}}
+  name: aws-connector-config-{{ $instanceID }}
+  namespace: {{ $.Release.Namespace}}
 data:
   config: |
     logs:
@@ -15,12 +16,12 @@ data:
       enabled: true
       amqp:
         protocol: amqp #amqp | amqps
-        hostname: {{ .Values.amqp.hostname }}
-        port: {{ .Values.amqp.port }}
+        hostname: {{ $.Values.amqp.hostname }}
+        port: {{ $.Values.amqp.port }}
         basic_auth:
           enabled: true
-          username: {{ .Values.amqp.username }}
-          password: {{ .Values.amqp.password }}
+          username: {{ $.Values.amqp.username }}
+          password: {{ $.Values.amqp.password }}
 
     dms_manager_client:
       log_level: debug
@@ -43,7 +44,8 @@ data:
       hostname: ca
       port: 8085
 
-    connector_id:  {{ .Values.services.awsConnector.connectorID }}
+    connector_id:  {{ $instance.connectorID }}
     aws_config:
-      {{ .Values.services.awsConnector.credentials | toYaml | indent 6 | trim  }}
+      {{ $instance.credentials | toYaml | indent 6 | trim  }}
+---
 {{- end -}}

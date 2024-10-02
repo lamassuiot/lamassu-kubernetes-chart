@@ -41,7 +41,7 @@ spec:
           tty: true          
           env:
             - name: DEBUG_MODE
-              value: "{{.Values.debugMode}}"
+              value: "{{.Values.services.apiGateway.debugMode}}"
           command: ["/bin/bash", "-c"]
           args: 
             - /docker-entrypoint.sh
