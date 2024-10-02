@@ -128,6 +128,12 @@ jobs:
             git commit -m "Update Chart.yaml, values.yaml CHANGELOG and RELEASE-NOTES for chart ${chart_name} ${chart_version}" 
             git push origin $GITHUB_REF_NAME
           fi
+
+          sha=$(git rev-parse HEAD)
+          echo "LTS_SHA=$sha" >> "$GITHUB_ENV"
+
+    outputs:
+      latest_commit_sha: ${{ env.LTS_SHA }}
   release-charts:
     runs-on: ubuntu-latest
     needs: generate-charts-changelog-update-versions
@@ -138,7 +144,7 @@ jobs:
         with:
           fetch-depth: 0
           
-      - run: git checkout HEAD #Checks out by default to SHA that tiggered the executin. Checkout to main to get the commit maded by the prev Job.
+      - run: git checkout ${{ needs.generate-charts-changelog-update-versions.outputs.latest_commit_sha }} #Checks out by default to SHA that tiggered the executin. Checkout to main to get the commit maded by the prev Job.
 
       - name: Configure Git
         run: |
