@@ -1,6 +1,10 @@
 
+<a name="lamassu-3.0.0"></a>
+## [lamassu-3.0.0](https://github.com/lamassuiot/lamassu-helm/compare/lamassu-2.7.0...lamassu-3.0.0) (2024-10-02)
+
+
 <a name="lamassu-2.7.0"></a>
-## [lamassu-2.7.0](https://github.com/lamassuiot/lamassu-helm/compare/lamassu-2.6.3...lamassu-2.7.0) (2024-08-29)
+## [lamassu-2.7.0](https://github.com/lamassuiot/lamassu-helm/compare/lamassu-2.6.3...lamassu-2.7.0) (2024-09-03)
 
 
 <a name="lamassu-2.6.3"></a>
@@ -41,6 +45,10 @@
 ### Bumping
 
 * bumping UI docker image version
+
+### Fix
+
+* Fix chart linter issues
 
 
 <a name="lamassu-2.5.1"></a>
