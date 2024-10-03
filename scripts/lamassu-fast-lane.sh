@@ -89,11 +89,13 @@ function main() {
     install_postgresql
     echo -e "\n${BLUE}5) Install RabbitMQ${NOCOLOR}"
     install_rabbitmq
-    echo -e "\n${BLUE}6) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
+    echo -e "\n${BLUE}6) Install Keycloak${NOCOLOR}"
+    install_keycloak
+    echo -e "\n${BLUE}7) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
     install_lamassu
 
     if [ "$MAIN_PORT" -eq 443 ]; then
-        echo -e "\n${BLUE}7) Patch ingress for Lamassu IoT${NOCOLOR}"
+        echo -e "\n${BLUE}8) Patch ingress for Lamassu IoT${NOCOLOR}"
         
         if [ $dist == "microk8s" ]; then
             microk8s_patch_lamassu
