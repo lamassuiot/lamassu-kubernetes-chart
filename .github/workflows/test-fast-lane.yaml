@@ -38,3 +38,7 @@ jobs:
       - name: Check if the app is running
         run: |
           curl -s -o /dev/null -w "%{http_code}" -k https://ci.lamassu.io:10443
+          curl -s -o /dev/null -w "%{http_code}" -k https://ci.lamassu.io:10443/auth/
+      - name: Run helm tests
+        run: |
+          helm test -n lamassu-ci lamassu
