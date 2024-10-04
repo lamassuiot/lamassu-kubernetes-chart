@@ -308,13 +308,23 @@ amqp:
 services:
   ca:
     domain: $DOMAIN_PORT
-  keycloak:
-    enabled: true
-    image: ghcr.io/lamassuiot/keycloak:2.1.0
-    adminCreds:
-      username: "env.keycloak.user"
-      password: "env.keycloak.password"
-
+  apiGateway:
+    extraReverseProxyRouting:
+      - path: /auth
+        name: auth
+        prefixRewrite: false
+        target:
+          host: lmskc-keycloak
+          port: 80
+          healthCheck:
+            path: /auth/health
+auth:
+  oidc:
+    apiGateway:
+      jwks:
+        protocol: http
+        host: lmskc-keycloak
+        port: 80
 ingress:
   hostname: $DOMAIN
 EOF
@@ -359,7 +369,6 @@ fi
     sed 's/env.lamassu.domain/'"$DOMAIN"'/' -i lamassu.yaml
     sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
     sed 's/env.rabbitmq.user/'"$RABBIT_USER"'/;s/env.rabbitmq.password/'"$RABBIT_PWD"'/' -i lamassu.yaml
-    sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i lamassu.yaml
 
     helm_path=lamassuiot/lamassu
     if [ "$OFFLINE" = false ]; then
@@ -404,15 +413,22 @@ function install_rabbitmq() {
 
 function install_keycloak() {
     cat >keycloak.yaml <<"EOF"
+logging:
+  level: INFO
+
 postgresql:
   enabled: false
 
 externalDatabase:
   host: "postgresql"
   port: 5432
-  user: env.postgres.user
-  password: env.postgres.password
+  user: "env.postgres.user"
+  password: "env.postgres.password"
   database: auth
+
+auth:
+  adminUser: "env.keycloak.user"
+  adminPassword: "env.keycloak.password"
 
 extraVolumes:
   - name: extensions
@@ -425,7 +441,7 @@ extraVolumeMounts:
 initContainers:
 - name: init-custom-theme
   image: ubuntu:20.04
-  command: ['bash', '-c', 'file_path="/extensions/lamassu-theme.jar"; while [[ ! -f "$file_path" ]]; do echo "File does not exist, waiting for 5 seconds..."; sleep 5; done; echo "File exists."']
+  command: ['bash', '-c', 'file_path="/extensions/test.jar"; count=0; while [[ ! -f "$file_path" ]] && [[ $count -lt 6 ]]; do echo "File does not exist, waiting for 5 seconds..."; sleep 5; ((count++)); done; if [[ ! -f "$file_path" ]]; then echo "File does not exist after 6 checks. Exiting with sucess code"; else echo "File exists."; fi']
   volumeMounts:  
   - mountPath: "/extensions"
     name: extensions
@@ -445,9 +461,12 @@ extraEnvVars:
     value: "true"
   - name: QUARKUS_HTTP_ACCESS_LOG_PATTERN
     value: "%r\n%{ALL_REQUEST_HEADERS}"
+  - name: KC_LOG_LEVEL
+    value: info,org.keycloak.authentication:trace
 EOF
 
     sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i keycloak.yaml
+    sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i keycloak.yaml
 
     helm_path=bitnami/keycloak
     if [ "$OFFLINE" = false ]; then
@@ -457,7 +476,7 @@ EOF
         helm_path=$OFFLINE_HELMCHART_KEYCLOAK
     fi
 
-    $kube $helm install keycloak $helm_path --version 22.1.1 -n $NAMESPACE --wait
+    $kube $helm install lmskc $helm_path --version 22.1.1 -n $NAMESPACE -f keycloak.yaml --wait
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Keycloak installed${NOCOLOR}"
     else
