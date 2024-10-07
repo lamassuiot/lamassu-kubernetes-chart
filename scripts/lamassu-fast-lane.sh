@@ -116,6 +116,7 @@ function usage() {
     echo " -n, --non-interactive   Enable non-interactive mode. Credentials for Keycloak, Postgres and RabbitMQ will be auto generated"
     echo " -ns, --namespace        Kubernetes Namespace where LAMASSU will be deployed"
     echo " -d, --domain            Domain to be set while deploying LAMASSU"
+    echo " -v, --version           Version of the Lamassu Helm Chart to be installed. Default is latest"
     echo " --offline               Offline mode enabled. Use local helm charts (--helm-chart-rabbitmq, --helm-chart-postgres and --helm-chart-lamassu flags will be required)"
     echo " --tls-crt               Path to the PEM encoded certificate used for downstream communications"
     echo " --tls-key               Path to the PEM encoded key used for downstream communications"
@@ -237,6 +238,17 @@ function process_flags() {
             fi
             NAMESPACE_OVERRIDE=true
             NAMESPACE=$(extract_argument $@)
+
+            shift
+            ;;
+        -v | --version*)
+            if ! has_argument $@; then
+            echo -e "\n${RED}Version not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            VERSION_OVERRIDE=true
+            VERSION=$(extract_argument $@)
 
             shift
             ;;
@@ -384,7 +396,12 @@ EOF
         helm_path=$OFFLINE_HELMCHART_LAMASSU
     fi
 
-    $kube $helm install -n $NAMESPACE lamassu $helm_path -f lamassu.yaml --wait
+    helm_version=""
+    if [ "$VERSION_OVERRIDE" = true ]; then
+        helm_version="--version $VERSION"
+    fi
+
+    $kube $helm install -n $NAMESPACE lamassu $helm_path $helm_version -f lamassu.yaml --wait
 
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Lamassu IoT installed${NOCOLOR}"
