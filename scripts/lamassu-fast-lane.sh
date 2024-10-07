@@ -442,7 +442,7 @@ extraVolumeMounts:
 initContainers:
 - name: init-custom-theme
   image: ubuntu:20.04
-  command: ['bash', '-c', 'file_path="/extensions/test.jar"; count=0; while [[ ! -f "$file_path" ]] && [[ $count -lt 6 ]]; do echo "File does not exist, waiting for 5 seconds..."; sleep 5; ((count++)); done; if [[ ! -f "$file_path" ]]; then echo "File does not exist after 6 checks. Exiting with sucess code"; else echo "File exists."; fi']
+  command: ['bash', '-c', 'curl -L -f -S -o /extensions/keycloakify-theme.jar https://github.com/lamassuiot/keycloak-theme/releases/download/1.0.0/keycloak-theme-for-kc-22-and-above.jar']
   volumeMounts:  
   - mountPath: "/extensions"
     name: extensions
