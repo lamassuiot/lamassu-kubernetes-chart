@@ -87,10 +87,10 @@ function main() {
     create_kubernetes_namespace
     echo -e "\n${BLUE}4) Install PostgreSQL${NOCOLOR}"
     install_postgresql
-    echo -e "\n${BLUE}5) Install RabbitMQ${NOCOLOR}"
-    install_rabbitmq
-    echo -e "\n${BLUE}6) Install Keycloak${NOCOLOR}"
+    echo -e "\n${BLUE}5) Install Auth - Keycloak${NOCOLOR}"
     install_keycloak
+    echo -e "\n${BLUE}6) Install RabbitMQ${NOCOLOR}"
+    install_rabbitmq
     echo -e "\n${BLUE}7) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
     install_lamassu
 
@@ -314,8 +314,8 @@ services:
         name: auth
         prefixRewrite: false
         target:
-          host: lmskc-keycloak
-          port: 80
+          host: auth-keycloak
+          port: 80 # If no sidecar is used
           healthCheck:
             path: /auth/health
 auth:
@@ -323,8 +323,9 @@ auth:
     apiGateway:
       jwks:
         protocol: http
-        host: lmskc-keycloak
+        host: auth-keycloak
         port: 80
+
 ingress:
   hostname: $DOMAIN
 EOF
@@ -413,8 +414,9 @@ function install_rabbitmq() {
 
 function install_keycloak() {
     cat >keycloak.yaml <<"EOF"
-logging:
-  level: INFO
+auth: 
+  adminUser: "env.keycloak.user"
+  adminPassword: "env.keycloak.password"
 
 postgresql:
   enabled: false
@@ -426,9 +428,8 @@ externalDatabase:
   password: "env.postgres.password"
   database: auth
 
-auth:
-  adminUser: "env.keycloak.user"
-  adminPassword: "env.keycloak.password"
+logging:
+  level: INFO
 
 extraVolumes:
   - name: extensions
@@ -461,8 +462,36 @@ extraEnvVars:
     value: "true"
   - name: QUARKUS_HTTP_ACCESS_LOG_PATTERN
     value: "%r\n%{ALL_REQUEST_HEADERS}"
-  - name: KC_LOG_LEVEL
-    value: info,org.keycloak.authentication:trace
+
+keycloakConfigCli:
+  enabled: true
+  configuration:
+    realm-configuration.yaml: |
+      realm: lamassu
+      enabled: true
+      roles:
+        realm:
+        - name: pki-admin
+          description: "PKI Full Access"
+      users:
+      - username: lamassu
+        enabled: true
+        credentials:
+        - type: password
+          value: lamassu
+          temporary: true
+        requiredActions:
+        - UPDATE_PASSWORD
+        realmRoles:
+        - pki-admin
+      clients:
+      - clientId: frontend
+        enabled: true
+        redirectUris: 
+        - "/*"
+        webOrigins:
+        - "/*"
+        publicClient: true
 EOF
 
     sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i keycloak.yaml
@@ -476,7 +505,7 @@ EOF
         helm_path=$OFFLINE_HELMCHART_KEYCLOAK
     fi
 
-    $kube $helm install lmskc $helm_path --version 22.1.1 -n $NAMESPACE -f keycloak.yaml --wait
+    $kube $helm install auth $helm_path --version 22.1.1 -n $NAMESPACE --wait -f keycloak.yaml
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Keycloak installed${NOCOLOR}"
     else
