@@ -458,8 +458,8 @@ extraVolumeMounts:
 
 initContainers:
 - name: init-custom-theme
-  image: ubuntu:20.04
-  command: ['bash', '-c', 'curl -L -f -S -o /extensions/lamassu-theme.jar https://github.com/lamassuiot/keycloak-theme/releases/download/1.0.0/keycloak-theme-for-kc-22-and-above.jar']
+  image: curlimages/curl:8.10.1
+  command: ['sh', '-c', 'curl -L -f -S -o /extensions/lamassu-theme.jar https://github.com/lamassuiot/keycloak-theme/releases/download/1.0.0/keycloak-theme-for-kc-22-and-above.jar']
   volumeMounts:  
   - mountPath: "/extensions"
     name: extensions
