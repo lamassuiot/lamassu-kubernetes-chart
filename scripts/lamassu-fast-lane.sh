@@ -87,13 +87,15 @@ function main() {
     create_kubernetes_namespace
     echo -e "\n${BLUE}4) Install PostgreSQL${NOCOLOR}"
     install_postgresql
-    echo -e "\n${BLUE}5) Install RabbitMQ${NOCOLOR}"
+    echo -e "\n${BLUE}5) Install Auth - Keycloak${NOCOLOR}"
+    install_keycloak
+    echo -e "\n${BLUE}6) Install RabbitMQ${NOCOLOR}"
     install_rabbitmq
-    echo -e "\n${BLUE}6) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
+    echo -e "\n${BLUE}7) Install Lamassu IoT. It may take a few minutes${NOCOLOR}"
     install_lamassu
 
     if [ "$MAIN_PORT" -eq 443 ]; then
-        echo -e "\n${BLUE}7) Patch ingress for Lamassu IoT${NOCOLOR}"
+        echo -e "\n${BLUE}8) Patch ingress for Lamassu IoT${NOCOLOR}"
         
         if [ $dist == "microk8s" ]; then
             microk8s_patch_lamassu
@@ -114,6 +116,7 @@ function usage() {
     echo " -n, --non-interactive   Enable non-interactive mode. Credentials for Keycloak, Postgres and RabbitMQ will be auto generated"
     echo " -ns, --namespace        Kubernetes Namespace where LAMASSU will be deployed"
     echo " -d, --domain            Domain to be set while deploying LAMASSU"
+    echo " -v, --version           Version of the Lamassu Helm Chart to be installed. Default is latest"
     echo " --offline               Offline mode enabled. Use local helm charts (--helm-chart-rabbitmq, --helm-chart-postgres and --helm-chart-lamassu flags will be required)"
     echo " --tls-crt               Path to the PEM encoded certificate used for downstream communications"
     echo " --tls-key               Path to the PEM encoded key used for downstream communications"
@@ -238,6 +241,17 @@ function process_flags() {
 
             shift
             ;;
+        -v | --version*)
+            if ! has_argument $@; then
+            echo -e "\n${RED}Version not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            VERSION_OVERRIDE=true
+            VERSION=$(extract_argument $@)
+
+            shift
+            ;;
         *)
             echo -e "\n${RED}Invalid option: $1${NOCOLOR}" >&2
             usage
@@ -306,12 +320,23 @@ amqp:
 services:
   ca:
     domain: $DOMAIN_PORT
-  keycloak:
-    enabled: true
-    image: ghcr.io/lamassuiot/keycloak:2.1.0
-    adminCreds:
-      username: "env.keycloak.user"
-      password: "env.keycloak.password"
+  apiGateway:
+    extraReverseProxyRouting:
+      - path: /auth
+        name: auth
+        prefixRewrite: false
+        target:
+          host: auth-keycloak
+          port: 80 # If no sidecar is used
+          healthCheck:
+            path: /auth/health
+auth:
+  oidc:
+    apiGateway:
+      jwks:
+        protocol: http
+        host: auth-keycloak
+        port: 80
 
 ingress:
   hostname: $DOMAIN
@@ -357,7 +382,6 @@ fi
     sed 's/env.lamassu.domain/'"$DOMAIN"'/' -i lamassu.yaml
     sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
     sed 's/env.rabbitmq.user/'"$RABBIT_USER"'/;s/env.rabbitmq.password/'"$RABBIT_PWD"'/' -i lamassu.yaml
-    sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i lamassu.yaml
 
     helm_path=lamassuiot/lamassu
     if [ "$OFFLINE" = false ]; then
@@ -372,7 +396,12 @@ EOF
         helm_path=$OFFLINE_HELMCHART_LAMASSU
     fi
 
-    $kube $helm install -n $NAMESPACE lamassu $helm_path -f lamassu.yaml --wait
+    helm_version=""
+    if [ "$VERSION_OVERRIDE" = true ]; then
+        helm_version="--version $VERSION"
+    fi
+
+    $kube $helm install -n $NAMESPACE lamassu $helm_path $helm_version -f lamassu.yaml --wait
 
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Lamassu IoT installed${NOCOLOR}"
@@ -402,15 +431,22 @@ function install_rabbitmq() {
 
 function install_keycloak() {
     cat >keycloak.yaml <<"EOF"
+auth: 
+  adminUser: "env.keycloak.user"
+  adminPassword: "env.keycloak.password"
+
 postgresql:
   enabled: false
 
 externalDatabase:
   host: "postgresql"
   port: 5432
-  user: env.postgres.user
-  password: env.postgres.password
+  user: "env.postgres.user"
+  password: "env.postgres.password"
   database: auth
+
+logging:
+  level: INFO
 
 extraVolumes:
   - name: extensions
@@ -422,8 +458,8 @@ extraVolumeMounts:
 
 initContainers:
 - name: init-custom-theme
-  image: ubuntu:20.04
-  command: ['bash', '-c', 'file_path="/extensions/lamassu-theme.jar"; while [[ ! -f "$file_path" ]]; do echo "File does not exist, waiting for 5 seconds..."; sleep 5; done; echo "File exists."']
+  image: curlimages/curl:8.10.1
+  command: ['sh', '-c', 'curl -L -f -S -o /extensions/lamassu-theme.jar https://github.com/lamassuiot/keycloak-theme/releases/download/1.0.0/keycloak-theme-for-kc-22-and-above.jar']
   volumeMounts:  
   - mountPath: "/extensions"
     name: extensions
@@ -443,9 +479,40 @@ extraEnvVars:
     value: "true"
   - name: QUARKUS_HTTP_ACCESS_LOG_PATTERN
     value: "%r\n%{ALL_REQUEST_HEADERS}"
+
+keycloakConfigCli:
+  enabled: true
+  configuration:
+    realm-configuration.yaml: |
+      realm: lamassu
+      enabled: true
+      roles:
+        realm:
+        - name: pki-admin
+          description: "PKI Full Access"
+      users:
+      - username: lamassu
+        enabled: true
+        credentials:
+        - type: password
+          value: lamassu
+          temporary: true
+        requiredActions:
+        - UPDATE_PASSWORD
+        realmRoles:
+        - pki-admin
+      clients:
+      - clientId: frontend
+        enabled: true
+        redirectUris: 
+        - "/*"
+        webOrigins:
+        - "/*"
+        publicClient: true
 EOF
 
     sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i keycloak.yaml
+    sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i keycloak.yaml
 
     helm_path=bitnami/keycloak
     if [ "$OFFLINE" = false ]; then
@@ -455,7 +522,7 @@ EOF
         helm_path=$OFFLINE_HELMCHART_KEYCLOAK
     fi
 
-    $kube $helm install keycloak $helm_path --version 22.1.1 -n $NAMESPACE --wait
+    $kube $helm install auth $helm_path --version 22.1.1 -n $NAMESPACE --wait -f keycloak.yaml
     if [ $? -eq 0 ]; then
         echo -e "\n${GREEN}Keycloak installed${NOCOLOR}"
     else
