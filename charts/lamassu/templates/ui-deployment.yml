@@ -34,6 +34,8 @@ spec:
               value: "{{.Release.Revision}}"
             - name: DOMAIN
               value: "${window.location.host}"
+            - name: OIDC_ENABLED
+              value: "true"
             - name: OIDC_AUTHORITY
               value: {{.Values.auth.oidc.frontend.authority}}
             - name: OIDC_CLIENT_ID
