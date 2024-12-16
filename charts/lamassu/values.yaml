@@ -108,18 +108,15 @@ services:
     monitoring:
       # -- Frequency to check the CA's health status uses CRON syntax. Can also be specified at a "second" level by adding one extra term
       frequency: "* * * * *"
-    engines:
+    cryptoEngines:
       # -- Default engine ID to be used for the CA component
       defaultEngineID: "golang-1"
-      golang:
+      engines:
         - id: "golang-1"
-          storage_directory: "/data"
+          type: "filesystem" # filesystem | pkcs11 | hashicorp_vault | aws_kms | aws_secrets_manager
           metadata:
             prod-ready: "false"
-      awsKms:
-      awsSecretsManager:
-      pkcs11:
-      hashicorpVault:
+          storage_directory: "/data-fs-1"
   deviceManager:
     # -- Docker image for the Device Manager component
     image: ghcr.io/lamassuiot/lamassu-devmanager:2.8.0

@@ -33,9 +33,11 @@ spec:
             - name: api-config
               mountPath: /etc/lamassuiot/config.yml
               subPath: config
-            {{ if gt (len .Values.services.ca.engines.golang) 0 }}
-            - name: golang-engine-storage
-              mountPath: /data
+            {{ range .Values.services.ca.cryptoEngines.engines }}
+            {{ if eq .type "filesystem" }}
+            - name: golang-engine-storage-{{ .id }}
+              mountPath: {{ .storage_directory }}
+            {{ end }}
             {{ end }}
           ports:
             - containerPort: 8085
@@ -45,13 +47,15 @@ spec:
           configMap:  
             name: ca-config
   volumeClaimTemplates:
-  {{ if gt (len .Values.services.ca.engines.golang) 0 }}
+  {{ range .Values.services.ca.cryptoEngines.engines }}
+  {{ if eq .type "filesystem" }}
   - metadata:
-      name: golang-engine-storage
+      name: golang-engine-storage-{{ .id }}
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: null
       resources:
         requests:
           storage: 1Gi
-  {{end}}
+  {{ end }}
+  {{ end }}
