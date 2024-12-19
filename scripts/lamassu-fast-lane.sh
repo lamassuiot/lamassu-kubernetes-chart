@@ -473,6 +473,8 @@ extraEnvVars:
     value: "false"
   - name: KC_HEALTH_ENABLED
     value: "true"
+  - name: KC_LEGACY_OBSERVABILITY_INTERFACE
+    value: "true"
   - name: HTTP_ADDRESS_FORWARDING
     value: "true"
   - name: QUARKUS_HTTP_ACCESS_LOG_ENABLED
