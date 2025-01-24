@@ -12,7 +12,7 @@ tls:
     # -- CertManager Issuer to use to sign the certificate for the API Gateway. Ignored if `clusterIssuer` is set. If left empty, a self signed certificate will be used.
     issuer: ""
     # -- Duration for the certificate to be valid
-    duration: "2160h" # 2160h == 90days
+    duration: "2160h"  # 2160h == 90days
   externalOptions:
     # -- Secret name for the TLS certificate to be used for the API Gateway (the secret at least must have `tls.crt` and `tls.key` keys)
     secretName: ""
@@ -113,7 +113,7 @@ services:
       defaultEngineID: "golang-1"
       engines:
         - id: "golang-1"
-          type: "filesystem" # filesystem | pkcs11 | hashicorp_vault | aws_kms | aws_secrets_manager
+          type: "filesystem"  # filesystem | pkcs11 | hashicorp_vault | aws_kms | aws_secrets_manager
           metadata:
             prod-ready: "false"
           storage_directory: "/data-fs-1"
