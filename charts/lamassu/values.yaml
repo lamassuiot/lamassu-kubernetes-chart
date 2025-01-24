@@ -147,9 +147,7 @@ services:
       host: ""
       # -- SMTP server port
       port: 25
-  awsConnector:
-    image: ghcr.io/lamassuiot/lamassu-aws-connector:2.8.0
-    # -- AWS IoT Connector ID. It is strongly recommended to use the aws.<account_id> format
-    instances:
+  connectors:
+
 toolbox:
   image: ghcr.io/lamassuiot/toolbox:2.2.0

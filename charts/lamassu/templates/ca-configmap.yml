@@ -36,7 +36,7 @@ data:
       password: {{ $.Values.postgres.password }}
 
     crypto_engines:
-      log_level: "info"
+      log_level: "trace"
       default_id: {{ .Values.services.ca.cryptoEngines.defaultEngineID }}
       engines:      
         {{ .Values.services.ca.cryptoEngines.engines | toYaml | indent 4 | nindent 4 | trim  }}

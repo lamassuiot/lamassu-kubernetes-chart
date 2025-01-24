@@ -72,7 +72,6 @@ jobs:
           yq eval '.services.deviceManager.image = "ghcr.io/lamassuiot/lamassu-devmanager:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
           yq eval '.services.dmsManager.image = "ghcr.io/lamassuiot/lamassu-dmsmanager:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
           yq eval '.services.alerts.image = "ghcr.io/lamassuiot/lamassu-alerts:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
-          yq eval '.services.awsConnector.image = "ghcr.io/lamassuiot/lamassu-aws-connector:${{ github.event.inputs.app_version }}"' -i charts/${{ github.event.inputs.chart_to_release }}/values.yaml
       
       - name: Generate charts changelog files
         shell: bash

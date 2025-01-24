@@ -23,6 +23,17 @@ spec:
           image: {{ .Values.services.ca.image }}
           imagePullPolicy: {{ .Values.global.imagePullPolicy | quote }}
           tty: true
+          env:
+            {{- range .Values.services.ca.cryptoEngines.engines }}
+            {{- if eq .type "pkcs11" }}
+            {{- if .module_extra_options.env }}
+            {{- range $key, $value := .module_extra_options.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /health
