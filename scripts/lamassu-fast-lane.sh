@@ -320,6 +320,12 @@ amqp:
 services:
   ca:
     domain: $DOMAIN_PORT
+    cryptoEngines:
+      defaultEngineID: fs-1
+      engines:
+      - id: fs-1
+        type: filesystem
+        storage_directory: /data-fs-1
   apiGateway:
     extraReverseProxyRouting:
       - path: /auth
