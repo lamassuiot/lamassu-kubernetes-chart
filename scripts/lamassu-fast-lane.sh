@@ -340,7 +340,7 @@ services:
       engines:
       - id: fs-1
         type: filesystem
-        storage_directory: /data-fs-1
+        storage_directory: /crypto/fs
   apiGateway:
     extraReverseProxyRouting:
       - path: /auth
