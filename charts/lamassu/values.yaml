@@ -113,7 +113,8 @@ services:
       defaultEngineID: "filesystem-1"
       engines:
         - id: "filesystem-1"
-          type: "filesystem" # filesystem | pkcs11 | hashicorp_vault | aws_kms | aws_secrets_manager
+          # filesystem | pkcs11 | hashicorp_vault | aws_kms | aws_secrets_manager
+          type: "filesystem" 
           metadata:
             prod-ready: "false"
           storage_directory: "/crypto/fs"
