@@ -12,7 +12,7 @@ tls:
     # -- CertManager Issuer to use to sign the certificate for the API Gateway. Ignored if `clusterIssuer` is set. If left empty, a self signed certificate will be used.
     issuer: ""
     # -- Duration for the certificate to be valid
-    duration: "2160h"  # 2160h == 90days
+    duration: "2160h" # 2160h == 90days
   externalOptions:
     # -- Secret name for the TLS certificate to be used for the API Gateway (the secret at least must have `tls.crt` and `tls.key` keys)
     secretName: ""
@@ -96,7 +96,7 @@ services:
     #       path: /auth/health
   ui:
     # -- Docker image for the UI component
-    image: ghcr.io/lamassuiot/lamassu-ui:3.2.0
+    image: ghcr.io/lamassuiot/lamassu-ui:3.2.1
   va:
     # -- Docker image for the VA component
     image: ghcr.io/lamassuiot/lamassu-va:3.2.2
@@ -149,6 +149,5 @@ services:
       # -- SMTP server port
       port: 25
   connectors:
-
 toolbox:
   image: ghcr.io/lamassuiot/toolbox:2.2.0
