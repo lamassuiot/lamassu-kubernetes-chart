@@ -12,6 +12,8 @@ NAMESPACE_OVERRIDE=false
 OFFLINE=false
 NON_INTERACTIVE=false
 MAIN_PORT=443
+LAMASSU_CHART_PATH="lamassuiot/lamassu"
+LAMASSU_USE_LOCAL_PATH=false
 
 TLS_CRT=
 TLS_KEY=
@@ -124,6 +126,7 @@ function usage() {
     echo " --helm-chart-postgres   (Only needed while using --offline) Path to the Posgtres helm chart (.tgz format)"
     echo " --helm-chart-keycloak   (Only needed while using --offline) Path to the Keycloak helm chart (.tgz format)"
     echo " --helm-chart-rabbitmq   (Only needed while using --offline) Path to the RabbitMQ helm chart (.tgz format)"
+    echo " -l, --local-chart-path  Path to the local chart folder"
 }
 
 function has_argument() {
@@ -252,6 +255,17 @@ function process_flags() {
 
             shift
             ;;
+        -l | --local-chart-path*)
+            if ! has_argument $@; then
+            echo -e "\n${RED}Path not specified.${NOCOLOR}" >&2
+                usage
+                exit 1
+            fi
+            LAMASSU_USE_LOCAL_PATH=true
+            LAMASSU_CHART_PATH=$(extract_argument $@)
+            
+            shift
+            ;;
         *)
             echo -e "\n${RED}Invalid option: $1${NOCOLOR}" >&2
             usage
@@ -264,9 +278,10 @@ function process_flags() {
 
 function final_instructions() {
     echo -e "${GREEN}=== Lamassu IoT has been installed in your Kubernetes instance ===${NOCOLOR}"
-    echo -e "${BLUE}Please navigate to Keycloak console at https://${DOMAIN}/auth/admin${NOCOLOR}"
+    echo -e "${BLUE}Please connect to https://${DOMAIN_PORT} using default user lamassu/lamassu ${NOCOLOR}"
+    echo -e "${BLUE}You will be required to change the password on the first connection${NOCOLOR}"
+    echo -e "${BLUE}If more users are needed connect to  https://${DOMAIN_PORT}/auth/admin${NOCOLOR}"
     echo -e "${BLUE}Use the provided Keycloak credentials ${KEYCLOAK_USER}/${KEYCLOAK_PWD}${NOCOLOR}"
-    echo -e "${BLUE}Create a new user in the lamassu realm with pki-admin role and connect to https://${DOMAIN}${NOCOLOR}"
 }
 
 function k3s_patch_lamassu() {
@@ -389,9 +404,13 @@ fi
     sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
     sed 's/env.rabbitmq.user/'"$RABBIT_USER"'/;s/env.rabbitmq.password/'"$RABBIT_PWD"'/' -i lamassu.yaml
 
-    helm_path=lamassuiot/lamassu
+    helm_path=$LAMASSU_CHART_PATH
     if [ "$OFFLINE" = false ]; then
+      if [ "$LAMASSU_USE_LOCAL_PATH" = false ]; then
         $kube $helm repo add lamassuiot http://www.lamassu.io/lamassu-helm/
+      else
+        echo -e "${ORANGE}Using local chart path ${LAMASSU_CHART_PATH} ${NOCOLOR}"
+      fi
     else 
         cat >offline.yaml <<"EOF"
 global:
