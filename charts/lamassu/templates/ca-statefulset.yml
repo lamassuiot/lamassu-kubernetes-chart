@@ -44,12 +44,8 @@ spec:
             - name: api-config
               mountPath: /etc/lamassuiot/config.yml
               subPath: config
-            {{ range .Values.services.ca.cryptoEngines.engines }}
-            {{ if eq .type "filesystem" }}
-            - name: golang-engine-storage-{{ .id }}
-              mountPath: {{ .storage_directory }}
-            {{ end }}
-            {{ end }}
+            - name: golang-engine-storage
+              mountPath: /crypto/fs
           ports:
             - containerPort: 8085
       restartPolicy: Always
@@ -58,15 +54,12 @@ spec:
           configMap:  
             name: ca-config
   volumeClaimTemplates:
-  {{ range .Values.services.ca.cryptoEngines.engines }}
-  {{ if eq .type "filesystem" }}
+  # If no FileSystem engine is defined, the PVC wont be used
   - metadata:
-      name: golang-engine-storage-{{ .id }}
+      name: golang-engine-storage
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: null
       resources:
         requests:
           storage: 1Gi
-  {{ end }}
-  {{ end }}

@@ -110,13 +110,13 @@ services:
       frequency: "* * * * *"
     cryptoEngines:
       # -- Default engine ID to be used for the CA component
-      defaultEngineID: "golang-1"
+      defaultEngineID: "filesystem-1"
       engines:
-        - id: "golang-1"
+        - id: "filesystem-1"
           type: "filesystem" # filesystem | pkcs11 | hashicorp_vault | aws_kms | aws_secrets_manager
           metadata:
             prod-ready: "false"
-          storage_directory: "/data-fs-1"
+          storage_directory: "/crypto/fs"
   deviceManager:
     # -- Docker image for the Device Manager component
     image: ghcr.io/lamassuiot/lamassu-devmanager:2.8.0
