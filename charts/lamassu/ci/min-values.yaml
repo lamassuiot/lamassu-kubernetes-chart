@@ -11,12 +11,24 @@ amqp:
   password: "admin"
   tls: false
 services:
-  keycloak:
-    enabled: true
-    image: ghcr.io/lamassuiot/keycloak:2.1.0
-    adminCreds:
-      username: "admin"
-      password: "admin"
+  services:
+    ca:
+      cryptoEngines:
+        defaultEngineID: fs-1
+        engines:
+          - id: fs-1
+            type: filesystem
+            storage_directory: /crypto/fs
+  apiGateway:
+    extraReverseProxyRouting:
+      - path: /auth
+        name: auth
+        prefixRewrite: false
+        target:
+          host: auth-keycloak
+          port: 80  # If no sidecar is used
+          healthCheck:
+            path: /auth/health
 auth:
   oidc:
     frontend:

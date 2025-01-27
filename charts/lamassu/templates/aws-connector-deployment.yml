@@ -1,5 +1,6 @@
-{{ range $instance := $.Values.services.awsConnector.instances }}
-{{ $instanceID := $instance.connectorID | replace "aws." "" }}
+{{ range $instance := $.Values.services.connectors }}
+{{- if eq $instance.type "awsiot" }}
+{{ $instanceID := $instance.id | replace "aws." "" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +22,7 @@ spec:
     spec:
       containers:
         - name: aws-connector-{{ $instanceID }}
-          image: {{ $.Values.services.awsConnector.image }}
+          image: {{ $instance.image }}
           imagePullPolicy: {{ $.Values.global.imagePullPolicy | quote }}
           tty: true
           volumeMounts:
@@ -37,4 +38,4 @@ spec:
             name: aws-connector-config-{{ $instanceID }}
 ---
 {{- end -}}
-
+{{- end -}}

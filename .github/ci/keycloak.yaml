@@ -1,0 +1,78 @@
+auth: 
+  adminUser: "admin"
+  adminPassword: "admin"
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "postgresql"
+  port: 5432
+  user: "admin"
+  password: "admin"
+  database: auth
+
+logging:
+  level: INFO
+
+extraVolumes:
+  - name: extensions
+    emptyDir: {}
+
+extraVolumeMounts: 
+  - name: extensions
+    mountPath: /opt/bitnami/keycloak/providers
+
+initContainers:
+- name: init-custom-theme
+  image: curlimages/curl:8.10.1
+  command: ['sh', '-c', 'curl -L -f -S -o /extensions/lamassu-theme.jar https://github.com/lamassuiot/keycloak-theme/releases/download/1.0.0/keycloak-theme-for-kc-22-and-above.jar']
+  volumeMounts:  
+  - mountPath: "/extensions"
+    name: extensions
+
+httpRelativePath: /auth/
+proxy: reencrypt
+proxyHeaders: xforwarded
+
+extraEnvVars:
+  - name: KC_HOSTNAME_STRICT
+    value: "false"
+  - name: KC_HEALTH_ENABLED
+    value: "true"
+  - name: HTTP_ADDRESS_FORWARDING
+    value: "true"
+  - name: QUARKUS_HTTP_ACCESS_LOG_ENABLED
+    value: "true"
+  - name: QUARKUS_HTTP_ACCESS_LOG_PATTERN
+    value: "%r\n%{ALL_REQUEST_HEADERS}"
+
+keycloakConfigCli:
+  enabled: true
+  configuration:
+    realm-configuration.yaml: |
+      realm: lamassu
+      enabled: true
+      roles:
+        realm:
+        - name: pki-admin
+          description: "PKI Full Access"
+      users:
+      - username: lamassu
+        enabled: true
+        credentials:
+        - type: password
+          value: lamassu
+          temporary: true
+        requiredActions:
+        - UPDATE_PASSWORD
+        realmRoles:
+        - pki-admin
+      clients:
+      - clientId: frontend
+        enabled: true
+        redirectUris: 
+        - "/*"
+        webOrigins:
+        - "/*"
+        publicClient: true

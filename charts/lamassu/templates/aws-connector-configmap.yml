@@ -1,5 +1,6 @@
-{{ range $instance := $.Values.services.awsConnector.instances }}
-{{ $instanceID := $instance.connectorID | replace "aws." "" }}
+{{ range $instance := $.Values.services.connectors }}
+{{- if eq $instance.type "awsiot" }}
+{{ $instanceID := $instance.id | replace "aws." "" }}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -12,16 +13,15 @@ data:
 
     subscriber_event_bus:
       log_level: "debug"
-      provider: amqp
       enabled: true
-      amqp:
-        protocol: amqp #amqp | amqps
-        hostname: {{ $.Values.amqp.hostname }}
-        port: {{ $.Values.amqp.port }}
-        basic_auth:
-          enabled: true
-          username: {{ $.Values.amqp.username }}
-          password: {{ $.Values.amqp.password }}
+      provider: amqp
+      protocol: amqp #amqp | amqps
+      hostname: {{ $.Values.amqp.hostname }}
+      port: {{ $.Values.amqp.port }}
+      basic_auth:
+        enabled: true
+        username: {{ $.Values.amqp.username }}
+        password: {{ $.Values.amqp.password }}
 
     dms_manager_client:
       log_level: debug
@@ -44,8 +44,9 @@ data:
       hostname: ca
       port: 8085
 
-    connector_id:  {{ $instance.connectorID }}
+    connector_id:  {{ $instance.id }}
     aws_config:
       {{ $instance.credentials | toYaml | indent 6 | trim  }}
 ---
+{{- end -}}
 {{- end -}}

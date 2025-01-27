@@ -17,39 +17,30 @@ data:
     
     publisher_event_bus:
       log_level: "debug"
-      provider: amqp
       enabled: true
-      amqp:
-        protocol: amqp #amqp | amqps
-        hostname: {{ .Values.amqp.hostname }}
-        port: {{ .Values.amqp.port }}
-        basic_auth:
-          enabled: true
-          username: {{ .Values.amqp.username }}
-          password: {{ .Values.amqp.password }}
+      provider: amqp
+      protocol: amqp #amqp | amqps
+      hostname: {{ $.Values.amqp.hostname }}
+      port: {{ $.Values.amqp.port }}
+      basic_auth:
+        enabled: true
+        username: {{ $.Values.amqp.username }}
+        password: {{ $.Values.amqp.password }}
 
     storage:
       log_level: "info"
       provider: "postgres" #couch_db | postgres | dynamo_db
-      postgres: 
-        hostname: {{ .Values.postgres.hostname }}
-        port: {{ .Values.postgres.port }}
-        username: {{ .Values.postgres.username }}
-        password: {{ .Values.postgres.password }}
+      hostname: {{ $.Values.postgres.hostname }}
+      port: {{ $.Values.postgres.port }}
+      username: {{ $.Values.postgres.username }}
+      password: {{ $.Values.postgres.password }}
 
     crypto_engines:
-      log_level: "info"
-      default_id: {{ .Values.services.ca.engines.defaultEngineID }}
-      golang:
-        {{ .Values.services.ca.engines.golang | toYaml | indent 4 | nindent 4  | trim  }}
-      pkcs11:
-        {{ .Values.services.ca.engines.pkcs11 | toYaml | indent 4 | nindent 4  | trim  }}
-      hashicorp_vault:
-        {{ .Values.services.ca.engines.hashicorpVault | toYaml | indent 4 | nindent 4  | trim  }}
-      aws_kms:
-        {{ .Values.services.ca.engines.awsKms | toYaml | indent 4 | nindent 4  | trim  }}
-      aws_secrets_manager:
-        {{ .Values.services.ca.engines.awsSecretsManager | toYaml | indent 4 | nindent 4  | trim  }}
+      log_level: "trace"
+      default_id: {{ .Values.services.ca.cryptoEngines.defaultEngineID }}
+      engines:      
+        {{ .Values.services.ca.cryptoEngines.engines | toYaml | indent 4 | nindent 4 | trim  }}
+        
     crypto_monitoring:
       enabled: true
       frequency: "{{ .Values.services.ca.monitoring.frequency }}"

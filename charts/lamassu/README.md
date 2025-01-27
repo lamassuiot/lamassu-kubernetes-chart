@@ -50,12 +50,12 @@ PKI for Industrial IoT for Kubernetes
 | services.alerts.smtp_server.password | string | `""` | SMTP server password |
 | services.alerts.smtp_server.port | int | `25` | SMTP server port |
 | services.alerts.smtp_server.username | string | `""` | SMTP server username |
-| services.awsConnector.connectorID | string | `"aws.<account_id>"` | AWS IoT Connector ID. It is strongly recommended to use the aws.<account_id> format |
-| services.awsConnector.credentials.accessKeyId | string | `""` | AWS Access Key ID |
-| services.awsConnector.credentials.defaultRegion | string | `""` | AWS Region |
-| services.awsConnector.credentials.secretAccessKey | string | `""` | AWS Secret Access Key |
-| services.awsConnector.enabled | bool | `false` | Enable the AWS IoT Connector |
-| services.awsConnector.image | string | `"ghcr.io/lamassuiot/lamassu-aws-connector:2.5.1"` | Docker image for the AWS Connector component |
+| services.connectors.awsIoT.connectorID | string | `"aws.<account_id>"` | AWS IoT Connector ID. It is strongly recommended to use the aws.<account_id> format |
+| services.connectors.awsIoT.credentials.accessKeyId | string | `""` | AWS Access Key ID |
+| services.connectors.awsIoT.credentials.defaultRegion | string | `""` | AWS Region |
+| services.connectors.awsIoT.credentials.secretAccessKey | string | `""` | AWS Secret Access Key |
+| services.connectors.awsIoT.enabled | bool | `false` | Enable the AWS IoT Connector |
+| services.connectors.awsIoT.image | string | `"ghcr.io/lamassuiot/lamassu-aws-connector:2.5.1"` | Docker image for the AWS Connector component |
 | services.ca.domain | string | `"dev.lamassu.io"` | Domain to be used while signing/generating new CAs and certificates |
 | services.ca.engines.awsKms | string | `nil` |  |
 | services.ca.engines.awsSecretsManager | string | `nil` |  |

@@ -1,5 +1,6 @@
-{{ range $instance := .Values.services.awsConnector.instances }}
-{{ $instanceID := $instance.connectorID | replace "aws." "" }}
+{{ range $instance := $.Values.services.connectors }}
+{{- if eq $instance.type "awsiot" }}
+{{ $instanceID := $instance.id | replace "aws." "" }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -15,4 +16,5 @@ spec:
     targetPort: 8085
     protocol: TCP
 ---
+{{- end -}}
 {{- end -}}

@@ -45,7 +45,7 @@ spec:
             - name: COGNITO_HOSTED_UI_DOMAIN
               value: {{.Values.auth.oidc.frontend.awsCognito.hostedUiDomain}}
             - name: CLOUD_CONNECTORS
-              value: "[{{- range $index, $element := .Values.services.awsConnector.instances -}}{{- if $index }}, {{ end }}\"{{ $element.connectorID }}\"{{- end }}]"
+              value: "[{{- range $index, $element := .Values.services.connectors -}}{{- if $index }}, {{ end }}\"{{ $element.id }}\"{{- end }}]"
           ports:
             - containerPort: 8080
       restartPolicy: Always

@@ -15,11 +15,11 @@ jobs:
           sudo echo "127.0.0.1 ci.lamassu.io" | sudo tee -a /etc/hosts
       - uses: azure/setup-kubectl@v4.0.0
       - name: Set up Helm
-        uses: azure/setup-helm@v4.0.0
+        uses: azure/setup-helm@v4.2.0
         with:
           version: v3.12.1
       - name: Create kind cluster
-        uses: helm/kind-action@v1.9.0
+        uses: helm/kind-action@v1.12.0
         with:
           config: .github/ci/kind.yaml
       - name: Prepare kind cluster
@@ -29,7 +29,7 @@ jobs:
           kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=180s
       - name: run fast lane
         run: |
-          ./scripts/lamassu-fast-lane.sh -n -ns lamassu-ci -d ci.lamassu.io
+          ./scripts/lamassu-fast-lane.sh -n -ns lamassu-ci -d ci.lamassu.io -l ./charts/lamassu
       - name: show info
         run: |
           kubectl get pods -n lamassu-ci
