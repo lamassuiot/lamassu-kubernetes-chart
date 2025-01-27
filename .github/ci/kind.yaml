@@ -10,6 +10,6 @@ nodes:
             node-labels: "ingress-ready=true"
     extraPortMappings:
       - containerPort: 443
-        hostPort: 10443
+        hostPort: 30443
         listenAddress: "127.0.0.1"
         protocol: TCP
