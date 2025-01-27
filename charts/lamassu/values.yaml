@@ -114,7 +114,7 @@ services:
       engines:
         - id: "filesystem-1"
           # filesystem | pkcs11 | hashicorp_vault | aws_kms | aws_secrets_manager
-          type: "filesystem" 
+          type: "filesystem"
           metadata:
             prod-ready: "false"
           storage_directory: "/crypto/fs"
