@@ -473,22 +473,6 @@ externalDatabase:
 logging:
   level: INFO
 
-extraVolumes:
-  - name: extensions
-    emptyDir: {}
-
-extraVolumeMounts: 
-  - name: extensions
-    mountPath: /opt/bitnami/keycloak/providers
-
-initContainers:
-- name: init-custom-theme
-  image: curlimages/curl:8.10.1
-  command: ['sh', '-c', 'curl -L -f -S -o /extensions/lamassu-theme.jar https://github.com/lamassuiot/keycloak-theme/releases/download/1.0.0/keycloak-theme-for-kc-22-and-above.jar']
-  volumeMounts:  
-  - mountPath: "/extensions"
-    name: extensions
-
 httpRelativePath: /auth/
 proxy: reencrypt
 proxyHeaders: xforwarded
@@ -537,6 +521,27 @@ keycloakConfigCli:
         - "/*"
         publicClient: true
 EOF
+
+    if [ "$OFFLINE" = false ]; then
+        cat >>keycloak.yaml <<"EOF"
+extraVolumes:
+  - name: extensions
+    emptyDir: {}
+
+extraVolumeMounts: 
+  - name: extensions
+    mountPath: /opt/bitnami/keycloak/providers
+
+initContainers:
+- name: init-custom-theme
+  image: curlimages/curl:8.10.1
+  command: ['sh', '-c', 'curl -L -f -S -o /extensions/lamassu-theme.jar https://github.com/lamassuiot/keycloak-theme/releases/download/1.0.0/keycloak-theme-for-kc-22-and-above.jar']
+  volumeMounts:  
+  - mountPath: "/extensions"
+    name: extensions
+EOF
+    fi
+
 
     sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i keycloak.yaml
     sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i keycloak.yaml
