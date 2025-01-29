@@ -24,16 +24,16 @@ data:
       port: {{ .Values.amqp.port }}
       basic_auth:
         enabled: true
-        username: {{ .Values.amqp.username }}
-        password: {{ .Values.amqp.password }}
+        username: "{{ .Values.amqp.username }}"
+        password: "{{ .Values.amqp.password }}"
 
     storage:
       log_level: "info"
       provider: "postgres" #couch_db | postgres | dynamo_db
       hostname: {{ $.Values.postgres.hostname }}
       port: {{ $.Values.postgres.port }}
-      username: {{ $.Values.postgres.username }}
-      password: {{ $.Values.postgres.password }}
+      username: "{{ $.Values.postgres.username }}"
+      password: "{{ $.Values.postgres.password }}"
     
     smtp_server:
       from: {{ .Values.services.alerts.smtp_server.from }}
