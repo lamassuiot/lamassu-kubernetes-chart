@@ -520,6 +520,7 @@ keycloakConfigCli:
         webOrigins:
         - "/*"
         publicClient: true
+        directAccessGrantsEnabled: true
 EOF
 
     if [ "$OFFLINE" = false ]; then
