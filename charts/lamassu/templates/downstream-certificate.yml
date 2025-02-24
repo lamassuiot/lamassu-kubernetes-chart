@@ -8,8 +8,14 @@ spec:
   isCA: false
   commonName: {{.Values.tls.certManagerOptions.certSpec.commonName}}
   duration: {{.Values.tls.certManagerOptions.certSpec.duration}}
-  dnsNames: {{.Values.tls.certManagerOptions.certSpec.hostnames}}
-  ipAddresses: {{.Values.tls.certManagerOptions.certSpec.addresses}}
+  dnsNames: 
+    {{- range .Values.tls.certManagerOptions.certSpec.hostnames }}
+    - {{ . }}
+    {{- end }}
+  ipAddresses:
+    {{- range .Values.tls.certManagerOptions.certSpec.addresses }}
+    - {{ . }}
+    {{- end }}
   secretName: downstream-cert
   privateKey:
     algorithm: ECDSA

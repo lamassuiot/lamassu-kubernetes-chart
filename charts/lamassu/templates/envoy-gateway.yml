@@ -22,10 +22,6 @@ spec:
       kind: EnvoyProxy
       name: proxy
   addresses:
-  {{ range $name := $.Values.gateway.hostnames }}
-  - type: Hostname
-    value: {{ $name }}
-  {{ end }}
   {{ range $ip := $.Values.gateway.addresses }}
   - type: IPAddress
     value: {{ $ip }}
