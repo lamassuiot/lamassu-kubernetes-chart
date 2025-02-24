@@ -13,8 +13,9 @@ tls:
     issuer: ""
     # -- Duration for the certificate to be valid
     certSpec:
-      commonName: ""
+      commonName: "dev.lamassu.io"
       hostnames:
+      - "dev.lamassu.io"
       addresses:
       duration: "2160h"  # 2160h == 90days
   externalOptions:
