@@ -9,7 +9,7 @@ amqp:
   port: 5672
   username: "admin"
   password: "admin"
-  
+
 services:
   services:
     ca:
@@ -36,4 +36,3 @@ gateway:
     http: 80
     https: 443
   addresses:
-    -

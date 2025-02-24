@@ -15,13 +15,14 @@ tls:
     certSpec:
       commonName: ""
       hostnames:
-      addresses: 
-      duration: "2160h" # 2160h == 90days
+      addresses:
+      duration: "2160h"  # 2160h == 90days
   externalOptions:
     # -- Secret name for the TLS certificate to be used for the API Gateway (the secret at least must have `tls.crt` and `tls.key` keys)
     secretName: ""
 
 gateway:
+  extraRouting:
   addresses:
   ports:
     http: 80
