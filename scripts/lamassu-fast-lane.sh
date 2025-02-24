@@ -294,7 +294,6 @@ function final_instructions() {
 
 
 function install_lamassu() {
-DOMAIN=$DOMAIN
 if [ "$HTTPS_PORT" -ne 443 ]; then
     DOMAIN="$DOMAIN:$HTTPS_PORT"
 fi
@@ -303,18 +302,18 @@ fi
 postgres:
   hostname: "postgresql"
   port: 5432
-  username: "env.postgres.user"
-  password: "env.postgres.password"
+  username: ""
+  password: ""
 
 amqp:
   hostname: "rabbitmq"
   port: 5672
-  username: "env.rabbitmq.user"
-  password: "env.rabbitmq.password"
+  username: ""
+  password: ""
   tls: false
+
 services:
   ca:
-    domain: $DOMAIN
     cryptoEngines:
       defaultEngineID: fs-1
       engines:
@@ -340,9 +339,12 @@ gateway:
 EOF
 
 export DOMAIN=$DOMAIN
+yq -i '.services.ca.domain = (env(DOMAIN))' lamassu.yaml
+
 export IP_LIST="$(hostname -I)"
 export HTTPS_PORT=$HTTPS_PORT
 export HTTP_PORT=$HTTP_PORT
+
 yq -i '.gateway.addresses = (env(IP_LIST) | split(" "))' lamassu.yaml
 yq -i '.gateway.ports.https = env(HTTPS_PORT)' lamassu.yaml
 yq -i '.gateway.ports.http = env(HTTP_PORT)' lamassu.yaml
@@ -370,9 +372,17 @@ else
     yq -i '.tls.certManagerOptions.certSpec.addresses = (env(IP_LIST) | split(" "))' lamassu.yaml
 fi
 
-    sed 's/env.lamassu.domain/'"$DOMAIN"'/' -i lamassu.yaml
-    sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i lamassu.yaml
-    sed 's/env.rabbitmq.user/'"$RABBIT_USER"'/;s/env.rabbitmq.password/'"$RABBIT_PWD"'/' -i lamassu.yaml
+
+    export POSTGRES_USER=$POSTGRES_USER
+    export POSTGRES_PWD=$POSTGRES_PWD
+    export RABBIT_USER=$RABBIT_USER
+    export RABBIT_PWD=$RABBIT_PWD
+
+    yq -i '.postgres.username = (env(POSTGRES_USER))' lamassu.yaml
+    yq -i '.postgres.password = (env(POSTGRES_PWD))' lamassu.yaml
+    yq -i '.amqp.username = (env(RABBIT_USER))' lamassu.yaml
+    yq -i '.amqp.password = (env(RABBIT_PWD))' lamassu.yaml
+  
 
     helm_path=$LAMASSU_CHART_PATH
     if [ "$OFFLINE" = false ]; then
@@ -427,8 +437,8 @@ function install_rabbitmq() {
 function install_keycloak() {
     cat >keycloak.yaml <<"EOF"
 auth: 
-  adminUser: "env.keycloak.user"
-  adminPassword: "env.keycloak.password"
+  adminUser: ""
+  adminPassword: ""
 
 postgresql:
   enabled: false
@@ -436,8 +446,8 @@ postgresql:
 externalDatabase:
   host: "postgresql"
   port: 5432
-  user: "env.postgres.user"
-  password: "env.postgres.password"
+  user: ""
+  password: ""
   database: auth
 
 logging:
@@ -513,8 +523,16 @@ EOF
     fi
 
 
-    sed 's/env.postgres.user/'"$POSTGRES_USER"'/;s/env.postgres.password/'"$POSTGRES_PWD"'/' -i keycloak.yaml
-    sed 's/env.keycloak.user/'"$KEYCLOAK_USER"'/;s/env.keycloak.password/'"$KEYCLOAK_PWD"'/' -i keycloak.yaml
+    export POSTGRES_USER=$POSTGRES_USER
+    export POSTGRES_PWD=$POSTGRES_PWD
+    yq -i '.externalDatabase.user = env(POSTGRES_USER)' keycloak.yaml
+    yq -i '.externalDatabase.password = env(POSTGRES_PWD)' keycloak.yaml
+
+    export KEYCLOAK_USER=$KEYCLOAK_USER
+    export KEYCLOAK_PWD=$KEYCLOAK_PWD
+    yq -i '.auth.adminUser = env(KEYCLOAK_USER)' keycloak.yaml
+    yq -i '.auth.adminPassword = env(KEYCLOAK_PWD)' keycloak.yaml
+
 
     helm_path=bitnami/keycloak
     if [ "$OFFLINE" = false ]; then
@@ -539,8 +557,8 @@ fullnameOverride: "postgresql"
 global:
   postgresql:
     auth:
-      username: "env.user"
-      password: "env.password"
+      username: ""
+      password: ""
 primary:
   initdb:
     scripts:
@@ -553,7 +571,10 @@ primary:
         CREATE DATABASE dmsmanager;
 EOF
 
-    sed 's/env.user/'"$POSTGRES_USER"'/;s/env.password/'"$POSTGRES_PWD"'/' -i postgres.yaml
+    export POSTGRES_USER=$POSTGRES_USER
+    export POSTGRES_PWD=$POSTGRES_PWD
+    yq -i '.global.postgresql.auth.username = env(POSTGRES_USER)' postgres.yaml
+    yq -i '.global.postgresql.auth.password = env(POSTGRES_PWD)' postgres.yaml
 
     helm_path=bitnami/postgresql
     if [ "$OFFLINE" = false ]; then

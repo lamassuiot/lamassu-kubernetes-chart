@@ -22,9 +22,6 @@ tls:
     secretName: ""
 
 gateway:
-  # -- Hostname to be used for the Ingress resource to route all incoming traffic to the API Gateway
-  hostnames:
-  - dev.lamassu.io
   addresses:
   ports:
     http: 80
