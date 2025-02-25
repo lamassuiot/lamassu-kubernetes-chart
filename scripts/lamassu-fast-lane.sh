@@ -37,7 +37,6 @@ KEYCLOAK_PWD=$(
 )
 
 OFFLINE_HELMCHART_LAMASSU=""
-OFFLINE_HELMCHART_ENVOY_GATEWAY=""
 OFFLINE_HELMCHART_RABBITMQ=""
 OFFLINE_HELMCHART_KEYCLOAK=""
 OFFLINE_HELMCHART_POSTGRES=""
@@ -109,7 +108,6 @@ function usage() {
     echo " --tls-crt                    Path to the PEM encoded certificate used for downstream communications"
     echo " --tls-key                    Path to the PEM encoded key used for downstream communications"
     echo " --helm-chart-lamassu         (Only needed while using --offline) Path to the Lamassu helm chart (.tgz format)"
-    echo " --helm-chart-envoy-gateway    (Only needed while using --offline) Path to the EnvoyGateway helm chart (.tgz format)"
     echo " --helm-chart-postgres        (Only needed while using --offline) Path to the Posgtres helm chart (.tgz format)"
     echo " --helm-chart-keycloak        (Only needed while using --offline) Path to the Keycloak helm chart (.tgz format)"
     echo " --helm-chart-rabbitmq        (Only needed while using --offline) Path to the RabbitMQ helm chart (.tgz format)"
@@ -161,16 +159,6 @@ function process_flags() {
                 exit 1
             fi
             OFFLINE_HELMCHART_LAMASSU=$(extract_argument $@)
-
-            shift
-            ;;
-         --helm-chart-envoy-gateway)
-              if ! has_argument $@; then
-                echo -e "\n${RED}Envoy Gateway Helm Chart not specified.${NOCOLOR}" >&2
-                usage
-                exit 1
-            fi
-            OFFLINE_HELMCHART_ENVOY_GATEWAY=$(extract_argument $@)
 
             shift
             ;;
