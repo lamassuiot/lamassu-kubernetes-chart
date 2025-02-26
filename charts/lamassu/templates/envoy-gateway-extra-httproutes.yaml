@@ -18,7 +18,7 @@ spec:
         requestHeaderModifier:
           set:
             - name: X-Forwarded-Port
-              value: "{{ .Values.gateway.ports.https }}"
+              value: "{{ $.Values.gateway.ports.https }}"
       backendRefs:
         - name: {{ $svc.target.host }}
           port: {{ $svc.target.port }}
