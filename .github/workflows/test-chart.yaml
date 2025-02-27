@@ -67,4 +67,4 @@ jobs:
 
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct install --config .github/ci/ct.yaml --github-groups --target-branch main --helm-extra-set-args "--set=gateway.addresses[0]=$(hostname -I | awk '{print $1}')"
+        run: ct install --config .github/ci/ct.yaml --github-groups --target-branch main
