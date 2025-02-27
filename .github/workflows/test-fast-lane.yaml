@@ -12,7 +12,8 @@ jobs:
           fetch-depth: 0
       - name: Add hosts to /etc/hosts
         run: |
-          sudo echo "127.0.0.1 ci.lamassu.io" | sudo tee -a /etc/hosts
+          VM_IP=$(hostname -I | awk '{print $1}')
+          sudo echo "$VM_IP ci.lamassu.io" | sudo tee -a /etc/hosts
       - uses: azure/setup-kubectl@v4.0.0
       - name: Set up Helm
         uses: azure/setup-helm@v4.2.0
